@@ -140,7 +140,7 @@ function Checkbox(props: { isAnswered: boolean, correct: boolean | "notChoosen",
 
   return (
     <div
-      class={`border-pink-400 dark:border-pink-600 relative flex items-center justify-center w-5 h-5 border-2 ${getBorderColor()} ${getBackgroundColor()} rounded-sm`}
+      class={` ${getBorderColor()} ${getBackgroundColor()} border-pink-400 dark:border-pink-600 relative flex items-center justify-center w-5 h-5 border-2 rounded-sm`}
     >
       <span class={`h-0 absolute transition-all w-full bottom-0 ${getBackgroundColor()}`}></span>
       {getIcon()}
