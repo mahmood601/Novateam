@@ -83,7 +83,7 @@ function Test(props: TestProps) {
                   e.stopPropagation()
                   audio.pause()
 
-                  if (index() === props.correct) {
+                  if (index() === (props.correct - 1)) {
 
 
                     checkboxRef = e.currentTarget
@@ -106,12 +106,12 @@ function Test(props: TestProps) {
                 class={`${answer().state ? 'pointer-events-none' : ''} flex items-center w-fit`}>
                 <Show when={index() !== answer().index}
                   fallback={
-                    <Checkbox isAnswered={answer().state} correct={answer().index == props.correct} />
+                    <Checkbox isAnswered={answer().state} correct={answer().index == (props.correct - 1)} isAnswer={index() == (props.correct - 1)} />
                   }
                 >
-                  <Checkbox isAnswered={answer().state} correct={"notChoosen"} />
+                  <Checkbox isAnswered={answer().state} correct={"notChoosen"} isAnswer={index() == (props.correct - 1)} />
                 </Show>
-                <p class="pr-2">{option}</p>
+                <p class="pr-2 text-wrap h-fit w-fit">{option}</p>
               </li>
             )
           }
@@ -121,17 +121,31 @@ function Test(props: TestProps) {
   )
 }
 
+function Checkbox(props: { isAnswered: boolean, correct: boolean | "notChoosen", isAnswer: boolean }) {
+  const getBorderColor = () => {
+    return props.correct ? 'border-green-600' : 'border-blue-600 dark:border-blue-600';
+  };
 
-function Checkbox(props: { isAnswered: boolean, correct: boolean | "notChoosen" }) {
+  const getBackgroundColor = () => {
+    if (props.isAnswer && props.isAnswered) return 'bg-pink-600';
+    if (props.correct === "notChoosen") return 'bg-none';
+    return props.correct ? 'bg-pink-400 dark:bg-pink-600' : 'bg-blue-400 dark:bg-blue-600';
+  };
+
+  const getIcon = () => {
+    if ((props.correct == "notChoosen" && !props.isAnswer) || !props.isAnswered) return null
+    if (props.isAnswered && !props.correct) return <Cross />
+    return props.correct ? <Check /> : <Cross />;
+  };
+
   return (
     <div
-      onClick={() => {
-      }}
-      class={`${props.correct == "notChoosen" ? 'border-pink-400 dark:border-pink-600' : props.correct ? 'border-green-600' : 'border-red-600 '} relative flex items-center justify-center w-5 h-5 border-2  border-pink-400 dark:border-pink-600 rounded-sm`}>
-      <span class={`${props.isAnswered ? 'h-full' : 'h-0'} ${props.correct == "notChoosen" ? 'bg-pink-400' : props.correct ? 'bg-pink-400 dark:bg-pink-600' : 'bg-blue-400 dark:bg-blue-600'} h-0 absolute transition-all  w-full bottom-0`}></span>
-      {props.correct == "notChoosen" ? '' : props.correct ? <Check /> : <Cross />}
+      class={`border-pink-400 dark:border-pink-600 relative flex items-center justify-center w-5 h-5 border-2 ${getBorderColor()} ${getBackgroundColor()} rounded-sm`}
+    >
+      <span class={`h-0 absolute transition-all w-full bottom-0 ${getBackgroundColor()}`}></span>
+      {getIcon()}
     </div>
-  )
+  );
 }
 
 function Check() {
