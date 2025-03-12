@@ -72,6 +72,8 @@ export default function Panel(props: { openSetter: Setter<boolean> }) {
             const data= unwrap(form)
             try {
               databases.createDocument(DATABASE_ID, "67d034520023ddfd14f2", data)
+            } catch (e) {
+              console.log(e)
             }
             // setForm(reconcile(formObject()));
           }}
