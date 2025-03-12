@@ -1,7 +1,7 @@
 import { onCleanup, onMount } from 'solid-js';
 import './UI.css'
 import { createAsync, query, redirect } from '@solidjs/router';
-import { getLoggedInUser} from '~/lib/server/appwrite';
+import { getLoggedInUser} from '~/lib/appwrite';
 import { loginWithGithub, loginWithGoogle } from '~/lib/server/oauth';
 
 

@@ -1,33 +1,6 @@
-import { createAsync, redirect } from "@solidjs/router"
-import { getLoggedInUser } from "~/lib/server/appwrite"
+import { JSX } from "solid-js"
 
-// const user = async () => {
-//   "use server"
-//   const isLoggedIn = await getLoggedInUser()
-//
-//   if (!isLoggedIn) {
-//     throw redirect("/login")
-//   }
-//
-// }
-
-
-
-export default function Header(props: { sectionName: string }) {
-  // createAsync(async () => {
-  //   try {
-  //     const userData = await user()
-  //     // Use the user data here
-  //   } catch (error) {
-  //     if (error instanceof redirect) {
-  //       // Handle the redirect exception
-  //     } else {
-  //       console.error("Error fetching user data", error)
-  //     }
-  //   }
-  // }, { deferStream: true })
-
-
+export default function Header(props: { classes?: string, sectionName: string, children?: JSX.Element }) {
 
   return (
     <div class="flex justify-between w-full items-center p-5 dark:bg-header dark:text-white">
@@ -43,6 +16,7 @@ export default function Header(props: { sectionName: string }) {
           clip-rule="evenodd" />
       </svg>
       <h1 class=" text-xl font-bold flex-1 text-center pr-[1.8em]">{props.sectionName}</h1>
+      {props.children}
     </div >
   )
 }

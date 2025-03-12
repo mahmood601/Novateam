@@ -1,6 +1,6 @@
 import { createAsync } from "@solidjs/router"
 import { JSX } from "solid-js"
-import { getLoggedInUser } from "~/lib/server/appwrite"
+import { getLoggedInUser } from "~/lib/appwrite"
 
 
 export default function ProfileInfo() {

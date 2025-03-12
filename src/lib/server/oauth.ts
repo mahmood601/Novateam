@@ -1,4 +1,4 @@
-import { createAdminClient } from "./appwrite";
+import { createAdminClient } from "../appwrite";
 import { OAuthProvider } from "node-appwrite";
 import { action, redirect } from "@solidjs/router";
 

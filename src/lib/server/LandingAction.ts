@@ -1,5 +1,5 @@
 import { action, redirect } from "@solidjs/router"
-import { getLoggedInUser } from "./appwrite"
+import { getLoggedInUser } from "../appwrite"
 
 export const goOrSignin = action(async (event) => {
   "use server"

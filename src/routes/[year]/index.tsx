@@ -2,7 +2,7 @@ import { useParams } from "@solidjs/router";
 import { createResource, For } from "solid-js";
 import Box from "~/components/ui/Box";
 import Layout from "~/components/ui/Layout";
-import subjects from "~/lib/subjects.js"
+import subjects from "~/components/subjects.js"
 
 export default function App() {
   const params = useParams()

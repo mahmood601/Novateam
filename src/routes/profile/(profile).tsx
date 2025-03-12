@@ -1,6 +1,6 @@
 import { createAsync, query, redirect } from "@solidjs/router";
 import Profile from "~/components/ui/Profile/Profile";
-import { getLoggedInUser } from "~/lib/server/appwrite";
+import { getLoggedInUser } from "~/lib/appwrite";
 
 const user = query(async () => {
   "use server"

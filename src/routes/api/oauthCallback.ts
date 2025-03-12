@@ -1,5 +1,5 @@
 import { getRequestURL, HTTPEvent, setCookie } from "vinxi/http"
-import { createAdminClient } from "~/lib/server/appwrite"
+import { createAdminClient } from "~/lib/appwrite"
 
 export async function GET(event: HTTPEvent) {
   "use server"
