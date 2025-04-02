@@ -30,7 +30,7 @@ export default function ProfileInfo(user: {
                     setAccount("devMode", !account.devMode);
                     localStorage.setItem("dev", `${account.devMode}`);
                   }}
-                  class="bg-darker-light-2 dark:bg-main-light relative mr-3 h-5 w-10 rounded-full"
+                  class="bg-darker-light-2 dark:bg-main-light relative mr-1 h-5 w-10 rounded-full"
                 >
                   <span
                     classList={{
