@@ -23,7 +23,7 @@ const subjects = {
     ],
   },
   "clinical-chemistry": {
-    name: "الكيمياء السريرية",
+    name: "الكيمياء الحيوية والسريرية",
     year: ["2024", "2023", "2022"],
     season: [
       { id: 1, name: "first" },

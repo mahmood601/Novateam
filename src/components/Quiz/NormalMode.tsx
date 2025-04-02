@@ -66,7 +66,14 @@ export default function NormalMode() {
   return (
     <Suspense>
       <Show when={questions() && !showResult()}>
-        <Show when={questions()?.length > 0} fallback="not found">
+        <Show
+          when={questions()?.length > 0}
+          fallback={
+            <div class="bg-main-light dark:bg-main-dark flex h-screen w-screen items-center justify-center text-main-dark dark:text-main-light">
+              <p dir="rtl">لم يتم تنزيل أية اسئلة 😐</p>
+            </div>
+          }
+        >
           <div class="dark:text-main-light bg-main-light dark:bg-main-dark top-0 z-50 flex h-screen flex-col">
             <QuizHeader
               subjectName={subjects[subject].name}
@@ -92,7 +99,7 @@ export default function NormalMode() {
         </Show>
       </Show>
       <Show when={showResult()}>
-      <Result subject={subject} />
+        <Result subject={subject} />
       </Show>
     </Suspense>
   );
@@ -435,17 +442,16 @@ function Result(props: { subject: string }) {
     if (e.answer) numberOfTrues++;
   });
   return (
-    <div class="absolute flex h-screen w-screen items-center justify-center bg-main-light dark:bg-main-dark dark:text-main-light">
-      <div class="max-w-1/2 rounded-md bg-darker-light-1 dark:bg-lighter-dark-1">
+    <div class="bg-main-light dark:bg-main-dark dark:text-main-light absolute flex h-screen w-screen items-center justify-center">
+      <div class="bg-darker-light-1 dark:bg-lighter-dark-1 max-w-1/2 rounded-md">
         <div class="p-2">
-        <p dir="rtl">
+          <p dir="rtl">
             عدد الاسئلة : <span class="text-main">{userAnswers().length}</span>
           </p>
           <p dir="rtl">
             عدد الاجابات الصحيحة: <span class="text-true">{numberOfTrues}</span>
           </p>
           <p dir="rtl">
-
             عدد الاجابات الخاطئة:{" "}
             <span class="text-warn">
               {userAnswers().length - numberOfTrues}

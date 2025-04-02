@@ -55,7 +55,7 @@ export default function AppName(props: { hide: Accessor<boolean> }) {
           </Match>
 
           <Match when={connectionState() === "online"}>
-            <p class="text-pink-400 dark:text-white">متصل</p>
+            <p class="text-main">متصل</p>
           </Match>
           <Match when={connectionState() === "offline"}>
             <p class="w-8 dark:text-white">
