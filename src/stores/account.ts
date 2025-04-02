@@ -1,6 +1,10 @@
 import { createStore } from "solid-js/store";
 
+
+
 export const [account, setAccount] = createStore({
-  name: "",
-  devMode: true,
+  devMode: localStorage.getItem("dev") == "true" ? true: false || false,
 })
+
+
+
