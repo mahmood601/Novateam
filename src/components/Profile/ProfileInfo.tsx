@@ -18,25 +18,25 @@ export default function ProfileInfo(user: {
           value={
             <div
               dir="rtl"
-              class="text-md text-main-dark dark:text-main-light flex flex-col justify-center text-right font-normal"
+              class="text-md w-full text-main-dark dark:text-main-light pl-2 flex flex-col justify-center text-right font-normal"
             >
               <p>
-                <span class="rainbow-graident">انت عضو من الفريق</span>😎🔥
+                <span class="rainbow-graident text-center">انت عضو من الفريق</span>😎🔥
               </p>
-              <div class="flex items-center">
-                <p>هل تريد تفعيل وضع ادخال الاسئلة؟ 👀</p>
+              <div class="flex w-full items-center justify-around">
+                <p class="text-wrap text-right max-w-3/4 text-sm">هل تريد تفعيل وضع ادخال الاسئلة؟ 👀</p>
                 <button
                   on:click={() => {
                     setAccount("devMode", !account.devMode);
                     localStorage.setItem("dev", `${account.devMode}`);
                   }}
-                  class="bg-darker-light-2 dark:bg-main-light relative mr-1 h-5 w-10 rounded-full"
+                  class="bg-darker-light-2 dark:bg-main-light relative  h-4 w-10 rounded-full"
                 >
                   <span
                     classList={{
-                      "bg-main -translate-x-5": account.devMode,
+                      "bg-main -translate-x-6": account.devMode,
                       "bg-main-light dark:bg-lighter-dark-2 ": !account.devMode,
-                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-4 w-4 rounded-full":
+                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-3 w-3 rounded-full":
                         true,
                     }}
                   ></span>
