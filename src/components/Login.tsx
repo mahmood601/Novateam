@@ -31,14 +31,15 @@ export default function Login() {
 }
 
 function Oauth(props: { name: string; provider: any; imageSrc: string }) {
-  const navigate = useNavigate();
-  const user = useUser().user;
   const login = useUser().login;
-  createEffect(() => {
+  const user = useUser().user;
+  const navigate = useNavigate()
+
+  createEffect(()=>{
     if (user()) {
-      navigate("/profile");
+      navigate("/profile", {replace: true})
     }
-  });
+  })
 
   return (
     <button

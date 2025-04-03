@@ -15,6 +15,7 @@ import subjects from "../subjects";
 import { addAnswersToProgress, getQuestions } from "../../helpers/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
+import Timer from "../../helpers/timer";
 
 type userAnswerT = {
   questionId: string;
@@ -52,11 +53,13 @@ export default function NormalMode() {
   onCleanup(() => {
     setUserAnswers([]);
     resetOpts();
+    window.onbeforeunload = null;
   });
 
   window.onbeforeunload = (e) => {
     e.preventDefault();
   };
+
   createEffect(() => {
     document.documentElement.classList.add(
       localStorage.getItem("theme") || "light",
@@ -69,12 +72,12 @@ export default function NormalMode() {
         <Show
           when={questions()?.length > 0}
           fallback={
-            <div class="bg-main-light dark:bg-main-dark flex h-screen w-screen items-center justify-center text-main-dark dark:text-main-light">
+            <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light flex h-screen w-screen items-center justify-center">
               <p dir="rtl">لم يتم تنزيل أية اسئلة 😐</p>
             </div>
           }
         >
-          <div class="dark:text-main-light bg-main-light dark:bg-main-dark top-0 z-50 flex h-screen flex-col">
+          <div class="dark:text-main-light bg-main-light dark:bg-main-dark top-0 z-50 flex h-screen flex-col select-none">
             <QuizHeader
               subjectName={subjects[subject].name}
               questionsLength={questions()?.length}
@@ -111,6 +114,7 @@ function QuizHeader(props: {
   questionsLength: number;
 }) {
   const [time, setTime] = createSignal("");
+  const [paused, setPaused] = createSignal(false);
   const [timerInsec, setTimerInsec] = createSignal(0);
   setTimerInsec(props.questionsLength * 60);
 
@@ -118,10 +122,17 @@ function QuizHeader(props: {
   const min = () => Math.floor((timerInsec() % 3600) / 60);
   const sec = () => Math.floor(timerInsec() % 60);
 
+ 
   createEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = new Timer(() => {
       setTimerInsec(timerInsec() - 1);
     }, 1000);
+  
+    if (paused()) {
+      timer.pause();
+    } else {
+      timer.resume();
+    }
 
     if (
       timerInsec() <= 0 ||
@@ -184,7 +195,7 @@ function QuizHeader(props: {
         <span class="block py-2">
           {props.index() + 1}/{props.questionsLength}
         </span>
-        <span class="text-secondary bg-secondary/20 flex items-center rounded-full p-2">
+        <span class="text-secondary bg-secondary/5 flex items-center rounded-full p-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20px"
@@ -197,6 +208,41 @@ function QuizHeader(props: {
             />
           </svg>
           <span class="block">{time()}</span>
+          <div
+            class="ml-1"
+            on:click={() => {
+              setPaused(!paused());
+            }}
+          >
+            <Show
+              when={paused()}
+              fallback={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M16 19q-.825 0-1.412-.587T14 17V7q0-.825.588-1.412T16 5t1.413.588T18 7v10q0 .825-.587 1.413T16 19m-8 0q-.825 0-1.412-.587T6 17V7q0-.825.588-1.412T8 5t1.413.588T10 7v10q0 .825-.587 1.413T8 19"
+                  />
+                </svg>
+              }
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-1 13c0 .55-.45 1-1 1s-1-.45-1-1V9c0-.55.45-1 1-1s1 .45 1 1zm5.02-2.22l-2.4 1.92a.998.998 0 0 1-1.62-.78v-3.84c0-.84.97-1.3 1.62-.78l2.4 1.92c.5.4.5 1.16 0 1.56"
+                />
+              </svg>
+            </Show>
+          </div>
         </span>
       </div>
       <span class="bg-main/50 my-5 block h-3 w-full rounded-full">
@@ -241,8 +287,10 @@ function QuizBox(props: {
   return (
     <div class="bg-main-light dark:bg-main-dark px-5">
       <div class="flex flex-row-reverse">
-        <span dir="rtl">{props.index() + 1}.</span>
-        <p dir="auto">{currentQ()?.question}</p>
+        <pre dir="rtl" class="text-md font-bold">
+          {props.index() + 1}.{" "}
+        </pre>
+        <p dir="auto">{currentQ()?.question}:</p>
       </div>
 
       <ul
@@ -256,6 +304,7 @@ function QuizBox(props: {
           {(opt, index) => (
             <Show when={currentQ()[opt] != ""}>
               <li
+                data-index={index()}
                 on:click={(e) => {
                   playSound(currentQ().correctIndex.indexOf(index()) != -1);
                   setUserAnswers(
@@ -276,23 +325,25 @@ function QuizBox(props: {
                 }}
                 classList={{
                   "text-true":
-                    currentQ().correctIndex.includes(choosed()) &&
-                    index() == choosed(),
+                    disabled() && currentQ().correctIndex.includes(index()),
                   "text-warn":
                     !currentQ().correctIndex.includes(choosed()) &&
                     index() == choosed(),
-                  "flex flex-row-reverse items-center": true,
+                  "flex flex-row-reverse items-center py-1": true,
                 }}
               >
                 <button class="ml-2 flex size-4 items-center justify-center rounded-full border-2 border-current">
                   <span
                     classList={{
-                      "bg-current ": choosed() == index(),
+                      "bg-current ":
+                        choosed() == index() ||
+                        (disabled() &&
+                          currentQ().correctIndex.includes(index())),
                       "block h-4/6 w-4/6 rounded-full": true,
                     }}
                   ></span>
                 </button>
-                <p>{currentQ()[opt]}</p>
+                <p class="text-right">{currentQ()[opt]}</p>
               </li>
             </Show>
           )}

@@ -21,22 +21,27 @@ export default function ProfileInfo(user: {
               class="text-md w-full text-main-dark dark:text-main-light pl-2 flex flex-col justify-center text-right font-normal"
             >
               <p>
-                <span class="rainbow-graident text-center">انت عضو من الفريق</span>😎🔥
+                <span class="rainbow-graident text-center text-sm">انت عضو من الفريق</span>😎🔥
               </p>
-              <div class="flex w-full items-center justify-around">
-                <p class="text-wrap text-right max-w-3/4 text-sm">هل تريد تفعيل وضع ادخال الاسئلة؟ 👀</p>
+              <div class="flex w-fit items-center justify-between">
+                <p class="text-wrap w-3/4 sm:flex-1 text-right ml-2 text-sm ">هل تريد تفعيل وضع ادخال الاسئلة؟ 👀</p>
                 <button
                   on:click={() => {
                     setAccount("devMode", !account.devMode);
                     localStorage.setItem("dev", `${account.devMode}`);
                   }}
-                  class="bg-darker-light-2 dark:bg-main-light relative  h-4 w-10 rounded-full"
+                   classList={{
+                    "bg-main ": account.devMode,
+                    "bg-darker-light-2 dark:bg-lighter-dark-2 ": !account.devMode,
+                   "bg-darker-light-2 dark:bg-main-light relative h-5 block w-10 rounded-full":
+                      true,
+                  }}
                 >
                   <span
                     classList={{
-                      "bg-main -translate-x-6": account.devMode,
-                      "bg-main-light dark:bg-lighter-dark-2 ": !account.devMode,
-                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-3 w-3 rounded-full":
+                      "bg-main-light dark:bg-main-dark -translate-x-5": account.devMode,
+                      "bg-main-light": !account.devMode,
+                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-4 w-4 rounded-full":
                         true,
                     }}
                   ></span>
@@ -58,7 +63,7 @@ function Li(props: {
   value: JSX.Element;
 }) {
   return (
-    <li class="dark:border-dark-hover flex h-fit w-full items-center justify-between border-t-[1px] border-b-[1px] border-gray-300 py-2">
+    <li class="dark:border-dark-hover flex h-fit w-full items-center justify-between border-t-[1px] border-b-[1px] border-gray-300 py-2 pl-3">
       <div class="flex-1">
         <div class="flex w-full items-center justify-end">
           <Suspense>{props.type}</Suspense>

@@ -1,5 +1,5 @@
 /* @refresh reload */
-import { render } from "solid-js/web";
+import { render, Show } from "solid-js/web";
 import "./index.css";
 import "./css/vars.css";
 import "./css/rainbow.css";
@@ -12,26 +12,26 @@ import "@fontsource/cairo";
 import "@fontsource/poppins";
 import Profile from "./components/Profile/Profile.tsx";
 import Login from "./components/Login.tsx";
-import { UserProvider } from "./lib/context/user.tsx";
+import { UserProvider, useUser } from "./lib/context/user.tsx";
 import { Toaster } from "solid-toast";
-import 'solid-devtools'
+import "solid-devtools";
 import Settings from "./components/Setttings.tsx";
 
 const root = document.getElementById("root");
 
 render(
   () => (
-      <UserProvider>
-        <Toaster />
-        <Router root={Layout as any}>
-          <Route path="/" component={() => <UI />} />
-          <Route path="/login" component={() => <Login />} />
-          <Route path="/profile" component={() => <Profile />} />
-          <Route path="/settings" component={() => <Settings />} />
-          <Route path="/:subject" component={() => <SelectMenu />} />
-          <Route path="/:subject/:section" component={() => <Quiz />} />
-        </Router>
-      </UserProvider>
+    <UserProvider>
+      <Toaster />
+      <Router root={Layout as any}>
+        <Route path="/" component={() => <UI />} />
+        <Route path="/profile" component={() => <Profile />} />
+        <Route path="/login" component={() => <Login />} />
+        <Route path="/settings" component={() => <Settings />} />
+        <Route path="/:subject" component={() => <SelectMenu />} />
+        <Route path="/:subject/:section" component={() => <Quiz />} />
+      </Router>
+    </UserProvider>
   ),
   root!,
 );

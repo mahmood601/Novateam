@@ -47,7 +47,19 @@ export default function DevMode() {
   const fetchQS = async ({ id, direction }) =>
     await listQuestions(
       subject,
-      ["$id", "question"],
+      [
+        "$id",
+        "question",
+        "firstOption",
+        "secondOption",
+        "thirdOption",
+        "fourthOption",
+        "fifthOption",
+        "correctIndex",
+        "year",
+        "season",
+        "explanation"
+      ],
       [{ attribute: fSection, value: sSection }],
       id,
       direction,
@@ -113,6 +125,15 @@ export default function DevMode() {
                     question={question.question}
                     questions={questions}
                     setQuestions={setQuestions}
+                    options={[
+                      question.firstOption,
+                      question.secondOption,
+                      question.thirdOption,
+                      question.fourthOption,
+                      question.fifthOption,
+                    ]}
+                    correctIndex={question.correctIndex}
+                    explanation={question.explanation}
                   />
                 )}
               </For>
@@ -153,6 +174,9 @@ function QuestionBox(props: {
   question: string;
   questions: Accessor<any>;
   setQuestions: Setter<any>;
+  options: string[];
+  correctIndex: number[];
+  explanation: string;
 }) {
   const [open, setOpen] = createSignal(false);
   const params = useParams();
@@ -162,11 +186,24 @@ function QuestionBox(props: {
       onClick={() => {
         setOpen(!open());
       }}
-      class="mb-7 w-5/6"
+      class="bg-darker-light-1 dark:bg-lighter-dark-1 mb-7 w-5/6 rounded-md p-4"
     >
-      <p dir="auto" class="rounded-md bg-darker-light-1 dark:bg-lighter-dark-1 p-4">
-        {props.question}
-      </p>
+      <p dir="auto">{props.question}</p>
+      <For each={props.options.filter((option) => option)}>
+        {(option, index) => (
+          <p
+            dir="auto"
+            classList={{
+              "bg-true rounded-md": props.correctIndex.includes(index()),
+              "my-1": true,
+            }}
+          >
+            {index() + 1}. {option}
+          </p>
+        )}
+      </For>
+      <p dir="auto" class="text-center text-wrap text-main">{props.explanation}</p>
+
       <Show when={open()}>
         <div class="mt-2 flex justify-around">
           <button
@@ -174,12 +211,13 @@ function QuestionBox(props: {
               e.stopPropagation();
               setQMode("edit");
 
-              listQuestion(subject, props.id).then((data) => {
-                setQStore(data);
+              props.questions().map((q) => {
+                if (q.$id == props.id) {
+                  setQStore(q);
+                }
               });
-              console.log("click");
             }}
-            class="bg-main p-2 rounded-md"
+            class="bg-main rounded-md p-2"
           >
             تعديل
             <Show when={qMode() == "edit"}>
@@ -194,7 +232,7 @@ function QuestionBox(props: {
                 );
               });
             }}
-            class="bg-main p-2 rounded-md"
+            class="bg-main rounded-md p-2"
           >
             حذف
           </button>

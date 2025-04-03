@@ -27,7 +27,7 @@ export function UserProvider(props) {
         "https://www.googleapis.com/auth/userinfo.profile",
         "openid",
       ],
-    );
+    )
   };
 
   async function logout() {

@@ -5,14 +5,15 @@ import { useUser } from "../../lib/context/user";
 import { createEffect } from "solid-js";
 
 export default function Profile() {
-  const navigate = useNavigate();
-
   const user = useUser().user;
+  const navigate = useNavigate()
 
-  createEffect(() => {
+  createEffect(()=>{
     if (!user()) {
-      return navigate("/login");
+      navigate("/login", {replace: true})
     }
+  })
+  createEffect(() => {
     document.documentElement.classList.add(
       localStorage.getItem("theme") || "light",
     );
