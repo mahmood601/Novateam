@@ -122,12 +122,14 @@ function QuizHeader(props: {
   const min = () => Math.floor((timerInsec() % 3600) / 60);
   const sec = () => Math.floor(timerInsec() % 60);
 
- 
+  
+
   createEffect(() => {
     const timer = new Timer(() => {
       setTimerInsec(timerInsec() - 1);
     }, 1000);
-  
+    
+    timer
     if (paused()) {
       timer.pause();
     } else {
@@ -152,6 +154,7 @@ function QuizHeader(props: {
 
     onCleanup(() => {
       clearTimeout(timer);
+      timer.pause()
     });
   });
 
@@ -332,7 +335,7 @@ function QuizBox(props: {
                   "flex flex-row-reverse items-center py-1": true,
                 }}
               >
-                <button class="ml-2 flex size-4 items-center justify-center rounded-full border-2 border-current">
+                <button class="flex size-4 shrink-0 items-center justify-center rounded-full border-2 border-current">
                   <span
                     classList={{
                       "bg-current ":
@@ -343,7 +346,9 @@ function QuizBox(props: {
                     }}
                   ></span>
                 </button>
-                <p class="text-right">{currentQ()[opt]}</p>
+                <p class="mr-2 grow-0 text-right text-wrap">
+                  {currentQ()[opt]}
+                </p>
               </li>
             </Show>
           )}

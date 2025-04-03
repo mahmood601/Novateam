@@ -117,6 +117,7 @@ export default function DevMode() {
                   </Show>
                 </div>
               </div>
+              <div class="overflow-y-scroll w-full flex flex-col items-center h-fit">
               <For each={questions()}>
                 {(question) => (
                   <QuestionBox
@@ -137,7 +138,7 @@ export default function DevMode() {
                   />
                 )}
               </For>
-
+</div>
               <Show when={questionsLength() > 5}>
                 <div class="mt-3 flex w-5/6 min-w-fit flex-row-reverse flex-wrap justify-center gap-2 bg-gray-200 p-4">
                   <For each={new Array(Math.ceil(questionsLength() / 5))}>
@@ -194,7 +195,7 @@ function QuestionBox(props: {
           <p
             dir="auto"
             classList={{
-              "bg-true rounded-md": props.correctIndex.includes(index()),
+              "bg-true rounded-md p-1 text-main-dark": props.correctIndex.includes(index()),
               "my-1": true,
             }}
           >
@@ -202,7 +203,7 @@ function QuestionBox(props: {
           </p>
         )}
       </For>
-      <p dir="auto" class="text-center text-wrap text-main">{props.explanation}</p>
+      <p dir="auto" class="text-center text-wrap mt-2 text-main">{props.explanation}</p>
 
       <Show when={open()}>
         <div class="mt-2 flex justify-around">

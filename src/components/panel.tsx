@@ -62,9 +62,9 @@ export default function Panel(props: {
   return (
     <div
       on:click={(e) => e.stopPropagation()}
-      class="accent-main caret-main text-main-dark p-5 dark:text-main-light fixed top-1/2 left-1/2 z-50 h-lvh w-screen -translate-x-1/2 -translate-y-1/2"
+      class="accent-main caret-main text-main-dark  dark:text-main-light fixed top-1/2 left-1/2 z-50 h-screen w-screen -translate-x-1/2 -translate-y-1/2"
     >
-      <div class="dark:bg-main-dark bg-main-light h-full w-full rounded-md ">
+      <div class="dark:bg-main-dark bg-main-light h-full w-full rounded-md p-5">
         <button
           on:click={(e) => {
             e.stopPropagation();

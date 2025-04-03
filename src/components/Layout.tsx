@@ -8,7 +8,6 @@ export default function Layout(props: { children: JSX.Element }) {
   const quizMode = () =>
     (location().includes("season") || location().includes("year")) &&
     !account.devMode;
-    console.log( location().includes("/profile"));
     
     
   return (
