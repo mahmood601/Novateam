@@ -7,7 +7,8 @@
     "start": "vite build && vite  ",
     "build": " vite build",
     "serve": "serve dist",
-    "start-preview": "vite preview --port=4173"
+    "start-preview": "vite preview --port=4173",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.2.5",
@@ -39,11 +40,16 @@
       "esbuild",
       "postinstall-postinstall",
       "sharp"
-    ]
+    ],
+    "patchedDependencies": {
+      "vite-plugin-pwa": "patches/vite-plugin-pwa.patch"
+    }
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "https-localhost": "^4.7.1",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "rimraf": "^6.0.1",
