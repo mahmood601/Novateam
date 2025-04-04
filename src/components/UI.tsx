@@ -4,6 +4,7 @@ import "../index.css";
 import subjects from "./subjects";
 
 export default function UI() {
+  inject
   return (
     <div class="bg-main-light dark:bg-main-dark pt-10 shrink-1 overflow-x-hidden">
       <div class="flex h-full w-full justify-center overflow-hidden">
