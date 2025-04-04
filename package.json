@@ -7,8 +7,7 @@
     "start": "vite build && vite  ",
     "build": " vite build",
     "serve": "serve dist",
-    "start-preview": "vite preview --port=4173",
-    "postinstall": "patch-package"
+    "start-preview": "vite preview --port=4173"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.2.5",
