@@ -7,7 +7,8 @@
     "start": "vite build && vite  ",
     "build": " vite build",
     "serve": "serve dist",
-    "start-preview": "vite preview --port=4173"
+    "start-preview": "vite preview --port=4173",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.2.5",
@@ -35,10 +36,10 @@
       "esbuild",
       "postinstall-postinstall",
       "sharp"
-    ],
-    "patchedDependencies": {
-      "vite-plugin-pwa": "patches/vite-plugin-pwa.patch"
-    }
+    ]
+  },
+  "patches": {
+    "vite-plugin-pwa@1.0.0.patch": "patches/vite-plugin-pwa@1.0.0.patch"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
