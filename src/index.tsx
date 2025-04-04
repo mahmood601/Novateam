@@ -16,9 +16,10 @@ import { UserProvider, useUser } from "./lib/context/user.tsx";
 import { Toaster } from "solid-toast";
 import "solid-devtools";
 import Settings from "./components/Setttings.tsx";
+import ReloadPrompt from "./ReloadPrompt.tsx";
 
 const root = document.getElementById("root");
-
+const date = '__DATE__'
 render(
   () => (
     <UserProvider>
@@ -31,7 +32,8 @@ render(
         <Route path="/:subject" component={() => <SelectMenu />} />
         <Route path="/:subject/:section" component={() => <Quiz />} />
       </Router>
-    </UserProvider>
+      <ReloadPrompt/>
+      </UserProvider>
   ),
   root!,
 );

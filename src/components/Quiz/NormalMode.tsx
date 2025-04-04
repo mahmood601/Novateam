@@ -73,6 +73,14 @@ export default function NormalMode() {
           when={questions()?.length > 0}
           fallback={
             <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light flex h-screen w-screen items-center justify-center">
+              <div
+                on:click={() => {
+                  history.back();
+                }}
+                class="absolute top-0 left-0 p-5"
+              >
+                <LeftArrow />
+              </div>
               <p dir="rtl">لم يتم تنزيل أية اسئلة 😐</p>
             </div>
           }
@@ -122,14 +130,12 @@ function QuizHeader(props: {
   const min = () => Math.floor((timerInsec() % 3600) / 60);
   const sec = () => Math.floor(timerInsec() % 60);
 
-  
-
   createEffect(() => {
     const timer = new Timer(() => {
       setTimerInsec(timerInsec() - 1);
     }, 1000);
-    
-    timer
+
+    timer;
     if (paused()) {
       timer.pause();
     } else {
@@ -154,7 +160,7 @@ function QuizHeader(props: {
 
     onCleanup(() => {
       clearTimeout(timer);
-      timer.pause()
+      timer.pause();
     });
   });
 

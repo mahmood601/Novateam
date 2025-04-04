@@ -1,34 +1,50 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
+import process from 'node:process'
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
-import replace from '@rollup/plugin-replace'
+import mkcert from "vite-plugin-mkcert";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",
   base: "/",
   includeAssets: ["favicon.svg"],
+  workbox: {
+    globPatterns: ['**/*.{js,css,html,mp3,woff2,svg}'],
+  },
   manifest: {
-    name: "PWA Router",
-    short_name: "PWA Router",
-    theme_color: "#ffffff",
+    name: "Nova App 2029",
+    short_name: "Nova App",
+    id: "NovaApp",
+    description:
+      "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
+    display_override: ["standalone", "window-controls-overlay"],
     icons: [
       {
-        src: "pwa-192x192.png", // <== don't add slash, for testing
-        sizes: "192x192",
-        type: "image/png",
-      },
-      {
-        src: "/pwa-512x512.png", // <== don't remove slash, for testing
-        sizes: "512x512",
-        type: "image/png",
-      },
-      {
-        src: "pwa-512x512.png", // <== don't add slash, for testing
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "any maskable",
+        icons: [
+          {
+            src: "pwa-64x64.png",
+            sizes: "64x64",
+            type: "image/png",
+          },
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
       },
     ],
   },
@@ -39,7 +55,6 @@ const pwaOptions: Partial<VitePWAOptions> = {
     navigateFallback: "index.html",
   },
 };
-
 
 const claims = process.env.CLAIMS === "true";
 const selfDestroying = process.env.SW_DESTROY === "true";
@@ -61,21 +76,21 @@ if (claims) pwaOptions.registerType = "autoUpdate";
 
 if (selfDestroying) pwaOptions.selfDestroying = selfDestroying;
 
-// function replace(arg0: {
-//   __DATE__: string;
-//   __RELOAD_SW__: string;
-// }): import("vite").PluginOption {
-//   throw new Error("Function not implemented.");
-// }
-
+function replace(arg0: {
+  __DATE__: string;
+  __RELOAD_SW__: string;
+}): import("vite").PluginOption {
+  throw new Error("Function not implemented.");
+}
 
 export default defineConfig({
-  // build: {
-  //   sourcemap: process.env.SOURCE_MAP === "true",
-  //   target: "esnext",
-  //   // polyfillDynamicImport: false,
-  // },
+  build: {
+    sourcemap: process.env.SOURCE_MAP === "true",
+    target: "esnext",
+    // polyfillDynamicImport: false,
+  },
   plugins: [
+    mkcert(),
     tailwindcss(),
     solid(),
     devtools({
@@ -85,6 +100,6 @@ export default defineConfig({
     //   __DATE__: new Date().toISOString(),
     //   __RELOAD_SW__: process.env.RELOAD_SW === "true" ? "true" : "false",
     // }),
-    // VitePWA(pwaOptions),
+    VitePWA(pwaOptions),
   ],
 });
