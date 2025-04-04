@@ -41,7 +41,6 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
-    "@vite-pwa/assets-generator": "^1.0.0",
     "https-localhost": "^4.7.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
