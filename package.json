@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "host": "vite --host",
-    "dev": "rimraf dev-dist && vite",
-    "start": "vite build && vite serve",
+    "dev": "vite ",
+    "start": "vite build && vite  ",
     "build": " vite build",
     "serve": "serve dist",
     "start-preview": "vite preview --port=4173"
@@ -29,9 +29,6 @@
     "solid-toast": "^0.5.0",
     "solid-transition-group": "^0.3.0",
     "tailwindcss": "^4.1.2"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "pnpm": {
     "ignoredBuiltDependencies": [
