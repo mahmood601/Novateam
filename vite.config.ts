@@ -47,15 +47,15 @@ const pwaOptions: Partial<VitePWAOptions> = {
     ],
     screenshots: [
       {
-        src: "screenshots/dark-mobile.webp",
+        src: "screenshots/dark-mobile.png",
         sizes: "1280x720",
-        type: "image/webp",
+        type: "image/png",
         platform: "wide",
       },
       {
-        src: "screenshots/light-mobile.webp",
+        src: "screenshots/light-mobile.png",
         sizes: "1280x720",
-        type: "image/webp",
+        type: "image/png",
         platform: "wide",
       },
     ],
