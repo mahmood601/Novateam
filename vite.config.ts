@@ -21,7 +21,30 @@ const pwaOptions: Partial<VitePWAOptions> = {
     description:
       "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
-    icons: icons,
+    icons: [
+      {
+        src: "icons/150.png",
+        sizes: "150x150",
+        type: "image/png",
+      },
+      {
+        src: "icons/192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "icons/180.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+      {
+        src: "icons/512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
     screenshots: [
       {
         src: "screenshots/dark-mobile.webp",
