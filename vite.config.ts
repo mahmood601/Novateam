@@ -1,7 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
-import process from 'node:process'
+import process from "node:process";
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
@@ -12,7 +12,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
   base: "/",
   includeAssets: ["favicon.svg"],
   workbox: {
-    globPatterns: ['**/*.{js,css,html,mp3,woff2,svg}'],
+    globPatterns: ["**/*.{js,css,html,mp3,woff2,svg}"],
   },
   manifest: {
     name: "Nova App 2029",
@@ -22,9 +22,20 @@ const pwaOptions: Partial<VitePWAOptions> = {
       "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
     icons: icons,
-    screenShots
-      
-    
+    screenshots: [
+      {
+        src: "screenshots/dark-mobile.webp",
+        sizes: "1280x720",
+        type: "image/jpg",
+        platform: "wide",
+      },
+      {
+        src: "screenshots/light-mobile.webp",
+        sizes: "1280x720",
+        type: "image/jpg",
+        platform: "wide",
+      },
+    ],
   },
   devOptions: {
     enabled: process.env.SW_DEV === "true",
