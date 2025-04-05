@@ -5,6 +5,7 @@ import process from 'node:process'
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
+import icons from "./icons.ts";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",
@@ -21,30 +22,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
       "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
    
-    icons: [
-   
-          {
-            src: "/pwa-64x64.png",
-            sizes: "64x64",
-            type: "image/png",
-          },
-          {
-            src: "/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "/maskable-icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
+    icons: icons
       
     
   },
