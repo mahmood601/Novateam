@@ -21,8 +21,8 @@ const pwaOptions: Partial<VitePWAOptions> = {
     description:
       "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
-   
-    icons: icons
+    icons: icons,
+    screenShots
       
     
   },

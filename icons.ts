@@ -434,6 +434,8 @@ const icons = [
   {
     src: "ios/192.png",
     sizes: "192x192",
+    type: "image/png",
+    purpose: "any",
   },
   {
     src: "ios/256.png",
@@ -442,6 +444,8 @@ const icons = [
   {
     src: "ios/512.png",
     sizes: "512x512",
+    type: "image/png",
+    purpose: "maskable",
   },
   {
     src: "ios/1024.png",
