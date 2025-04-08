@@ -18,7 +18,7 @@ export default function Box(props: {
   const [aLen, setALen] = createSignal(0);
   const [downloadStatus, setDownloadStatus] = createSignal<"pending" | "">("");
 
-  createEffect(() => {
+  function getLen() {
     getQuestions(props.subject).then((res) => {
       setQLen(res?.length || 0);
     });
@@ -30,8 +30,12 @@ export default function Box(props: {
         if (item.answer) {
           setALen(aLen() + 1);
         }
-      });
     });
+  });
+  }
+
+  createEffect(() => {
+   getLen()
   });
 
   return (
@@ -63,6 +67,7 @@ export default function Box(props: {
                 },
                 success: () => {
                   setDownloadStatus("");
+                  getLen()
                   return <span>downloaded</span>;
                 },
 

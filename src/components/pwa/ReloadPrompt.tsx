@@ -74,7 +74,7 @@ createEffect(()=>{
   }
 })
 
-  return <><div></div></>
+  return <></>
 };
 
 export default ReloadPrompt;

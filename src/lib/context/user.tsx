@@ -61,7 +61,7 @@ export function UserProvider(props) {
     try {
       let loggedIn;
         try {
-          loggedIn = await withTimeout(await account.get(), 5000);
+          loggedIn = await withTimeout(await account.get(), 10000);
         } catch (networkError) {
           console.warn("Network issue, using fallback user:", networkError);
           loggedIn = JSON.parse(localStorage.getItem("user"));
