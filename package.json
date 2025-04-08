@@ -3,10 +3,10 @@
   "type": "module",
   "scripts": {
     "host": "vite --host",
-    "dev": "vite ",
+    "dev": "vite",
     "start": "vite build && vite  ",
     "build": " vite build",
-    "serve": "serve dist",
+    "serve": "vite build && serve dist",
     "start-preview": "vite preview --port=4173",
     "postinstall": "patch-package"
   },

@@ -1,5 +1,5 @@
 /* @refresh reload */
-import { render, Show } from "solid-js/web";
+import { render } from "solid-js/web";
 import "./index.css";
 import "./css/vars.css";
 import "./css/rainbow.css";
@@ -12,14 +12,15 @@ import "@fontsource/cairo";
 import "@fontsource/poppins";
 import Profile from "./components/Profile/Profile.tsx";
 import Login from "./components/Login.tsx";
-import { UserProvider, useUser } from "./lib/context/user.tsx";
+import { UserProvider } from "./lib/context/user.tsx";
 import { Toaster } from "solid-toast";
 import "solid-devtools";
 import Settings from "./components/Setttings.tsx";
-import ReloadPrompt from "./ReloadPrompt.tsx";
+import ReloadPrompt from "./components/pwa/ReloadPrompt.tsx";
+import InstallPrompt from "./components/pwa/InstallPrompt.tsx";
 
 const root = document.getElementById("root");
-const date = '__DATE__'
+const date = "__DATE__";
 render(
   () => (
     <UserProvider>
@@ -32,7 +33,8 @@ render(
         <Route path="/:subject" component={() => <SelectMenu />} />
         <Route path="/:subject/:section" component={() => <Quiz />} />
       </Router>
-      <ReloadPrompt/>
+      <InstallPrompt />
+      <ReloadPrompt />
       </UserProvider>
   ),
   root!,

@@ -37,7 +37,7 @@ export default function Box(props: {
   return (
     <A
       href={`/${props.link}`}
-      class="dark:bg-lighter-dark-1 bg-darker-light-1 border-black dark:border-lighter-dark-1 hover:border-main dark:text-main-light mb-5 flex h-24 w-full flex-row-reverse items-center justify-between rounded-md border-1 py-2 pr-4 pl-2"
+      class="special-box  mb-5 flex h-24 w-full flex-row-reverse items-center justify-between rounded-md py-2 pr-4 pl-2"
     >
       <div
         onClick={() => {}}

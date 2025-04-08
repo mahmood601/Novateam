@@ -2,18 +2,18 @@ import { useNavigate } from "@solidjs/router";
 import LeftArrow from "../Icons/LeftArrow";
 import ProfileInfo from "./ProfileInfo";
 import { useUser } from "../../lib/context/user";
-import { createEffect } from "solid-js";
+import { createEffect, onMount, Show } from "solid-js";
 
 export default function Profile() {
-  const user = useUser().user;
-  const navigate = useNavigate()
+  const { user, isLoading } = useUser();
+  const navigate = useNavigate();
 
-  createEffect(()=>{
-    if (!user()) {
-      navigate("/login", {replace: true})
-    }
-  })
   createEffect(() => {
+    if (!isLoading() && !user()) {
+      navigate("/login", { replace: true });
+    }
+  });
+  onMount(() => {
     document.documentElement.classList.add(
       localStorage.getItem("theme") || "light",
     );
@@ -34,12 +34,20 @@ export default function Profile() {
           الملف الشخصي
         </h1>
       </div>
-      <ProfileInfo
-        name={user()?.name}
-        email={user()?.email}
-        isAdmin={user()?.labels.includes("admin")}
-      />
-      ;
+      <Show
+        when={!isLoading()}
+        fallback={
+          <p dir="rtl" class="p-10 text-center text-gray-500 dark:text-gray-300">
+            جاري تحميل معلومات المستخدم...
+          </p>
+        }
+      >
+        <ProfileInfo
+          name={user()?.name}
+          email={user()?.email}
+          isAdmin={user()?.labels.includes("admin")}
+        />
+      </Show>
     </div>
   );
 }

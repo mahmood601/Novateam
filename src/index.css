@@ -7,12 +7,11 @@
   --color-header: #191919;
   --color-dark-hover: #444;
 
-
   /* main and secondary color of the theme in 90 60 30 role */
   --color-main: #b118d7;
   --color-secondary: #ffae58;
   --color-warn: #e50000;
-  --color-true:#32c79f;
+  --color-true: #32c79f;
 
   /* colors for light mode like background */
   --color-main-light: #ffffff;
@@ -62,6 +61,10 @@ button {
 
 @utility burger-slice {
   @apply block h-[2px] w-6 bg-black transition-transform duration-300;
+}
+
+@utility special-box {
+  @apply dark:bg-lighter-dark-1 bg-darker-light-1 dark:border-lighter-dark-1 hover:border-main dark:text-main-light border-1 border-black;
 }
 
 @utility border-1 {
@@ -186,7 +189,6 @@ button {
   transform: translate(0, -24px);
   opacity: 0;
 }
-
 
 @keyframes hinting {
   0% {
