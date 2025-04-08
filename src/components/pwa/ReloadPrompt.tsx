@@ -56,8 +56,6 @@ const ReloadPrompt: Component = () => {
           <button
             class="bg-main rounded-md px-3 py-1 font-semibold"
             onClick={() => {
-              setOfflineReady(false);
-              setNeedRefresh(false);
               toast.dismiss(t.id)
             }}
           >
