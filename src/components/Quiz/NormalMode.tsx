@@ -352,7 +352,7 @@ function QuizBox(props: {
                     }}
                   ></span>
                 </button>
-                <p class="mr-2 grow-0 text-right text-wrap">
+                <p dir="auto" class="mr-2 grow-0 text-right text-wrap">
                   {currentQ()[opt]}
                 </p>
               </li>
