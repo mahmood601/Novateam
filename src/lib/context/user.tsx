@@ -1,3 +1,4 @@
+import { setAccount } from "../../stores/account";
 import { account } from "../appwrite/appwrite";
 import {
   Accessor,
@@ -74,6 +75,10 @@ export function UserProvider(props) {
         name: loggedIn.name,
         labels: loggedIn.labels,
       };
+
+      if (!userInfo.labels.includes("admin")) {
+        setAccount("devMode", false)
+      }
 
       localStorage.setItem("user", JSON.stringify(userInfo));
 
