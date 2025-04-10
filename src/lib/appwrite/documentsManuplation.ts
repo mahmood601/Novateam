@@ -69,7 +69,8 @@ export async function updateQuestion(
         year: data.year,
         season: data.season,
       },
-    );setQStore(
+    );
+    setQStore(
       reconcile({
         subject: "",
         year: "",
@@ -109,24 +110,19 @@ export async function deleteQuestion(subjectId: string, questionId: string) {
 export async function listQuestions(
   subjectId: string,
   selectQueries: any,
-  equalQueries: ({attribute:string, value: string})[],
-  id?: string,
-  direction?: "next" | "prev" | "",
+  equalQueries: { attribute: string; value: string }[],
+  pageIndex?: number,
 ) {
   try {
     const queries = [Query.limit(5), Query.select(selectQueries)];
+   
+    if (pageIndex) {
+      queries.push(Query.offset(pageIndex * 5)); // (PageNum - 1) * offset
+    }
 
-    equalQueries.forEach(element => {
-      
-      queries.push(Query.equal(element.attribute, element.value))
+    equalQueries.forEach((element) => {
+      queries.push(Query.equal(element.attribute, element.value));
     });
-
-    if (direction == "next" && id) {
-      queries.push(Query.cursorAfter(id));
-    }
-    if (direction == "prev" && id) {
-      queries.push(Query.cursorBefore(id));
-    }
 
     const response = await databases.listDocuments(dbID, subjectId, queries);
     return response;
@@ -162,11 +158,7 @@ export async function listQuestion(subjectId: string, id?: string) {
   }
 }
 
-
-
 export async function listQuestionsToIndexeddb(subjectId: string) {
-    const response = await databases.listDocuments(dbID, subjectId);
-    return response;
+  const response = await databases.listDocuments(dbID, subjectId);
+  return response;
 }
-
-

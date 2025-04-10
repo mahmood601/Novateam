@@ -33,18 +33,11 @@ export default function DevMode() {
   const [direction, setDirection] = createSignal("");
   const [pageIndex, setPageIndex] = createSignal(0);
 
-  const changePage = (index: number) => {
-    const isNext = index > pageIndex();
-    setId(isNext ? questions().at(-1)?.$id || "" : questions()[0]?.$id || "");
-    setDirection(isNext ? "next" : "prev");
-    setPageIndex(index);
-  };
-
   const params = useParams();
   const subject = params.subject;
   const fSection = params.section.split("-")[0];
   const sSection = params.section.split("-")[1];
-  const fetchQS = async ({ id, direction }) =>
+  const fetchQS = async (pageIndex)  =>
     await listQuestions(
       subject,
       [
@@ -58,14 +51,12 @@ export default function DevMode() {
         "correctIndex",
         "year",
         "season",
-        "explanation"
+        "explanation",
       ],
       [{ attribute: fSection, value: sSection }],
-      id,
-      direction,
+      pageIndex,
     );
-  const queryParams = createMemo(() => ({ id: id(), direction: direction() }));
-  const [data] = createResource(queryParams, fetchQS);
+  const [data] = createResource(pageIndex, fetchQS);
 
   createEffect(() => {
     const documents = data()?.documents;
@@ -117,38 +108,40 @@ export default function DevMode() {
                   </Show>
                 </div>
               </div>
-              <div class="overflow-y-scroll w-full flex flex-col items-center h-fit">
-              <For each={questions()}>
-                {(question) => (
-                  <QuestionBox
-                    subject={subject}
-                    id={question.$id}
-                    question={question.question}
-                    questions={questions}
-                    setQuestions={setQuestions}
-                    options={[
-                      question.firstOption,
-                      question.secondOption,
-                      question.thirdOption,
-                      question.fourthOption,
-                      question.fifthOption,
-                    ]}
-                    correctIndex={question.correctIndex}
-                    explanation={question.explanation}
-                  />
-                )}
-              </For>
-</div>
+              <div class="flex h-fit w-full flex-col items-center overflow-y-scroll">
+                <For each={questions()}>
+                  {(question) => (
+                    <QuestionBox
+                      subject={subject}
+                      id={question.$id}
+                      question={question.question}
+                      questions={questions}
+                      setQuestions={setQuestions}
+                      options={[
+                        question.firstOption,
+                        question.secondOption,
+                        question.thirdOption,
+                        question.fourthOption,
+                        question.fifthOption,
+                      ]}
+                      correctIndex={question.correctIndex}
+                      explanation={question.explanation}
+                    />
+                  )}
+                </For>
+              </div>
               <Show when={questionsLength() > 5}>
                 <div class="mt-3 flex w-5/6 min-w-fit flex-row-reverse flex-wrap justify-center gap-2 bg-gray-200 p-4">
                   <For each={new Array(Math.ceil(questionsLength() / 5))}>
                     {(_, index) => (
                       <button
                         data-index={index()}
+                        
                         on:click={(e) => {
                           e.stopPropagation();
-                          changePage(index());
+                          setPageIndex(e.currentTarget.dataset.index);
                         }}
+
                         classList={{
                           "bg-main": pageIndex() == index(),
                           "w-7 h-7 cursor-pointer bg-gray-500 text-center duration-200 transition-color":
@@ -195,7 +188,8 @@ function QuestionBox(props: {
           <p
             dir="auto"
             classList={{
-              "bg-true rounded-md p-1 text-main-dark": props.correctIndex.includes(index()),
+              "bg-true rounded-md p-1 text-main-dark":
+                props.correctIndex.includes(index()),
               "my-1": true,
             }}
           >
@@ -203,7 +197,9 @@ function QuestionBox(props: {
           </p>
         )}
       </For>
-      <p dir="auto" class="text-center text-wrap mt-2 text-main">{props.explanation}</p>
+      <p dir="auto" class="text-main mt-2 text-center text-wrap">
+        {props.explanation}
+      </p>
 
       <Show when={open()}>
         <div class="mt-2 flex justify-around">
