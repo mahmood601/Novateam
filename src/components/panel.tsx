@@ -1,7 +1,7 @@
-import { createSignal, For, onCleanup, onMount, Setter } from "solid-js";
+import { createSignal, For, onCleanup, Setter } from "solid-js";
 import subjects from "./subjects";
 import { reconcile, unwrap } from "solid-js/store";
-import { QStore, qStoreObj, setQStore } from "../stores/QStores";
+import { QStore, setQStore } from "../stores/QStores";
 import {
   insertQuestion,
   updateQuestion,
