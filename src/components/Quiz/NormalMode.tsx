@@ -12,7 +12,7 @@ import {
 } from "solid-js";
 import LeftArrow from "../Icons/LeftArrow";
 import subjects from "../subjects";
-import { addAnswersToProgress, getQuestions } from "../../helpers/indexeddb";
+import { addAnswersToProgress, getQuestions, getQuestionsWithFilter } from "../../helpers/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
 import Timer from "../../helpers/timer";
@@ -45,7 +45,7 @@ export default function NormalMode() {
 
   const [questions] = createResource(
     async () => {
-      return await getQuestions(subject, sectionName, sectionValue);
+      return await getQuestionsWithFilter(subject, sectionName, sectionValue);
     },
     { deferStream: true },
   );
@@ -65,6 +65,8 @@ export default function NormalMode() {
       localStorage.getItem("theme") || "light",
     );
   });
+
+   
 
   return (
     <Suspense>
@@ -162,6 +164,21 @@ function QuizHeader(props: {
       clearTimeout(timer);
       timer.pause();
     });
+  });
+
+  //TODO: remember to send data to indexeddb
+  useBeforeLeave((e) => {
+    if (!e.defaultPrevented) {
+      e.preventDefault();
+      setTimeout(() => {
+        if (
+          confirm("هل حقا تريد المغادرة ام أنك ضغط بالخطأ على زر الرجوع؟ 🤔")
+        ) {
+          e.retry(true);
+        }
+      }, 100);
+    }
+    addAnswersToProgress(unwrap(userAnswers()));
   });
 
   return (
@@ -269,25 +286,28 @@ function QuizHeader(props: {
 const [choosed, setChoosed] = createSignal(7);
 const [disabled, setDisabled] = createSignal(false);
 
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
 function QuizBox(props: {
   qs: any;
   index: Accessor<number>;
   setIndex: Setter<number>;
   subject: string;
 }) {
-  //TODO: remember to send data to indexeddb
-  useBeforeLeave((e) => {
-    if (!e.defaultPrevented) {
-      e.preventDefault();
-      setTimeout(() => {
-        if (
-          confirm("هل حقا تريد المغادرة ام أنك ضغط بالخطأ على زر الرجوع؟ 🤔")
-        ) {
-          e.retry(true);
-        }
-      }, 100);
-    }
-    addAnswersToProgress(unwrap(userAnswers()));
+ 
+  const debouncedSave = debounce((answers: userAnswerT[]) => {
+    addAnswersToProgress(unwrap(answers));
+  }, 1000); 
+  
+  createEffect(() => {
+  
+    debouncedSave(userAnswers());
   });
 
   const currentQ = () => props.qs[props.index()];

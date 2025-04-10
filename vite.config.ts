@@ -5,7 +5,7 @@ import process from "node:process";
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
-import icons from "./icons.ts";
+import legacy from "@vitejs/plugin-legacy";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",

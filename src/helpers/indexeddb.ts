@@ -1,4 +1,5 @@
-import { listQuestionsToIndexeddb } from "../lib/appwrite/documentsManuplation";
+import { Query } from "appwrite";
+import { databases } from "../lib/appwrite/appwrite";
 import { Dexie, EntityTable } from "dexie";
 
 const db = new Dexie("db") as Dexie & {
@@ -25,14 +26,13 @@ db.version(1).stores({
   answers: `
   $id,
   subject`,
-});
-
-db.version(1).stores({
   questions: `
   $id,
   subject,
   season,
-  year`,
+  year,
+  [subject+season],
+  [subject+year]`,
 });
 
 const unusedKeys = new Set([
@@ -43,50 +43,63 @@ const unusedKeys = new Set([
 ]);
 
 export async function addQuestionsToFirstDB(subject: string) {
-  const questions = (await listQuestionsToIndexeddb(subject)).documents;
-  if (questions.error == null) {
-    questions.forEach((q) => (q.subject = subject));
-    const filteredQs = questions.map((obj) => {
+ const existingQuestions = await db.questions
+    .where("subject")
+    .equals(subject)
+    .toArray();
+
+  try {
+    const questionsResponse = await databases.listDocuments(
+      import.meta.env.VITE_DB_ID,
+      subject,
+     [ Query.limit(500)]
+    );
+
+    const questions = questionsResponse.documents.map((q) => {
+      q.subject = subject;
       return Object.fromEntries(
-        Object.entries(obj).filter(([key]) => !unusedKeys.has(key)),
+        Object.entries(q).filter(([key]) => !unusedKeys.has(key)),
       );
     });
-    const existingQuestions = await db.questions
-      .where("subject")
-      .equals(subject)
-      .toArray();
 
-    const existingIds = new Set(existingQuestions.map((q) => q.$id));
-    const newIds = new Set(filteredQs.map((q) => q.$id));
-  
-    const deletedIds = [...existingIds].filter((id) => !newIds.has(id));
+    if (existingQuestions.length === 0) {
+      await db.questions.bulkPut(questions);
+    } else {
+      const existingIds = new Set(existingQuestions.map((q) => q.$id));
+      const newIds = new Set(questions.map((q) => q.$id));
 
-    if (deletedIds.length > 0) {
-      await db.questions.bulkDelete(deletedIds);
-      await db.answers.where("$id").anyOf(deletedIds).delete();
+      const deletedIds = [...existingIds].filter((id) => !newIds.has(id));
+
+      if (deletedIds.length > 0) {
+        await db.questions.where("$id").anyOf(deletedIds).delete();
+        await db.answers.where("$id").anyOf(deletedIds).delete();
+      }
+
+      await db.questions.bulkPut(questions);
     }
 
-    db.questions.bulkPut(filteredQs);
+  } catch (error) {
+    console.error("add qs error", error);
   }
 }
 
 export async function addAnswersToProgress(answers: any) {
-  console.log(answers);
-
-  db.answers.bulkPut(answers);
+ await db.answers.bulkPut(answers);
 }
 
-export async function getQuestions(
+export async function getQuestionsWithFilter(
   subject: string,
-  sectionName?: "season" | "year",
-  sectionValue?: string,
+  sectionName: "season" | "year",
+  sectionValue: string,
 ) {
-  const questions = db.questions.where("subject").equals(subject);
-  if (sectionName && sectionValue) {
-    questions.and((item) => item[sectionName] == sectionValue);
-  }
+  return db.questions
+    .where(`[subject+${sectionName}]`)
+    .equals([subject, sectionValue])
+    .toArray();
+}
 
-  return questions.toArray();
+export async function getQuestions(subject: string) {
+  return db.questions.where(`subject`).equals(subject).toArray();
 }
 
 export async function getAnswers(subject: string) {

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import Download from "./Icons/Download";
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import {
   addQuestionsToFirstDB,
   getAnswers,
@@ -18,30 +18,19 @@ export default function Box(props: {
   const [aLen, setALen] = createSignal(0);
   const [downloadStatus, setDownloadStatus] = createSignal<"pending" | "">("");
 
-  function getLen() {
-    getQuestions(props.subject).then((res) => {
+  onMount(async () => {
+    await getQuestions(props.subject).then((res) => {
       setQLen(res?.length || 0);
     });
-    getAnswers(props.subject).then((res) => {
-      if (res.length == 0) {
-        return 0;
-      }
-      res.forEach((item) => {
-        if (item.answer) {
-          setALen(aLen() + 1);
-        }
+    await getAnswers(props.subject).then((res) => {
+      setALen(res.map((item) => item.answer).length);
     });
-  });
-  }
-
-  createEffect(() => {
-   getLen()
   });
 
   return (
     <A
       href={`/${props.link}`}
-      class="special-box  mb-5 flex h-24 w-full flex-row-reverse items-center justify-between rounded-md py-2 pr-4 pl-2"
+      class="special-box mb-5 flex h-24 w-full flex-row-reverse items-center justify-between rounded-md py-2 pr-4 pl-2"
     >
       <div
         onClick={() => {}}
@@ -59,7 +48,14 @@ export default function Box(props: {
           e.preventDefault();
           if (props.subject) {
             toast.promise(
-              addQuestionsToFirstDB(props.subject),
+              addQuestionsToFirstDB(props.subject).then(async () => {
+                await getQuestions(props.subject).then((res) => {
+                  setQLen(res?.length || 0);
+                });
+                await getAnswers(props.subject).then((res) => {
+                  setALen(res.map((item) => item.answer).length);
+                });
+              }),
               {
                 loading: () => {
                   setDownloadStatus("pending");
@@ -67,7 +63,6 @@ export default function Box(props: {
                 },
                 success: () => {
                   setDownloadStatus("");
-                  getLen()
                   return <span>downloaded</span>;
                 },
 
