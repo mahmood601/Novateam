@@ -54,7 +54,7 @@ export default function Box(props: {
                 });
                 await getAnswers(props.subject).then((res) => {
                   setALen(res.map((item) => item.answer).length);
-                });
+                }).catch(e=> {throw e});
               }),
               {
                 loading: () => {

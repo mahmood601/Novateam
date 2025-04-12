@@ -1,6 +1,7 @@
 import { Query } from "appwrite";
 import { databases } from "../lib/appwrite/appwrite";
 import { Dexie, EntityTable } from "dexie";
+import toast from "solid-toast";
 
 const db = new Dexie("db") as Dexie & {
   questions: EntityTable<
@@ -53,7 +54,7 @@ export async function addQuestionsToFirstDB(subject: string) {
       import.meta.env.VITE_DB_ID,
       subject,
      [ Query.limit(500)]
-    );
+    )
 
     const questions = questionsResponse.documents.map((q) => {
       q.subject = subject;
@@ -79,7 +80,8 @@ export async function addQuestionsToFirstDB(subject: string) {
     }
 
   } catch (error) {
-    console.error("add qs error", error);
+    throw error
+  ;
   }
 }
 
