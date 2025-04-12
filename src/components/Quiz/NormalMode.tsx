@@ -223,7 +223,7 @@ function QuizHeader(props: {
         <span class="block py-2">
           {props.index() + 1}/{props.questionsLength}
         </span>
-        <span class="text-secondary bg-secondary/5 flex items-center rounded-full p-2">
+        <span class="text-secondary bg-(--color-secondary)/5 flex items-center rounded-full p-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20px"
@@ -273,7 +273,7 @@ function QuizHeader(props: {
           </div>
         </span>
       </div>
-      <span class="bg-main/50 my-5 block h-3 w-full rounded-full">
+      <span class="bg-(--color-main)/50 my-5 block h-3 w-full rounded-full">
         <span
           style={{
             width: `${((props.index() + 1) / props.questionsLength) * 100}%`,
