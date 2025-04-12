@@ -88,7 +88,7 @@ export default function Box(props: {
           class="bg-main-light flex size-16 items-center justify-center rounded-full"
         >
           <div class="progress bg-darker-light-2 dark:bg-lighter-dark-2 flex items-center justify-center rounded-full">
-            <span class="block text-xl font-bold diagonal-fractions -frac">
+            <span class="block font-bold diagonal-fractions">
               {aLen()}/{qLen()}
             </span>
           </div>
