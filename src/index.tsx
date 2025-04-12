@@ -1,7 +1,6 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
 import "./index.css";
-import "./css/vars.css";
 import "./css/rainbow.css";
 import { Route, Router } from "@solidjs/router";
 import SelectMenu from "./components/SelectMenu.tsx";

@@ -24,7 +24,6 @@ export default function Box(props: {
     });
     await getAnswers(props.subject).then((res) => {
       setALen(res.filter((item) => item.answer).length);
-      
     });
   });
 
@@ -88,7 +87,13 @@ export default function Box(props: {
           class="bg-main-light flex size-16 items-center justify-center rounded-full"
         >
           <div class="progress bg-darker-light-2 dark:bg-lighter-dark-2 flex items-center justify-center rounded-full">
-            <span class="block font-bold diagonal-fractions">
+            <span
+              style={{
+                "font-feature-settings": `"frac"`,
+                "font-variant-numeric": "diagonal-fractions",
+              }}
+              class="block text-xl font-bold"
+            >
               {aLen()}/{qLen()}
             </span>
           </div>
