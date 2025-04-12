@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import Download from "./Icons/Download";
-import { createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, onMount } from "solid-js";
 import {
   addQuestionsToFirstDB,
   getAnswers,
@@ -18,12 +18,13 @@ export default function Box(props: {
   const [aLen, setALen] = createSignal(0);
   const [downloadStatus, setDownloadStatus] = createSignal<"pending" | "">("");
 
-  onMount(async () => {
+  createEffect(async () => {
     await getQuestions(props.subject).then((res) => {
       setQLen(res?.length || 0);
     });
     await getAnswers(props.subject).then((res) => {
-      setALen(res.map((item) => item.answer).length);
+      setALen(res.filter((item) => item.answer).length);
+      
     });
   });
 
@@ -87,7 +88,7 @@ export default function Box(props: {
           class="bg-main-light flex size-16 items-center justify-center rounded-full"
         >
           <div class="progress bg-darker-light-2 dark:bg-lighter-dark-2 flex items-center justify-center rounded-full">
-            <span class="block text-xl font-bold diagonal-fractions">
+            <span class="block text-xl font-bold diagonal-fractions -frac">
               {aLen()}/{qLen()}
             </span>
           </div>

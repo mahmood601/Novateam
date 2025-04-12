@@ -12,7 +12,11 @@ import {
 } from "solid-js";
 import LeftArrow from "../Icons/LeftArrow";
 import subjects from "../subjects";
-import { addAnswersToProgress, getQuestions, getQuestionsWithFilter } from "../../helpers/indexeddb";
+import {
+  addAnswersToProgress,
+  getQuestions,
+  getQuestionsWithFilter,
+} from "../../helpers/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
 import Timer from "../../helpers/timer";
@@ -65,8 +69,6 @@ export default function NormalMode() {
       localStorage.getItem("theme") || "light",
     );
   });
-
-   
 
   return (
     <Suspense>
@@ -178,7 +180,7 @@ function QuizHeader(props: {
         }
       }, 100);
     }
-    addAnswersToProgress(unwrap(userAnswers()));
+    // addAnswersToProgress(unwrap(userAnswers()));
   });
 
   return (
@@ -300,13 +302,11 @@ function QuizBox(props: {
   setIndex: Setter<number>;
   subject: string;
 }) {
- 
   const debouncedSave = debounce((answers: userAnswerT[]) => {
     addAnswersToProgress(unwrap(answers));
-  }, 1000); 
-  
+  }, 1000);
+
   createEffect(() => {
-  
     debouncedSave(userAnswers());
   });
 
@@ -402,7 +402,7 @@ function QuizFooter(props: {
             resetOpts();
             userAnswers().pop();
           }}
-          class="bg-main/70 dark:bg-main flex cursor-pointer items-center rounded-full px-3 py-2"
+          class="border-main font-bold text-main flex cursor-pointer items-center rounded-full border-1 px-3 py-2"
         >
           <LeftArrow />
           <p class="mr-2"> السابق </p>
@@ -418,7 +418,7 @@ function QuizFooter(props: {
             resetOpts();
           }}
           disabled={!disabled()}
-          class="bg-main/70 dark:bg-main flex cursor-pointer items-center rounded-full px-3 py-2"
+          class="bg-main font-bold border-main text-main-light flex cursor-pointer items-center rounded-full border-1 px-3 py-2"
         >
           <p class="ml-2">
             {props.index() >= props.qs.length - 1
@@ -518,7 +518,7 @@ function RightArrow() {
 }
 
 function Result(props: { subject: string }) {
-  addAnswersToProgress(unwrap(userAnswers()));
+  // addAnswersToProgress(unwrap(userAnswers()));
   let numberOfTrues = 0;
   userAnswers().map((e) => {
     if (e.answer) numberOfTrues++;

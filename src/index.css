@@ -24,6 +24,41 @@
   --color-lighter-dark-2: #2b2f36;
 }
 
+[data-theme="Nova"] {
+  --color-main: #b118d7;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Nizar"] {
+  --color-main: #32c79f;
+  --color-secondary: #8e00d0;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Belal"] {
+  --color-main: #7e354d;
+  --color-secondary: #e6a9ec;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Rama"] {
+  --color-main: #d77418;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Maram"] {
+  --color-main: #1887d7;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

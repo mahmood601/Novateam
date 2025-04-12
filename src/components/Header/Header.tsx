@@ -4,14 +4,13 @@ import { Transition } from "solid-transition-group";
 import AppName from "./AppName";
 import ThemeBtn from "./ThemeBtn";
 import { A } from "@solidjs/router";
-import SearchBox from "./SearchBox";
 import Panel from "../panel";
 import { usePrefersDark } from "@solid-primitives/media";
 
 const links = [
   { name: "وضع الإضاءة", image: "mode", route: null },
   { name: "الحساب", image: "account", route: "profile" },
-  // { name: "الإعدادات", image: "settings", route: "settings" },
+  { name: "الإعدادات", image: "settings", route: "settings" },
 ];
 
 const [openPanel, setOpenPanel] = createSignal(false);
