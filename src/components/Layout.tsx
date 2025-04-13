@@ -2,7 +2,7 @@ import { createEffect, JSX, onMount } from "solid-js";
 import Header from "./Header/Header";
 import { useLocation } from "@solidjs/router";
 import { account } from "../stores/account";
-import { useUser } from "../lib/context/user";
+import { useUser } from "../context/user";
 import { useTheme } from "../hooks/useTheme";
 
 export default function Layout(props: { children: JSX.Element }) {

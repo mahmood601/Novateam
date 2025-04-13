@@ -1,5 +1,5 @@
 import { createResource, Match, Suspense, Switch } from "solid-js";
-import { useUser } from "../../lib/context/user";
+import { useUser } from "../../context/user";
 import { account } from "../../stores/account";
 import DevMode from "./DevMode";
 import NormalMode from "./NormalMode";

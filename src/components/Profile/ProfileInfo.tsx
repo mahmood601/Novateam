@@ -1,5 +1,5 @@
 import { JSX, Show, Suspense } from "solid-js";
-import { useUser } from "../../lib/context/user";
+import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
 import years from "../years";
 

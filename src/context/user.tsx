@@ -1,5 +1,5 @@
-import { setAccount } from "../../stores/account";
-import { account } from "../appwrite/appwrite";
+import { setAccount } from "../stores/account";
+import { account } from "../lib/appwrite/appwrite";
 import {
   Accessor,
   createContext,

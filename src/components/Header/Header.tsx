@@ -1,11 +1,10 @@
-import { createEffect, For, onCleanup, onMount, Setter, Show } from "solid-js";
+import { For, onCleanup, onMount, Setter, Show } from "solid-js";
 import { createSignal } from "solid-js";
 import { Transition } from "solid-transition-group";
 import AppName from "./AppName";
 import ThemeBtn from "./ThemeBtn";
 import { A } from "@solidjs/router";
 import Panel from "../panel";
-import { usePrefersDark } from "@solid-primitives/media";
 
 const links = [
   { name: "وضع الإضاءة", image: "mode", route: null },
@@ -15,18 +14,13 @@ const links = [
 
 const [openPanel, setOpenPanel] = createSignal(false);
 const [open, setOpen] = createSignal(false);
-const [theme, setTheme] = createSignal<"light" | "dark">("light");
 
 let menuRef!: HTMLDivElement;
 
 export default function Header() {
   const [search, setSearch] = createSignal(false);
 
-  createEffect(() => {
-    const lsTheme = localStorage.theme || (usePrefersDark() ? "dark" : "light");
-    setTheme(lsTheme);
-    document.documentElement.classList.toggle("dark", theme() === "dark");
-  });
+ 
 
   onCleanup(() => setOpen(false));
 
@@ -97,7 +91,7 @@ function Links({ setOpen }: { setOpen: Setter<boolean> }) {
                   </A>
                 }
               >
-                <ThemeBtn theme={theme} setTheme={setTheme} />
+                <ThemeBtn />
               </Show>
             </div>
             <div

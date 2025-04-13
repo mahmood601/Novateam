@@ -1,6 +1,6 @@
 import { createEffect, onCleanup, onMount } from "solid-js";
 import { OAuthProvider } from "appwrite";
-import { useUser } from "../lib/context/user";
+import { useUser } from "../context/user";
 import { useNavigate } from "@solidjs/router";
 
 export default function Login() {
