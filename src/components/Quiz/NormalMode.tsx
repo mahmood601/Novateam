@@ -14,7 +14,6 @@ import LeftArrow from "../Icons/LeftArrow";
 import subjects from "../subjects";
 import {
   addAnswersToProgress,
-  getQuestions,
   getQuestionsWithFilter,
 } from "../../helpers/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
@@ -184,7 +183,7 @@ function QuizHeader(props: {
   });
 
   return (
-    <div class="p-5">
+    <div class="px-5 pt-5">
       <div class="flex justify-between">
         <button
           class="cursor-pointer"
@@ -223,7 +222,7 @@ function QuizHeader(props: {
         <span class="block py-2">
           {props.index() + 1}/{props.questionsLength}
         </span>
-        <span class="text-secondary bg-current/5 flex items-center rounded-full p-2">
+        <span class="text-secondary flex items-center rounded-full bg-current/5 p-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20px"
@@ -273,7 +272,7 @@ function QuizHeader(props: {
           </div>
         </span>
       </div>
-      <span class="text-main bg-current/50 my-5 block h-3 w-full rounded-full">
+      <span class="text-main my-5 block h-3 w-full rounded-full bg-current/50">
         <span
           style={{
             width: `${((props.index() + 1) / props.questionsLength) * 100}%`,
@@ -313,8 +312,16 @@ function QuizBox(props: {
   const currentQ = () => props.qs[props.index()];
   const options = () =>
     Object.keys(currentQ()).filter((key) => key.includes("Option"));
+
+
   return (
     <div class="bg-main-light dark:bg-main-dark px-5">
+      <div class="border-secondary mb-2 w-fit flex justify-self-end rounded-full items-center border-2 font-bold">
+        <p dir="rtl" class="text-secondary flex-1 px-2">
+          {subjects[props.subject].season.at(currentQ().season - 1).name}
+        </p>
+        <p class="bg-secondary text-main-light rounded-full py-1 px-2">{currentQ().year}</p>
+      </div>
       <div class="flex flex-row-reverse">
         <pre dir="rtl" class="text-md font-bold">
           {props.index() + 1}.{" "}
@@ -402,7 +409,7 @@ function QuizFooter(props: {
             resetOpts();
             userAnswers().pop();
           }}
-          class="border-main font-bold text-main flex cursor-pointer items-center rounded-full border-1 px-3 py-2"
+          class="border-main text-main flex cursor-pointer items-center rounded-full border-1 px-3 py-2 font-bold"
         >
           <LeftArrow />
           <p class="mr-2"> السابق </p>
@@ -418,7 +425,7 @@ function QuizFooter(props: {
             resetOpts();
           }}
           disabled={!disabled()}
-          class="bg-main font-bold border-main text-main-light flex cursor-pointer items-center rounded-full border-1 px-3 py-2"
+          class="bg-main border-main text-main-light flex cursor-pointer items-center rounded-full border-1 px-3 py-2 font-bold"
         >
           <p class="ml-2">
             {props.index() >= props.qs.length - 1
