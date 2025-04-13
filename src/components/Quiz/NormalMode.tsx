@@ -316,7 +316,7 @@ function QuizBox(props: {
 
   return (
     <div class="bg-main-light dark:bg-main-dark px-5">
-      <div class="border-secondary mb-2 w-fit flex justify-self-end rounded-full items-center border-2 font-bold">
+      <div class="border-secondary mb-2 w-fit flex ml-auto rounded-full items-center border-2 font-bold">
         <p dir="rtl" class="text-secondary flex-1 px-2">
           {subjects[props.subject].season.at(currentQ().season - 1).name}
         </p>
