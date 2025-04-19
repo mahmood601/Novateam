@@ -4,7 +4,7 @@ const subjects = {
     name: "التشريح 2",
     year: ["2024", "2023", "2022"],
     season: [
-      { id: 1, name: "first" },
+      { id: 1, name: "الصدر - المحاضرة الأولى" },
       { id: 2, name: "second" },
       { id: 3, name: "third" },
       { id: 4, name: "fourth" },

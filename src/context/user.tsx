@@ -48,14 +48,6 @@ export function UserProvider(props) {
     await account.deleteSession("current");
   }
 
-  function withTimeout(promise: any, timeoutMs = 5000) {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out")), timeoutMs)
-      ),
-    ]);
-  }
 
   async function fetchUser() {
     setIsLoading(true);
