@@ -1,8 +1,7 @@
-import { createEffect, JSX, onMount } from "solid-js";
+import { JSX, onMount } from "solid-js";
 import Header from "./Header/Header";
 import { useLocation } from "@solidjs/router";
 import { account } from "../stores/account";
-import { useUser } from "../context/user";
 import { useTheme } from "../hooks/useTheme";
 
 export default function Layout(props: { children: JSX.Element }) {
@@ -11,12 +10,11 @@ export default function Layout(props: { children: JSX.Element }) {
     (location().includes("season") || location().includes("year")) &&
     !account.devMode;
 
-    const {theme, applyTheme} = useTheme()
+  const { theme, applyTheme } = useTheme();
 
-    onMount(()=>{
-      applyTheme(theme())
-    })
-  
+  onMount(() => {
+    applyTheme(theme());
+  });
 
   return (
     <div class="relative flex h-screen flex-col">

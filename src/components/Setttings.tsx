@@ -38,7 +38,7 @@ export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
 
   return (
-    <div class="bg-darker-light-1 dark:bg-lighter-dark-1 min-h-screen w-screen p-4">
+    <div class="bg-darker-light-1 dark:bg-lighter-dark-1 h-screen w-screen p-4">
       <p class="text-md text-main mb-5 text-right font-bold">الألوان</p>
 
       <div class="flex flex-wrap justify-between">
