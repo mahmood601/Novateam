@@ -23,7 +23,7 @@ const subjects = {
       { id: 6, name: "دم -المحاضرة الثانية" },
       { id: 7, name: "دم -المحاضرة الثالثة" },
       { id: 8, name: "دم -المحاضرة الرابعة" },
-      { id: 8, name: "الكل" },
+      { id: 9, name: "الكل" },
     ],
   },
   "clinical-chemistry": {
