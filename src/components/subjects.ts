@@ -13,13 +13,17 @@ const subjects = {
   },
   physiology: {
     name: "الفيزيولوجيا",
-    year: ["2024", "2023", "2022"],
+    year: ["2024"],
     season: [
-      { id: 1, name: "first" },
-      { id: 2, name: "second" },
-      { id: 3, name: "third" },
-      { id: 4, name: "fourth" },
-      { id: 5, name: "fifth" },
+      { id: 1, name: "كلية - المحاضرة الاولى" },
+      { id: 2, name: "كلية -المحاضرة الثانية" },
+      { id: 3, name: "كلية -المحاضرة الثالثة" },
+      { id: 4, name: "كلية -المحاضرة الرابعة" },
+      { id: 5, name: "دم - المحاضرة الاولى" },
+      { id: 6, name: "دم -المحاضرة الثانية" },
+      { id: 7, name: "دم -المحاضرة الثالثة" },
+      { id: 8, name: "دم -المحاضرة الرابعة" },
+      { id: 8, name: "الكل" },
     ],
   },
   "clinical-chemistry": {
