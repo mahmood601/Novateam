@@ -2,13 +2,21 @@ const subjects = {
   // This file should be updated every year and season
   "anatomy-2": {
     name: "التشريح 2",
-    year: ["2024", "2023", "2022"],
+    year: ["2024", "2023", "2022", "2021"],
     season: [
       { id: 1, name: "الصدر - المحاضرة الأولى" },
-      { id: 2, name: "second" },
-      { id: 3, name: "third" },
-      { id: 4, name: "fourth" },
-      { id: 5, name: "fifth" },
+      { id: 2, name: "الصدر - المحاضرة الثانية" },
+      { id: 3, name: "الصدر - المحاضرة الثالثة" },
+
+      { id: 4, name: "العنق - المحاضرة الأولى" },
+      { id: 5, name: "العنق - المحاضرة الثانية" },
+      { id: 6, name: "العنق - المحاضرة الثالثة" },
+
+      { id: 7, name: "البطن - المحاضرة الأولى" },
+      { id: 8, name: "البطن - المحاضرة الثانية" },
+      { id: 9, name: "البطن - المحاضرة الثالثة" },
+      { id: 10, name: "البطن - المحاضرة الرابعة" },
+
     ],
   },
   physiology: {
