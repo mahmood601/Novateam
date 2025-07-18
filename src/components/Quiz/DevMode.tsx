@@ -1,7 +1,6 @@
 import {
   Accessor,
   createEffect,
-  createMemo,
   createResource,
   createSignal,
   ErrorBoundary,
@@ -15,11 +14,10 @@ import {
 import Panel from "../panel";
 import {
   deleteQuestion,
-  listQuestion,
   listQuestions,
 } from "../../lib/appwrite/documentsManuplation";
 import { useParams } from "@solidjs/router";
-import { QuestionsT, setQStore } from "../../stores/QStores";
+import { setQStore } from "../../stores/QStores";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
 
@@ -188,7 +186,7 @@ function QuestionBox(props: {
           <p
             dir="auto"
             classList={{
-              "bg-true rounded-md p-1 text-main-dark":
+              "bg-main rounded-md p-1 text-main-dark":
                 props.correctIndex.includes(index()),
               "my-1": true,
             }}
