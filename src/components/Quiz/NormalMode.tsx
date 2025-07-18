@@ -497,7 +497,7 @@ function QuizFooter(props: {
           </span>
         </div>
 
-        <p class="mt-5 text-center text-3xl">
+        <p dir="auto" class="mt-5 text-center text-3xl">
           {props.qs[props.index()].explanation}
         </p>
       </Show>
