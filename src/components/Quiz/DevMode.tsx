@@ -106,7 +106,7 @@ export default function DevMode() {
                   </Show>
                 </div>
               </div>
-              <div class="flex h-fit w-full flex-col items-center overflow-y-scroll">
+              <div on:click={e=> e.stopPropagation()} class="flex h-fit w-full flex-col items-center overflow-y-scroll">
                 <For each={questions()}>
                   {(question) => (
                     <QuestionBox
@@ -175,7 +175,8 @@ function QuestionBox(props: {
   const subject = params.subject;
   return (
     <div
-      onClick={() => {
+      on:click={(e) => {
+        e.stopPropagation()
         setOpen(!open());
       }}
       class="bg-darker-light-1 dark:bg-lighter-dark-1 mb-7 w-5/6 rounded-md p-4"
@@ -220,7 +221,8 @@ function QuestionBox(props: {
             </Show>
           </button>
           <button
-            onClick={() => {
+            on:click={(e) => {
+              e.stopPropagation()
               deleteQuestion(props.subject, props.id).then(() => {
                 props.setQuestions(
                   props.questions().filter((q) => q.$id != props.id),
