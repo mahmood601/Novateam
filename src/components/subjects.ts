@@ -98,7 +98,7 @@ const subjects = {
   "communication-skills": {
     name: "مهارات التواصل",
     year: ["2024", "2023", "2022"],
-    seasons: [
+    season: [
       { id: 1, name: "first" },
       { id: 2, name: "second" },
       { id: 3, name: "third" },
