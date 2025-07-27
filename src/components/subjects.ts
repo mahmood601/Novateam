@@ -97,13 +97,21 @@ const subjects = {
   },
   "communication-skills": {
     name: "مهارات التواصل",
-    year: ["2024", "2023", "2022"],
+    year: ["2024"],
     season: [
       { id: 1, name: "first" },
       { id: 2, name: "second" },
       { id: 3, name: "third" },
       { id: 4, name: "fourth" },
-      { id: 5, name: "fifth" },
+      { id: 6, name: "fifth" },
+      { id: 7, name: "fifth" },
+      { id: 8, name: "fifth" },
+      { id: 9, name: "fifth" },
+      { id: 10, name: "fifth" },
+      { id: 11, name: "fifth" },
+      { id: 12, name: "fifth" },
+      { id: 13, name: "fifth" },
+      { id: 14, name: "fifth" },
     ],
   },
 };

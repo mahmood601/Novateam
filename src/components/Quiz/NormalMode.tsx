@@ -318,6 +318,8 @@ function QuizBox(props: {
     <div class="bg-main-light dark:bg-main-dark px-5">
       <div class="border-secondary mb-2 w-fit flex ml-auto rounded-full items-center border-2 font-bold">
         <p dir="rtl" class="text-secondary flex-1 px-2">
+        {console.log(subjects[props.subject])  }
+
           {subjects[props.subject].season.at(currentQ().season - 1).name}
         </p>
         <p class="bg-secondary text-main-light rounded-full py-1 px-2">{currentQ().year}</p>
