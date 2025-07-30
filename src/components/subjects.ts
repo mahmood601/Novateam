@@ -87,12 +87,9 @@ const subjects = {
   "md-4": {
     name: "اللغة 4",
     year: ["2024", "2023", "2022"],
-    seasons: [
-      { id: 1, name: "first" },
-      { id: 2, name: "second" },
-      { id: 3, name: "third" },
-      { id: 4, name: "fourth" },
-      { id: 5, name: "fifth" },
+    season: [
+      { id: 1, name: "غير مصنف" },
+
     ],
   },
   "communication-skills": {
