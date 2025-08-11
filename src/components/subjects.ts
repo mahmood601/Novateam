@@ -55,13 +55,15 @@ const subjects = {
   },
   "proper-histology": {
     name: "النسج الخاص",
-    year: ["2024", "2023", "2022"],
+    year: ["2024", "2023", "2022", "2021"],
     season: [
-      { id: 1, name: "first" },
-      { id: 2, name: "second" },
-      { id: 3, name: "third" },
-      { id: 4, name: "fourth" },
-      { id: 5, name: "fifth" },
+      { id: 1, name: "الدوران الدموي" },
+      { id: 2, name: "الدوران اللمفي" },
+      { id: 3, name: "الجهاز الهضمي" },
+      { id: 4, name: "الجهاز التنفسي" },
+      { id: 5, name: "الجهاز البولي" },
+      { id: 6, name: "الجهاز التناسلي الذكري" },
+      { id: 7, name: "الجهاز التناسلي الانثوي" },
     ],
   },
   embryology: {
