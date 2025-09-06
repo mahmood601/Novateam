@@ -5,7 +5,7 @@ import {
   addQuestionsToFirstDB,
   getAnswers,
   getQuestions,
-} from "../helpers/indexeddb";
+} from "../utils/indexeddb";
 import toast from "solid-toast";
 
 export default function Box(props: {

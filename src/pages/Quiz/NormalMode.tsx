@@ -10,15 +10,15 @@ import {
   Show,
   Suspense,
 } from "solid-js";
-import LeftArrow from "../Icons/LeftArrow";
-import subjects from "../subjects";
+import LeftArrow from "../../components/Icons/LeftArrow";
+import subjects from "../../components/subjects";
 import {
   addAnswersToProgress,
   getQuestionsWithFilter,
-} from "../../helpers/indexeddb";
+} from "../../utils/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
-import Timer from "../../helpers/timer";
+import Timer from "../../utils/timer";
 
 type userAnswerT = {
   questionId: string;

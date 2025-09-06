@@ -1,24 +1,28 @@
-import { createEffect, createSignal, For, onMount, Show } from "solid-js";
-import Box from "./Box";
+import { createSignal, For, onMount, Show } from "solid-js";
+import Box from "../components/Box";
 import "../index.css";
-import subjects from "./subjects";
+import subjects from "../components/subjects";
 import { inject } from "@vercel/analytics";
-import years from "./years";
+import years from "../components/years";
+import { YearKey } from "../types/years";
+
 
 export default function UI() {
-  inject();
-
-  const [year, setYear] = createSignal<"second" | "third" | "fourth" | "">("");
+  inject(); // vercel analytics
+  
+  
+  const [year, setYear] = createSignal<YearKey | null>(null);
 
   onMount(() => {
-    if (localStorage.getItem("year")) {
-      setYear(localStorage.year);
+    const storedYear = localStorage.getItem("year") as YearKey | null
+    if (storedYear) {
+      setYear(storedYear)
     }
   });
 
   return (
     <Show
-      when={year() != ""}
+      when={year()}
       fallback={
         <div class="bg-rainbow-graident fixed z-[100] flex h-screen w-screen items-center justify-center">
           <div class="bg-main-dark flex h-fit w-fit flex-col rounded-md p-10 text-center">
@@ -26,10 +30,11 @@ export default function UI() {
               اختر السنة
             </label>
             <select
-            value={year()}
+            value={year() as string}
               onInput={(e) => {
-                setYear(e.target.value);
-                localStorage.setItem('year', year())
+                const newYear = e.currentTarget.value as YearKey 
+                setYear(newYear);
+                localStorage.setItem('year', newYear)
               }}
               class="text-main-light"
               id="year"

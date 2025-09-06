@@ -11,13 +11,14 @@ import {
   Suspense,
   Switch,
 } from "solid-js";
-import Panel from "../panel";
+import Panel from "../../components/panel";
 import {
   deleteQuestion,
   listQuestions,
 } from "../../lib/appwrite/documentsManuplation";
 import { useParams } from "@solidjs/router";
 import { setQStore } from "../../stores/QStores";
+import Loading from "../../components/loading";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
 
@@ -73,8 +74,8 @@ export default function DevMode() {
         </div>
       )}
     >
-      <div class="text-main-dark dark:text-main-light bg-main-light dark:bg-main-dark top-0 flex h-screen flex-col items-center p-4">
-        <Suspense fallback={<p dir="rtl">جار التحميل...</p>}>
+      <div class="text-main-dark dark:text-main-light bg-main-light dark:bg-main-dark top-0 flex h-[calc(100vh_-_70px)] flex-col items-center p-4">
+        <Suspense fallback={<Loading/>}>
           <Switch>
             <Match when={data.error}>
               <span>Error: {data.error.message}</span>
@@ -106,7 +107,7 @@ export default function DevMode() {
                   </Show>
                 </div>
               </div>
-              <div on:click={e=> e.stopPropagation()} class="flex h-fit w-full flex-col items-center overflow-y-scroll">
+             <div on:click={e=> e.stopPropagation()} class="flex h-fit w-full flex-col items-center overflow-y-scroll">
                 <For each={questions()}>
                   {(question) => (
                     <QuestionBox

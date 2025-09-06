@@ -1,7 +1,6 @@
 import { Query } from "appwrite";
 import { databases } from "../lib/appwrite/appwrite";
 import { Dexie, EntityTable } from "dexie";
-import toast from "solid-toast";
 
 const db = new Dexie("db") as Dexie & {
   questions: EntityTable<

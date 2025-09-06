@@ -1,6 +1,6 @@
 import { useNavigate } from "@solidjs/router";
-import LeftArrow from "../Icons/LeftArrow";
-import ProfileInfo from "./ProfileInfo";
+import LeftArrow from "../../components/Icons/LeftArrow";
+import ProfileInfo from "../../components/Profile/ProfileInfo";
 import { useUser } from "../../context/user";
 import { createEffect, onMount, Show } from "solid-js";
 
