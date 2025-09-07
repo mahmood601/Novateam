@@ -1,5 +1,5 @@
 import { Query } from "appwrite";
-import { databases } from "../lib/appwrite/appwrite";
+import { databases } from "../services/appwrite";
 import { Dexie, EntityTable } from "dexie";
 
 const db = new Dexie("db") as Dexie & {

@@ -12,7 +12,7 @@ export interface QuestionsT {
   fourthOption?: string;
   fifthOption?: string;
   correctIndex:  number[];
-  
+  user_id: string;
 }
 
 export const qStoreObj: QuestionsT = {
@@ -27,6 +27,7 @@ export const qStoreObj: QuestionsT = {
   fourthOption: "",
   fifthOption: "",
   correctIndex: [],
+  user_id: "",
 };
 
 export const [QStore, setQStore] = createStore<QuestionsT>(qStoreObj);

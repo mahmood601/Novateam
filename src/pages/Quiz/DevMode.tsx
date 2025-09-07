@@ -15,10 +15,11 @@ import Panel from "../../components/panel";
 import {
   deleteQuestion,
   listQuestions,
-} from "../../lib/appwrite/documentsManuplation";
+} from "../../services/documentsManuplation";
 import { useParams } from "@solidjs/router";
 import { setQStore } from "../../stores/QStores";
 import Loading from "../../components/loading";
+import { getUserNameById } from "../../services/user";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
 
@@ -51,6 +52,7 @@ export default function DevMode() {
         "year",
         "season",
         "explanation",
+        "user_id"
       ],
       [{ attribute: fSection, value: sSection }],
       pageIndex,
@@ -116,6 +118,7 @@ export default function DevMode() {
                       question={question.question}
                       questions={questions}
                       setQuestions={setQuestions}
+                      userId={question.user_id}
                       options={[
                         question.firstOption,
                         question.secondOption,
@@ -170,10 +173,13 @@ function QuestionBox(props: {
   options: string[];
   correctIndex: number[];
   explanation: string;
+  userId: string;
 }) {
   const [open, setOpen] = createSignal(false);
   const params = useParams();
   const subject = params.subject;
+  const [inserterName] = createResource(props.userId, getUserNameById);
+
   return (
     <div
       on:click={(e) => {
@@ -182,6 +188,7 @@ function QuestionBox(props: {
       }}
       class="bg-darker-light-1 dark:bg-lighter-dark-1 mb-7 w-5/6 rounded-md p-4"
     >
+      <p class="text-center text-main font-bold">{inserterName()}</p>
       <p dir="auto">{props.question}</p>
       <For each={props.options.filter((option) => option)}>
         {(option, index) => (

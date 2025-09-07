@@ -1,5 +1,5 @@
 import { setAccount } from "../stores/account";
-import { account } from "../lib/appwrite/appwrite";
+import { account } from "../services/appwrite";
 import {
   Accessor,
   createContext,
@@ -8,11 +8,12 @@ import {
   Setter,
   useContext,
 } from "solid-js";
+import { ensureUserExists } from "../services/user";
 
 type UserContextType = {
   user: Accessor<User | null>;
   setUser: Setter<User | null>;
-  isLoading: Accessor<boolean>
+  isLoading: Accessor<boolean>;
   fetchUser: () => Promise<void>;
   login: (provider: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -48,28 +49,29 @@ export function UserProvider(props) {
     await account.deleteSession("current");
   }
 
-
   async function fetchUser() {
     setIsLoading(true);
     try {
       let loggedIn;
-        try {
-          loggedIn = await account.get()
-        } catch (networkError) {
-          console.warn("Network issue, using fallback user:", networkError);
-          loggedIn = JSON.parse(localStorage.getItem("user"));
-        }
+      try {
+        loggedIn = await account.get();
+      } catch (networkError) {
+        console.warn("Network issue, using fallback user:", networkError);
+        loggedIn = JSON.parse(localStorage.getItem("user"));
+      }
 
       if (!loggedIn) throw new Error("No user data");
 
       const userInfo = {
+        id: loggedIn.$id,
         email: loggedIn.email,
         name: loggedIn.name,
         labels: loggedIn.labels,
       };
+      ensureUserExists({name: userInfo.name, userId: userInfo.id, year: localStorage.getItem("year") });
 
       if (!userInfo.labels.includes("admin")) {
-        setAccount("devMode", false)
+        setAccount("devMode", false);
       }
 
       localStorage.setItem("user", JSON.stringify(userInfo));
@@ -80,7 +82,7 @@ export function UserProvider(props) {
       localStorage.removeItem("user");
       setUser(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

@@ -1,9 +1,12 @@
 import { ID, Query } from "appwrite";
 import { databases } from "./appwrite";
 import toast from "solid-toast";
-import { QStore, setQStore } from "../../stores/QStores";
+import { setQStore } from "../stores/QStores";
 import { reconcile } from "solid-js/store";
+import { useUser } from "../context/user";
 const dbID = import.meta.env.VITE_DB_ID;
+
+const user = useUser();
 
 // TODO: replace it with correct data type
 export async function insertQuestion(subjectId: string, data: any) {
@@ -23,6 +26,7 @@ export async function insertQuestion(subjectId: string, data: any) {
         correctIndex: data.correctIndex,
         year: data.year,
         season: data.season,
+        user_id: data.user_id,
       },
     );
     setQStore(
@@ -38,6 +42,7 @@ export async function insertQuestion(subjectId: string, data: any) {
         fourthOption: "",
         fifthOption: "",
         correctIndex: [],
+        user_id: "",
       }),
     );
 
@@ -68,6 +73,7 @@ export async function updateQuestion(
         correctIndex: data.correctIndex,
         year: data.year,
         season: data.season,
+        user_id: data.user_id,
       },
     );
     setQStore(
@@ -83,6 +89,7 @@ export async function updateQuestion(
         fourthOption: "",
         fifthOption: "",
         correctIndex: [],
+        user_id: "",
       }),
     );
     toast.success("Question updated successfully 🎉");
@@ -115,7 +122,7 @@ export async function listQuestions(
 ) {
   try {
     const queries = [Query.limit(5), Query.select(selectQueries)];
-   
+
     if (pageIndex) {
       queries.push(Query.offset(pageIndex * 5)); // (PageNum - 1) * offset
     }
