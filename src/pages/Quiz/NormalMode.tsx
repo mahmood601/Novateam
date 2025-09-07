@@ -14,24 +14,20 @@ import LeftArrow from "../../components/Icons/LeftArrow";
 import subjects from "../../components/subjects";
 import {
   addAnswersToProgress,
+  Answer,
   getQuestionsWithFilter,
+  Question,
 } from "../../utils/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
 import Timer from "../../utils/timer";
-
-type userAnswerT = {
-  questionId: string;
-  subject: string;
-  state: boolean;
-  answer: boolean;
-};
+import FavoriteButton from "../../components/Quiz/Buttons/Favorite";
 
 const success = "/success.mp3";
 const wrong = "/wrong.mp3";
 const { audioEnabled, setAudioEnabled, playSound } = useAudio(success, wrong);
 
-const [userAnswers, setUserAnswers] = createSignal<userAnswerT[]>([]);
+const [userAnswers, setUserAnswers] = createSignal<Answer[]>([]);
 
 const resetOpts = () => {
   setChoosed(7);
@@ -73,7 +69,7 @@ export default function NormalMode() {
     <Suspense>
       <Show when={questions() && !showResult()}>
         <Show
-          when={questions()?.length > 0}
+          when={questions()!.length > 0}
           fallback={
             <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light flex h-screen w-screen items-center justify-center">
               <div
@@ -91,8 +87,9 @@ export default function NormalMode() {
           <div class="dark:text-main-light bg-main-light dark:bg-main-dark top-0 z-50 flex h-screen flex-col select-none">
             <QuizHeader
               subjectName={subjects[subject].name}
-              questionsLength={questions()?.length}
+              questionsLength={questions()!.length}
               index={index}
+              questions={questions()!}
             />
 
             <QuizBox
@@ -123,6 +120,7 @@ function QuizHeader(props: {
   subjectName: string;
   index: Accessor<number>;
   questionsLength: number;
+  questions: Question[]
 }) {
   const [time, setTime] = createSignal("");
   const [paused, setPaused] = createSignal(false);
@@ -179,7 +177,7 @@ function QuizHeader(props: {
         }
       }, 100);
     }
-    // addAnswersToProgress(unwrap(userAnswers()));
+    addAnswersToProgress(unwrap(userAnswers()));
   });
 
   return (
@@ -194,56 +192,76 @@ function QuizHeader(props: {
           <LeftArrow />
         </button>
         <p class="text-xl font-bold">{props.subjectName}</p>
-        <svg
-          on:click={(e) => {
-            e.stopPropagation();
-            setAudioEnabled(!audioEnabled());
-          }}
-          xmlns="http://www.w3.org/2000/svg"
-          width="26px"
-          height="26px"
-          viewBox="0 0 24 24"
-        >
-          <g fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3.158 13.93a3.75 3.75 0 0 1 0-3.86a1.5 1.5 0 0 1 .993-.7l1.693-.339a.45.45 0 0 0 .258-.153L8.17 6.395c1.182-1.42 1.774-2.129 2.301-1.938S11 5.572 11 7.42v9.162c0 1.847 0 2.77-.528 2.962c-.527.19-1.119-.519-2.301-1.938L6.1 15.122a.45.45 0 0 0-.257-.153L4.15 14.63a1.5 1.5 0 0 1-.993-.7Z" />
-            <Show
-              when={audioEnabled()}
-              fallback={<path stroke-linecap="round" d="m15 15l6-6m0 6l-6-6" />}
-            >
-              <path
-                stroke-linecap="round"
-                d="M15.536 8.464a5 5 0 0 1 .027 7.044m4.094-9.165a8 8 0 0 1 .044 11.27"
-              />
-            </Show>
-          </g>
-        </svg>
+        <button>
+          {" "}
+          <svg
+            on:click={(e) => {
+              e.stopPropagation();
+              setAudioEnabled(!audioEnabled());
+            }}
+            xmlns="http://www.w3.org/2000/svg"
+            width="26px"
+            height="26px"
+            viewBox="0 0 24 24"
+          >
+            <g fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3.158 13.93a3.75 3.75 0 0 1 0-3.86a1.5 1.5 0 0 1 .993-.7l1.693-.339a.45.45 0 0 0 .258-.153L8.17 6.395c1.182-1.42 1.774-2.129 2.301-1.938S11 5.572 11 7.42v9.162c0 1.847 0 2.77-.528 2.962c-.527.19-1.119-.519-2.301-1.938L6.1 15.122a.45.45 0 0 0-.257-.153L4.15 14.63a1.5 1.5 0 0 1-.993-.7Z" />
+              <Show
+                when={audioEnabled()}
+                fallback={
+                  <path stroke-linecap="round" d="m15 15l6-6m0 6l-6-6" />
+                }
+              >
+                <path
+                  stroke-linecap="round"
+                  d="M15.536 8.464a5 5 0 0 1 .027 7.044m4.094-9.165a8 8 0 0 1 .044 11.27"
+                />
+              </Show>
+            </g>
+          </svg>
+        </button>
       </div>
       <div class="my-5 flex items-center justify-between">
         <span class="block py-2">
           {props.index() + 1}/{props.questionsLength}
         </span>
-        <span class="text-secondary flex items-center rounded-full bg-current/5 p-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20px"
-            height="20px"
-            viewBox="0 0 24 24"
-          >
-            <path
-              fill="currentColor"
-              d="M10 3q-.425 0-.712-.288T9 2t.288-.712T10 1h4q.425 0 .713.288T15 2t-.288.713T14 3zm2 11q.425 0 .713-.288T13 13V9q0-.425-.288-.712T12 8t-.712.288T11 9v4q0 .425.288.713T12 14m0 8q-1.85 0-3.488-.712T5.65 19.35t-1.937-2.863T3 13t.713-3.488T5.65 6.65t2.863-1.937T12 4q1.55 0 2.975.5t2.675 1.45l.7-.7q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.7.7Q20 8.6 20.5 10.025T21 13q0 1.85-.713 3.488T18.35 19.35t-2.863 1.938T12 22"
-            />
-          </svg>
-          <span class="block">{time()}</span>
-          <div
-            class="ml-1"
-            on:click={() => {
-              setPaused(!paused());
-            }}
-          >
-            <Show
-              when={paused()}
-              fallback={
+        <div class="flex items-center">
+         <FavoriteButton question={props.questions[props.index()]}/>
+          <span class="text-secondary flex items-center rounded-full bg-current/5 p-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20px"
+              height="20px"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M10 3q-.425 0-.712-.288T9 2t.288-.712T10 1h4q.425 0 .713.288T15 2t-.288.713T14 3zm2 11q.425 0 .713-.288T13 13V9q0-.425-.288-.712T12 8t-.712.288T11 9v4q0 .425.288.713T12 14m0 8q-1.85 0-3.488-.712T5.65 19.35t-1.937-2.863T3 13t.713-3.488T5.65 6.65t2.863-1.937T12 4q1.55 0 2.975.5t2.675 1.45l.7-.7q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.7.7Q20 8.6 20.5 10.025T21 13q0 1.85-.713 3.488T18.35 19.35t-2.863 1.938T12 22"
+              />
+            </svg>
+            <span class="block">{time()}</span>
+            <button
+              class="ml-1"
+              on:click={() => {
+                setPaused(!paused());
+              }}
+            >
+              <Show
+                when={paused()}
+                fallback={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M16 19q-.825 0-1.412-.587T14 17V7q0-.825.588-1.412T16 5t1.413.588T18 7v10q0 .825-.587 1.413T16 19m-8 0q-.825 0-1.412-.587T6 17V7q0-.825.588-1.412T8 5t1.413.588T10 7v10q0 .825-.587 1.413T8 19"
+                    />
+                  </svg>
+                }
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -252,25 +270,13 @@ function QuizHeader(props: {
                 >
                   <path
                     fill="currentColor"
-                    d="M16 19q-.825 0-1.412-.587T14 17V7q0-.825.588-1.412T16 5t1.413.588T18 7v10q0 .825-.587 1.413T16 19m-8 0q-.825 0-1.412-.587T6 17V7q0-.825.588-1.412T8 5t1.413.588T10 7v10q0 .825-.587 1.413T8 19"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-1 13c0 .55-.45 1-1 1s-1-.45-1-1V9c0-.55.45-1 1-1s1 .45 1 1zm5.02-2.22l-2.4 1.92a.998.998 0 0 1-1.62-.78v-3.84c0-.84.97-1.3 1.62-.78l2.4 1.92c.5.4.5 1.16 0 1.56"
                   />
                 </svg>
-              }
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="currentColor"
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-1 13c0 .55-.45 1-1 1s-1-.45-1-1V9c0-.55.45-1 1-1s1 .45 1 1zm5.02-2.22l-2.4 1.92a.998.998 0 0 1-1.62-.78v-3.84c0-.84.97-1.3 1.62-.78l2.4 1.92c.5.4.5 1.16 0 1.56"
-                />
-              </svg>
-            </Show>
-          </div>
-        </span>
+              </Show>
+            </button>
+          </span>
+        </div>
       </div>
       <span class="text-main my-5 block h-3 w-full rounded-full bg-current/50">
         <span
@@ -313,14 +319,15 @@ function QuizBox(props: {
   const options = () =>
     Object.keys(currentQ()).filter((key) => key.includes("Option"));
 
-
   return (
     <div class="bg-main-light dark:bg-main-dark px-5">
-      <div class="border-secondary mb-2 w-fit flex ml-auto rounded-full items-center border-2 font-bold">
+      <div class="border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
         <p dir="rtl" class="text-secondary flex-1 px-2">
           {subjects[props.subject].season.at(currentQ().season - 1).name}
         </p>
-        <p class="bg-secondary text-main-light rounded-full py-1 px-2">{currentQ().year}</p>
+        <p class="bg-secondary text-main-light rounded-full px-2 py-1">
+          {currentQ().year}
+        </p>
       </div>
       <div class="flex flex-row-reverse">
         <pre dir="rtl" class="text-md font-bold">
@@ -331,8 +338,7 @@ function QuizBox(props: {
 
       <ul
         classList={{
-          "mt-5  h-fit w-full rounded-xl border-2 border-darker-light-2 p-2":
-            true,
+          "mt-5  h-fit w-full rounded-xl border-2 border-darker-light-2 p-2": true,
           "pointer-events-none": disabled(),
         }}
       >
@@ -457,8 +463,7 @@ function QuizFooter(props: {
               classList={{
                 "bg-true": answerState(),
                 "bg-warn": !answerState(),
-                " absolute top-1/2 left-1/2 h-9/11 w-9/11 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-current/10":
-                  true,
+                " absolute top-1/2 left-1/2 h-9/11 w-9/11 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-current/10": true,
               }}
             ></span>
             <Show
@@ -497,7 +502,7 @@ function QuizFooter(props: {
           </span>
         </div>
 
-        <p dir="auto" class="mt-5 text-center text-3xl px-1">
+        <p dir="auto" class="mt-5 px-1 text-center text-3xl">
           {props.qs[props.index()].explanation}
         </p>
       </Show>

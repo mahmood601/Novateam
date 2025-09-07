@@ -1,9 +1,15 @@
-import { createSignal, For, Match, onCleanup, Switch } from "solid-js";
+import {
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  Switch,
+} from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { A, useParams } from "@solidjs/router";
 import subjects from "./subjects";
 
-const [activeIndex, setActiveIndex] = createSignal(2);
+const [activeIndex, setActiveIndex] = createSignal(10);
 
 export default function SeclectMenu() {
   const subject = useParams().subject;
@@ -12,7 +18,7 @@ export default function SeclectMenu() {
   const seasons = subjectProperties?.season;
 
   onCleanup(() => {
-    setActiveIndex(2);
+    setActiveIndex(10);
   });
   return (
     <div class="bg-main-light dark:bg-main-dark flex w-screen flex-1 flex-col items-center justify-center">
@@ -34,13 +40,18 @@ export default function SeclectMenu() {
   );
 }
 
-function Box(props: { text: string; index: number; arr: string[] | any }) {
+function Box(props: {
+  text: string;
+  index: number;
+  arr: string[] | any;
+}) {
   const [sectionText, setSectionText] = createSignal("");
+
   return (
     <div class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black">
       <div
         onClick={() => {
-          setActiveIndex(activeIndex() == props.index ? 2 : props.index);
+          setActiveIndex(activeIndex() == props.index ? 10 : props.index);
         }}
         class="dark:text-main-light w-full p-8"
       >
@@ -63,7 +74,7 @@ function Box(props: { text: string; index: number; arr: string[] | any }) {
                 href={sectionText()}
                 class="bg-main m-2 w-11/12 rounded-md p-2 text-center transition-all duration-200"
               >
-                {el.name || el}
+                {el.name || el }
               </A>
             )}
           </For>

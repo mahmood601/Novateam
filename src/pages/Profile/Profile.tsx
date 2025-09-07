@@ -3,6 +3,7 @@ import LeftArrow from "../../components/Icons/LeftArrow";
 import ProfileInfo from "../../components/Profile/ProfileInfo";
 import { useUser } from "../../context/user";
 import { createEffect, onMount, Show } from "solid-js";
+import Loading from "../../components/loading";
 
 export default function Profile() {
   const { user, isLoading } = useUser();
@@ -40,9 +41,9 @@ export default function Profile() {
         fallback={
           <p
             dir="rtl"
-            class="animate-pulse p-10 text-center text-gray-500 dark:text-gray-300"
+            class=" text-center text-gray-500 dark:text-gray-300"
           >
-            جاري تحميل معلومات المستخدم...
+            <Loading/>
           </p>
         }
       >
