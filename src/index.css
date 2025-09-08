@@ -20,8 +20,8 @@
 
   /* colors for dark mode like background */
   --color-main-dark: #1b1b1f;
-  --color-lighter-dark-1: #202127;
-  --color-lighter-dark-2: #2b2f36;
+  --color-lighter-dark-1: #2f2f2f;
+  --color-lighter-dark-2: #343434;
 }
 
 [data-theme="Nova"] {

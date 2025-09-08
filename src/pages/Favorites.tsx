@@ -91,16 +91,14 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
       let seasonName = "";
       if (subj?.season) {
         const idx = Number(snapshot?.season);
-          seasonName = subj.season.at(idx)?.name ?? "";
-      setSeason(seasonName);
-       
-        }
-      
+        seasonName = subj.season.at(idx)?.name ?? "";
+        setSeason(seasonName);
+      }
     } catch (err) {
       console.error("resolve season name:", err);
       setSeason("");
     }
- } );
+  });
 
   const options = [
     snapshot?.firstOption,
@@ -145,16 +143,16 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
     <li class="bg-darker-light-1 dark:bg-lighter-dark-1 rounded-md p-4 shadow-sm">
       <div class="flex flex-col">
         <div>
-          <div class="mb-1 flex flex-col">
-            <span dir="rtl" class="text-muted flex-1 text-right text-xs">
-              • {new Date(props.fav.savedAt).toLocaleString()}
+          <div class="mb-3 flex flex-col text-center">
+            <span class="text-muted flex-1 text-xs">
+              {new Date(props.fav.savedAt).toLocaleString()}
             </span>
-            <span dir="rtl" class="text-muted flex-1 text-right text-xs">
-              • {snapshot?.year ?? "سنة غير معروفة"} - {season()}
+            <span dir="rtl" class="text-muted flex-1 text-xs">
+              {snapshot?.year ?? "سنة غير معروفة"} - {season()}
             </span>
           </div>
 
-          <p class="mb-2 text-right font-semibold" dir="rtl">
+          <p class="mb-3 text-right font-semibold" dir="rtl">
             {props.fav.snapshot?.question ?? "سؤال محفوظ"}
           </p>
           <For each={options.filter((option) => option)}>
@@ -162,7 +160,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
               <p
                 dir="auto"
                 classList={{
-                  "bg-main rounded-md p-1 text-main-dark":
+                  "bg-main rounded-md p-1 text-white":
                     snapshot?.correctIndex.includes(index()),
                   "bg-red-500 rounded-md p-1 text-white":
                     snapshot?.userAnswer == option &&
@@ -188,14 +186,14 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
 
         <div class="flex justify-around">
           <button
-            class="bg-main rounded px-3 py-1 text-sm text-white"
+            class="bg-main rounded px-3 py-1 text-sm text-main-dark"
             onClick={() => handleRemove(props.fav.questionId)}
           >
             إزالة
           </button>
 
           <button
-            class="bg-main rounded px-3 py-1 text-sm"
+            class="bg-main rounded px-3 py-1 text-sm text-main-dark"
             onClick={() => handleEditNote(props.fav)}
           >
             تعديل الملاحظة
