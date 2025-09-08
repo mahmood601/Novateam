@@ -176,7 +176,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
           <Show
             when={props.fav.note}
             fallback={
-              <p class="my-4 text-center text-sm text-gray-500">بدون ملاحظة</p>
+              <p dir="rtl" class="my-4 text-center text-sm text-gray-500">بدون ملاحظة</p>
             }
           >
             <p class="text-main my-4 text-center text-sm whitespace-pre-wrap">
