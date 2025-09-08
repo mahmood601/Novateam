@@ -114,7 +114,7 @@ export async function addAnswersToProgress(answers: Answer[]) {
 export async function addFavoriteForQuestion(
   question: Question,
   note?: string,
-  userAnswer: string
+  userAnswer?: string
 ): Promise<void> {
   const fav: Favorite = {
     $id: question.$id,

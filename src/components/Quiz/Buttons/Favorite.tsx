@@ -122,7 +122,7 @@ createEffect(() =>console.log(props.userAnswer))
           <button
             on:click={handleAdd}
             data-hover="LikeButton"
-            class="mr-3 text-gray-500 hover:text-gray-700"
+            class="mr-3 text-main-dark dark:text-main-light "
             aria-label="Save question to favorites"
             aria-pressed="false"
           >

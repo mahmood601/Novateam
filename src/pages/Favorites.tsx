@@ -7,7 +7,7 @@ import {
   createResource,
   createEffect,
 } from "solid-js";
-import { A, createAsync, useNavigate } from "@solidjs/router";
+import { A, createAsync, useNavigate, useParams } from "@solidjs/router";
 import type { Favorite } from "../utils/indexeddb";
 import {
   getFavorites,
@@ -23,6 +23,7 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);
   const [loading, setLoading] = createSignal(true);
   const navigate = useNavigate();
+  const subject = useParams().subject
 
   async function load(subject?: string) {
     setLoading(true);
@@ -38,7 +39,7 @@ export default function FavoritesPage() {
   }
 
   onMount(() => {
-    load();
+    load(subject);
   });
 
   return (
