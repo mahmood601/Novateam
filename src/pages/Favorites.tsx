@@ -53,7 +53,7 @@ export default function FavoritesPage() {
           >
             <LeftArrow />
           </button>
-          <h1 class="text-2xl font-bold">المفضلات</h1>
+          <h1 class="text-2xl font-bold">المفضلة</h1>
           <button
             class="bg-main rounded px-3 py-1 text-white"
             onClick={() => load()}

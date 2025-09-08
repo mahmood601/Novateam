@@ -64,8 +64,6 @@ function Box(props: {
   // favorites for this subject
   const [favorites] = createResource(async () => {
     const saved = await getFavorites(props.subject);
-    console.log(saved);
-
     return saved || [];
   });
 
@@ -134,8 +132,9 @@ function Box(props: {
       }
     >
       <A
-      href={makeHref("favorite")}
-       class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black">
+        href={makeHref("favorite")}
+        class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black"
+      >
         <div
           onClick={() => {
             props.setActiveIndex(isActive() ? null : props.index);
