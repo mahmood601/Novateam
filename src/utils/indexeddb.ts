@@ -113,7 +113,8 @@ export async function addAnswersToProgress(answers: Answer[]) {
 // Save a question as favorite (uses question.$id as favorite $id)
 export async function addFavoriteForQuestion(
   question: Question,
-  note?: string
+  note?: string,
+  userAnswer: string
 ): Promise<void> {
   const fav: Favorite = {
     $id: question.$id,
@@ -129,6 +130,7 @@ export async function addFavoriteForQuestion(
       fourthOption: question.fourthOption,
       fifthOption: question.fifthOption,
       correctIndex: question.correctIndex,
+      userAnswer: userAnswer,
       year: question.year,
       season: question.season,
     },

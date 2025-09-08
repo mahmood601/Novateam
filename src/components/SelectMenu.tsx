@@ -1,85 +1,150 @@
-import {
-  createSignal,
-  For,
-  Match,
-  onCleanup,
-  Switch,
-} from "solid-js";
+import { useParams, A } from "@solidjs/router";
+import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
-import { A, useParams } from "@solidjs/router";
 import subjects from "./subjects";
+import { Favorite, getFavorites, removeFavorite } from "../utils/indexeddb";
 
-const [activeIndex, setActiveIndex] = createSignal(10);
-
-export default function SeclectMenu() {
+export default function SelectMenu() {
   const subject = useParams().subject;
   const subjectProperties = subjects[subject];
-  const years = subjectProperties?.year;
-  const seasons = subjectProperties?.season;
+  const years = subjectProperties?.year ?? [];
+  const seasons = subjectProperties?.season ?? [];
 
-  onCleanup(() => {
-    setActiveIndex(10);
-  });
+  const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+
+  const sections: {
+    text: string;
+    arr: (string | { id: number; name: string })[];
+    type: SectionType;
+  }[] = [
+    {
+      text: "السنوات",
+      arr: years as (string | { id: number; name: string })[],
+      type: "year",
+    },
+    {
+      text: "الفصول",
+      arr: seasons as (string | { id: number; name: string })[],
+      type: "season",
+    },
+    { text: "المفضلة", arr: [], type: "favorites" },
+  ];
+
   return (
     <div class="bg-main-light dark:bg-main-dark flex w-screen flex-1 flex-col items-center justify-center">
-      <Switch>
-        <Match when={activeIndex() == 0}>
-          <Box text="السنوات" index={0} arr={years} />
-        </Match>
-        <Match when={activeIndex() == 1}>
-          {" "}
-          <Box text="الفصول" index={1} arr={seasons} />
-        </Match>
-        <Match when={activeIndex() > 1}>
-          {" "}
-          <Box text="السنوات" index={0} arr={[]} />
-          <Box text="الفصول" index={1} arr={[]} />
-        </Match>
-      </Switch>
+      <For each={sections}>
+        {(section, index) => (
+          <Box
+            text={section.text}
+            index={index()}
+            arr={section.arr}
+            activeIndex={activeIndex}
+            setActiveIndex={setActiveIndex}
+            type={section.type}
+            subject={subject}
+          />
+        )}
+      </For>
     </div>
   );
 }
+type SectionType = "year" | "season" | "favorites";
 
 function Box(props: {
   text: string;
   index: number;
-  arr: string[] | any;
+  arr: (string | { id: number; name: string })[];
+  activeIndex: () => number | null;
+  setActiveIndex: (v: number | null) => void;
+  type: SectionType;
+  subject: string;
 }) {
-  const [sectionText, setSectionText] = createSignal("");
+  const isActive = () => props.activeIndex() === props.index;
+
+  // favorites for this subject
+  const [favorites] = createResource(async () => {
+    const saved = await getFavorites(props.subject);
+    console.log(saved);
+
+    return saved || [];
+  });
+
+  const makeHref = (el: any) => {
+    if (props.type === "year") return `year-${el}`;
+    if (props.type === "season") return `season-${el.id}`;
+    if (props.type === "favorites") return `favorite`;
+    return "#";
+  };
 
   return (
-    <div class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black">
-      <div
-        onClick={() => {
-          setActiveIndex(activeIndex() == props.index ? 10 : props.index);
-        }}
-        class="dark:text-main-light w-full p-8"
-      >
-        <p class="w-full text-center text-lg font-bold">{props.text}</p>
-      </div>
+    <Show
+      when={props.type === "favorites"}
+      fallback={
+        <div class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black">
+          <div
+            onClick={() => {
+              props.setActiveIndex(isActive() ? null : props.index);
+            }}
+            class="dark:text-main-light w-full p-8"
+          >
+            <p class="w-full text-center text-lg font-bold">{props.text}</p>
+          </div>
+          <Show when={isActive()}>
+            <div class="bg-darker-light-2 dark:bg-lighter-dark-2 -mt-1 flex max-h-70 flex-col items-center overflow-y-auto transition-all duration-150">
+              <TransitionGroup name="dropdown" appear>
+                <For
+                  each={props.type === "favorites" ? favorites() : props.arr}
+                >
+                  {(el: any) => (
+                    <div class="flex w-11/12 items-center gap-2">
+                      <A
+                        href={makeHref(el)}
+                        class="bg-main m-2 flex-1 rounded-md p-2 text-center transition-all duration-200"
+                      >
+                        {typeof el === "string"
+                          ? el
+                          : el.name || el.snapshot.question}
+                      </A>
 
-      <div class="bg-darker-light-2 dark:bg-lighter-dark-2 -mt-1 flex h-fit max-h-70 flex-col items-center overflow-y-scroll transition-all duration-150">
-        <TransitionGroup name="dropdown" appear={true}>
-          <For each={props.arr}>
-            {(el) => (
-              <A
-                on:click={() => {
-                  if (props.index == 0) {
-                    setSectionText("year-" + el);
-                  }
-                  if (props.index == 1) {
-                    setSectionText("season-" + el.id);
-                  }
-                }}
-                href={sectionText()}
-                class="bg-main m-2 w-11/12 rounded-md p-2 text-center transition-all duration-200"
+                      {/* favorite toggle button */}
+                      {props.type === "favorites" && (
+                        <button
+                          class="text-red-500"
+                          onClick={() => removeFavorite(el)}
+                        >
+                          ✖
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </For>
+              </TransitionGroup>
+
+              {/* if no favorites */}
+              <Show
+                when={props.type === "favorites" && favorites().length === 0}
               >
-                {el.name || el }
-              </A>
-            )}
-          </For>
-        </TransitionGroup>
-      </div>
-    </div>
+                <p class="my-3 text-gray-400">
+                  لا توجد أسئلة مفضلة لهذا الموضوع
+                </p>
+              </Show>
+            </div>
+          </Show>
+        </div>
+      }
+    >
+      <A
+      href={makeHref("favorite")}
+       class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 cursor-pointer rounded-md border-1 border-black">
+        <div
+          onClick={() => {
+            props.setActiveIndex(isActive() ? null : props.index);
+          }}
+          class="dark:text-main-light w-full p-8"
+        >
+          <p class="w-full text-center text-lg font-bold">{props.text}</p>
+        </div>
+      </A>
+    </Show>
   );
 }

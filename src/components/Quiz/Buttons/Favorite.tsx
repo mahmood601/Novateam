@@ -1,10 +1,8 @@
 // ...existing code...
 import { createSignal, Show, onMount, createEffect, onCleanup } from "solid-js";
-import Heart from "../../Icons/Heart";
 import {
   addFavoriteForQuestion,
   removeFavorite,
-  isFavorite,
   updateFavoriteNote,
   getFavorite,
 } from "../../../utils/indexeddb";
@@ -12,11 +10,13 @@ import toast from "solid-toast";
 
 export default function FavoriteButton(props: {
   question: { $id: string; [k: string]: any };
+  userAnswer: string;
   class?: string;
 }) {
   const [active, setActive] = createSignal(false);
   const [note, setNote] = createSignal<string | undefined>(undefined);
   const qid = props.question?.$id;
+createEffect(() =>console.log(props.userAnswer))
 
   let mounted = true;
 
@@ -65,7 +65,7 @@ export default function FavoriteButton(props: {
       window.prompt("أضف ملاحظة للسؤال (اختياري):", note() ?? "") ?? undefined;
 
     try {
-      await addFavoriteForQuestion(props.question, userNote);
+      await addFavoriteForQuestion(props.question, userNote, props.userAnswer);
       setNote(userNote);
       setActive(true);
       toast.success("تمت الإضافة إلى المفضلة");

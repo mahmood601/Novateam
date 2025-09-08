@@ -27,7 +27,7 @@ const success = "/success.mp3";
 const wrong = "/wrong.mp3";
 const { audioEnabled, setAudioEnabled, playSound } = useAudio(success, wrong);
 
-const [userAnswers, setUserAnswers] = createSignal<Answer[]>([]);
+const [userAnswers, setUserAnswers] = createSignal([]);
 
 const resetOpts = () => {
   setChoosed(7);
@@ -179,6 +179,7 @@ function QuizHeader(props: {
     }
     addAnswersToProgress(unwrap(userAnswers()));
   });
+  
 
   return (
     <div class="px-5 pt-5">
@@ -226,7 +227,10 @@ function QuizHeader(props: {
           {props.index() + 1}/{props.questionsLength}
         </span>
         <div class="flex items-center">
-         <FavoriteButton question={props.questions[props.index()]}/>
+          <Show when={userAnswers()[props.index()]}>
+         <FavoriteButton question={props.questions[props.index()]} userAnswer={userAnswers()[props.index()].answerContent}/>
+
+          </Show>
           <span class="text-secondary flex items-center rounded-full bg-current/5 p-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -307,7 +311,7 @@ function QuizBox(props: {
   setIndex: Setter<number>;
   subject: string;
 }) {
-  const debouncedSave = debounce((answers: userAnswerT[]) => {
+  const debouncedSave = debounce((answers) => {
     addAnswersToProgress(unwrap(answers));
   }, 1000);
 
@@ -359,8 +363,9 @@ function QuizBox(props: {
                           state: true,
                           answer:
                             currentQ().correctIndex.indexOf(index()) != -1,
-                        },
-                      ] as userAnswerT[],
+                            answerContent: currentQ()[opt]
+                        }, 
+                      ] as any
                   );
                   setDisabled(true);
                   setChoosed(index());

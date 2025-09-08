@@ -17,6 +17,7 @@ import ReloadPrompt from "./components/pwa/ReloadPrompt.tsx";
 import InstallPrompt from "./components/pwa/InstallPrompt.tsx";
 import { createEffect, createSignal } from "solid-js";
 import { usePrefersDark } from "@solid-primitives/media";
+import FavoritesPage from "./pages/Favorites.tsx";
 
 export default function App() {
   // const date = "__DATE__";
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/settings" component={() => <Settings />} />
         <Route path="/:subject" component={() => <SelectMenu />} />
         <Route path="/:subject/:section" component={() => <Quiz />} />
+        <Route path="/:subject/favorite" component={() => <FavoritesPage />} />
       </Router>
       <InstallPrompt />
       <ReloadPrompt />

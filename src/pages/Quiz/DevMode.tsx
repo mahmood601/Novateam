@@ -16,7 +16,7 @@ import {
   deleteQuestion,
   listQuestions,
 } from "../../services/documentsManuplation";
-import { useParams } from "@solidjs/router";
+import { useLocation, useParams } from "@solidjs/router";
 import { setQStore } from "../../stores/QStores";
 import Loading from "../../components/loading";
 import { getUserNameById } from "../../services/user";
@@ -37,6 +37,9 @@ export default function DevMode() {
   const subject = params.subject;
   const fSection = params.section.split("-")[0];
   const sSection = params.section.split("-")[1];
+
+  const isInFavorite = useLocation().pathname.includes("favorite")
+
   const fetchQS = async (pageIndex)  =>
     await listQuestions(
       subject,
@@ -68,7 +71,8 @@ export default function DevMode() {
   });
 
   return (
-    <ErrorBoundary
+    <Show when={!isInFavorite} >
+   <ErrorBoundary
       fallback={(error, reset) => (
         <div>
           <p>{error.message}</p>
@@ -161,6 +165,8 @@ export default function DevMode() {
         </Suspense>
       </div>
     </ErrorBoundary>
+    </Show>
+ 
   );
 }
 
