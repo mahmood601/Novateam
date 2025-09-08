@@ -1,5 +1,13 @@
-import { createSignal, onMount, For, Show, Setter } from "solid-js";
-import { A, useNavigate } from "@solidjs/router";
+import {
+  createSignal,
+  onMount,
+  For,
+  Show,
+  Setter,
+  createResource,
+  createEffect,
+} from "solid-js";
+import { A, createAsync, useNavigate } from "@solidjs/router";
 import type { Favorite } from "../utils/indexeddb";
 import {
   getFavorites,
@@ -9,6 +17,7 @@ import {
 import toast from "solid-toast";
 import Loading from "../components/loading";
 import LeftArrow from "../components/Icons/LeftArrow";
+import subjects from "../components/subjects";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);
@@ -33,7 +42,7 @@ export default function FavoritesPage() {
   });
 
   return (
-    <div class="overflow-y-auto bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light h-[calc(100vh_-_70px)]  p-6">
+    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light h-[calc(100vh_-_70px)] overflow-y-auto p-6">
       <div class="mx-auto max-w-4xl">
         <div class="mb-6 flex items-center justify-between">
           <button
@@ -58,7 +67,7 @@ export default function FavoritesPage() {
             when={favorites().length > 0}
             fallback={<p class="py-20 text-center">لا توجد عناصر في المفضلة</p>}
           >
-            <ul class="space-y-4 overflow-y-auto max-h-[calc(100vh_-_70px_-_120px)]">
+            <ul class="max-h-[calc(100vh_-_70px_-_120px)] space-y-4 overflow-y-auto">
               <For each={favorites()}>
                 {(fav) => <FavBox fav={fav} setFavorites={setFavorites} />}
               </For>
@@ -72,6 +81,27 @@ export default function FavoritesPage() {
 
 function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
   const snapshot = props.fav.snapshot;
+
+  const [season, setSeason] = createSignal("");
+
+  // resolve season name (ensure we set a string, not an object)
+  createAsync(async () => {
+    try {
+      const subj = (subjects as any)[props.fav.subject];
+      let seasonName = "";
+      if (subj?.season) {
+        const idx = Number(snapshot?.season);
+          seasonName = subj.season.at(idx)?.name ?? "";
+      setSeason(seasonName);
+       
+        }
+      
+    } catch (err) {
+      console.error("resolve season name:", err);
+      setSeason("");
+    }
+ } );
+
   const options = [
     snapshot?.firstOption,
     snapshot?.secondOption,
@@ -110,13 +140,17 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
       toast.error("فشل التحديث");
     }
   };
+
   return (
     <li class="bg-darker-light-1 dark:bg-lighter-dark-1 rounded-md p-4 shadow-sm">
       <div class="flex flex-col">
-        <div class="">
-          <div class="mb-1 flex items-center gap-3">
-            <span class="text-muted text-xs">
+        <div>
+          <div class="mb-1 flex flex-col">
+            <span dir="rtl" class="text-muted flex-1 text-right text-xs">
               • {new Date(props.fav.savedAt).toLocaleString()}
+            </span>
+            <span dir="rtl" class="text-muted flex-1 text-right text-xs">
+              • {snapshot?.year ?? "سنة غير معروفة"} - {season()}
             </span>
           </div>
 
