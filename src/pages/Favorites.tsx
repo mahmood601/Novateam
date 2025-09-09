@@ -4,10 +4,8 @@ import {
   For,
   Show,
   Setter,
-  createResource,
-  createEffect,
 } from "solid-js";
-import { A, createAsync, useNavigate, useParams } from "@solidjs/router";
+import { createAsync, useNavigate, useParams } from "@solidjs/router";
 import type { Favorite } from "../utils/indexeddb";
 import {
   getFavorites,

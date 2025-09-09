@@ -45,7 +45,11 @@ class AppDB extends Dexie {
       `,
       answers: `
         $id,
-        subject
+        subject,
+        season,
+        year,
+        [subject+season],
+        [subject+year]
       `,
       favorites: `
         $id,
@@ -60,10 +64,10 @@ class AppDB extends Dexie {
 const db = new AppDB();
 
 const unusedKeys = new Set([
-  "$collectionId",
   "$createdAt",
-  "$databaseId",
   "$permissions",
+  "$sequence",
+  "$updatedAt",
 ]);
 
 // Add or update questions for a subject
@@ -74,7 +78,7 @@ export async function addQuestionsToFirstDB(subject: string) {
     const questionsResponse = await databases.listDocuments(
       import.meta.env.VITE_DB_ID,
       subject,
-      [Query.limit(500)]
+      [Query.limit(500), Query.select(["$id", "question", "explanation", "firstOption", "secondOption", "thirdOption", "fourthOption", "fifthOption", "correctIndex", "year", "season"])]
     );
 
     const questions: Question[] = questionsResponse.documents.map((q: any) => {
@@ -183,12 +187,13 @@ export async function getFavorite(questionId: string): Promise<Favorite | undefi
 }
 
 // Get questions with filter (by season or year)
-export async function getQuestionsWithFilter(
+export async function getQuestionsOrAnswersWithFilter(
   subject: string,
+  type: "questions" | "answers",
   sectionName: "season" | "year",
   sectionValue: string
-): Promise<Question[]> {
-  return db.questions
+): Promise<Question[] | Answer[]> {
+  return db[type]
     .where(`[subject+${sectionName}]`)
     .equals([subject, sectionValue])
     .toArray();

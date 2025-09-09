@@ -1,21 +1,8 @@
 import { createStore } from "solid-js/store";
+import { Question } from "../utils/indexeddb";
 
-export interface QuestionsT {
-  subject: string;
-  year: string;
-  season: string;
-  question: string;
-  explanation?: string;
-  firstOption: string;
-  secondOption: string;
-  thirdOption?: string;
-  fourthOption?: string;
-  fifthOption?: string;
-  correctIndex:  number[];
-  user_id: string;
-}
-
-export const qStoreObj: QuestionsT = {
+export const qStoreObj: Question = {
+  $id: "",
   subject: "",
   year: "",
   season: "",
@@ -30,4 +17,6 @@ export const qStoreObj: QuestionsT = {
   user_id: "",
 };
 
-export const [QStore, setQStore] = createStore<QuestionsT>(qStoreObj);
+ const [QStore, setQStore] = createStore<Question[]>([]);
+
+ export{QStore, setQStore}

@@ -16,7 +16,6 @@ export default function FavoriteButton(props: {
   const [active, setActive] = createSignal(false);
   const [note, setNote] = createSignal<string | undefined>(undefined);
   const qid = props.question?.$id;
-createEffect(() =>console.log(props.userAnswer))
 
   let mounted = true;
 

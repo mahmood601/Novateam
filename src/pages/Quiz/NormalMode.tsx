@@ -1,7 +1,8 @@
-import { useBeforeLeave, useParams } from "@solidjs/router";
+import { createAsync, useBeforeLeave, useParams } from "@solidjs/router";
 import {
   Accessor,
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   For,
@@ -14,14 +15,15 @@ import LeftArrow from "../../components/Icons/LeftArrow";
 import subjects from "../../components/subjects";
 import {
   addAnswersToProgress,
-  Answer,
-  getQuestionsWithFilter,
+  getQuestionsOrAnswersWithFilter,
   Question,
 } from "../../utils/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
-import { unwrap } from "solid-js/store";
+import { createStore, unwrap } from "solid-js/store";
 import Timer from "../../utils/timer";
 import FavoriteButton from "../../components/Quiz/Buttons/Favorite";
+import { quizType } from "../../stores/quizType";
+import { setQStore } from "../../stores/QStores";
 
 const success = "/success.mp3";
 const wrong = "/wrong.mp3";
@@ -41,13 +43,67 @@ export default function NormalMode() {
 
   const [showResult, setShowResult] = createSignal(false);
   const [index, setIndex] = createSignal(0);
+  let [orderedQs, setOrderedQs] = createSignal();
 
   const [questions] = createResource(
     async () => {
-      return await getQuestionsWithFilter(subject, sectionName, sectionValue);
+      return await getQuestionsOrAnswersWithFilter(
+        subject,
+        "questions",
+        sectionName,
+        sectionValue,
+      );
     },
     { deferStream: true },
   );
+
+  const [answers] = createResource(
+    async () => {
+      return await getQuestionsOrAnswersWithFilter(
+        subject,
+        "answers",
+        sectionName,
+        sectionValue,
+      );
+    },
+    { deferStream: true },
+  );
+  createEffect(() => {
+    if (
+      quizType() == "continue" &&
+      questions()?.length > 0 &&
+      answers()?.length > 0
+    ) {
+      const answersIds = answers()?.map((a) => a.$id);
+
+      const qsMap = new Map();
+      questions()?.forEach((q) => {
+        qsMap.set(q.$id, q);
+      });
+
+      const qs = [];
+
+      (answersIds
+        ?.map((id) => qsMap.get(id))
+        .filter((q) => {
+          if (q != undefined) {
+            qs.push(q);
+          }
+        }),
+        qsMap.forEach((q) => {
+          if (answersIds?.indexOf(q.$id) == -1) {
+            qs.push(q);
+          }
+        }));
+
+      setIndex(answersIds?.length - 1);
+      setOrderedQs(qs);
+
+      console.log(orderedQs());
+    } else {
+      setOrderedQs(questions());
+    }
+  });
 
   onCleanup(() => {
     setUserAnswers([]);
@@ -67,7 +123,7 @@ export default function NormalMode() {
 
   return (
     <Suspense>
-      <Show when={questions() && !showResult()}>
+      <Show when={questions() && answers() && !showResult()}>
         <Show
           when={questions()!.length > 0}
           fallback={
@@ -87,20 +143,20 @@ export default function NormalMode() {
           <div class="dark:text-main-light bg-main-light dark:bg-main-dark top-0 z-50 flex h-screen flex-col select-none">
             <QuizHeader
               subjectName={subjects[subject].name}
-              questionsLength={questions()!.length}
+              questionsLength={orderedQs()!.length}
               index={index}
-              questions={questions()!}
+              questions={orderedQs()}
             />
 
             <QuizBox
-              qs={questions()}
+              qs={orderedQs()}
               index={index}
               setIndex={setIndex}
               subject={subject}
             />
 
             <QuizFooter
-              qs={questions()}
+              qs={orderedQs()}
               index={index}
               setIndex={setIndex}
               showResult={showResult}
@@ -120,7 +176,7 @@ function QuizHeader(props: {
   subjectName: string;
   index: Accessor<number>;
   questionsLength: number;
-  questions: Question[]
+  questions: Question[];
 }) {
   const [time, setTime] = createSignal("");
   const [paused, setPaused] = createSignal(false);
@@ -179,7 +235,6 @@ function QuizHeader(props: {
     }
     addAnswersToProgress(unwrap(userAnswers()));
   });
-  
 
   return (
     <div class="px-5 pt-5">
@@ -228,8 +283,10 @@ function QuizHeader(props: {
         </span>
         <div class="flex items-center">
           <Show when={userAnswers()[props.index()]}>
-         <FavoriteButton question={props.questions[props.index()]} userAnswer={userAnswers()[props.index()].answerContent}/>
-
+            <FavoriteButton
+              question={props.questions[props.index()]}
+              userAnswer={userAnswers()[props.index()].answerContent}
+            />
           </Show>
           <span class="text-secondary flex items-center rounded-full bg-current/5 p-2">
             <svg
@@ -360,12 +417,14 @@ function QuizBox(props: {
                         {
                           $id: currentQ().$id,
                           subject: props.subject,
+                          year: currentQ().year,
+                          season: currentQ().season,
                           state: true,
                           answer:
                             currentQ().correctIndex.indexOf(index()) != -1,
-                            answerContent: currentQ()[opt]
-                        }, 
-                      ] as any
+                          answerContent: currentQ()[opt],
+                        },
+                      ] as any,
                   );
                   setDisabled(true);
                   setChoosed(index());

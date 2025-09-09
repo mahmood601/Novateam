@@ -2,7 +2,8 @@ import { useParams, A } from "@solidjs/router";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import subjects from "./subjects";
-import { Favorite, getFavorites, removeFavorite } from "../utils/indexeddb";
+import { getFavorites } from "../utils/indexeddb";
+import { setQuizType } from "../stores/quizType";
 
 export default function SelectMenu() {
   const subject = useParams().subject;
@@ -97,6 +98,13 @@ function Box(props: {
                     <div class="flex w-11/12 items-center gap-2">
                       <A
                         href={makeHref(el)}
+                        on:click={()=>{
+                          if (window.confirm("هل تريد الاكمال من حيث توقفت؟")) {
+                            setQuizType("continue");
+                          } else {
+                            setQuizType("restart");
+                          }
+                        }}
                         class="bg-main m-2 flex-1 rounded-md p-2 text-center transition-all duration-200"
                       >
                         {typeof el === "string"
@@ -104,15 +112,6 @@ function Box(props: {
                           : el.name || el.snapshot.question}
                       </A>
 
-                      {/* favorite toggle button */}
-                      {props.type === "favorites" && (
-                        <button
-                          class="text-red-500"
-                          onClick={() => removeFavorite(el)}
-                        >
-                          ✖
-                        </button>
-                      )}
                     </div>
                   )}
                 </For>
@@ -120,7 +119,7 @@ function Box(props: {
 
               {/* if no favorites */}
               <Show
-                when={props.type === "favorites" && favorites().length === 0}
+                when={props.type === "favorites" && favorites()?.length === 0}
               >
                 <p class="my-3 text-gray-400">
                   لا توجد أسئلة مفضلة لهذا الموضوع
