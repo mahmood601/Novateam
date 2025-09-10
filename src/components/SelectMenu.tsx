@@ -2,7 +2,7 @@ import { useParams, A } from "@solidjs/router";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import subjects from "./subjects";
-import { getFavorites } from "../utils/indexeddb";
+import { deleteAnswersWithFilter, getFavorites } from "../utils/indexeddb";
 import { setQuizType } from "../stores/quizType";
 
 export default function SelectMenu() {
@@ -103,6 +103,7 @@ function Box(props: {
                             setQuizType("continue");
                           } else {
                             setQuizType("restart");
+                            deleteAnswersWithFilter(props.subject, props.type, typeof el === "string" ? el : el.id.toString());
                           }
                         }}
                         class="bg-main m-2 flex-1 rounded-md p-2 text-center transition-all duration-200"

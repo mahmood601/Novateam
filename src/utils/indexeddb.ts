@@ -30,7 +30,7 @@ export type Favorite = {
 class AppDB extends Dexie {
   questions!: Table<Question, "$id">;
   answers!: Table<Answer, "$id">;
-  favorites!: Table<Favorite, "$id">; 
+  favorites!: Table<Favorite, "$id">;
 
   constructor() {
     super("db");
@@ -72,19 +72,37 @@ const unusedKeys = new Set([
 
 // Add or update questions for a subject
 export async function addQuestionsToFirstDB(subject: string) {
-  const existingQuestions = await db.questions.where("subject").equals(subject).toArray();
+  const existingQuestions = await db.questions
+    .where("subject")
+    .equals(subject)
+    .toArray();
 
   try {
     const questionsResponse = await databases.listDocuments(
       import.meta.env.VITE_DB_ID,
       subject,
-      [Query.limit(500), Query.select(["$id", "question", "explanation", "firstOption", "secondOption", "thirdOption", "fourthOption", "fifthOption", "correctIndex", "year", "season"])]
+      [
+        Query.limit(500),
+        Query.select([
+          "$id",
+          "question",
+          "explanation",
+          "firstOption",
+          "secondOption",
+          "thirdOption",
+          "fourthOption",
+          "fifthOption",
+          "correctIndex",
+          "year",
+          "season",
+        ]),
+      ],
     );
 
     const questions: Question[] = questionsResponse.documents.map((q: any) => {
       q.subject = subject;
       return Object.fromEntries(
-        Object.entries(q).filter(([key]) => !unusedKeys.has(key))
+        Object.entries(q).filter(([key]) => !unusedKeys.has(key)),
       ) as Question;
     });
 
@@ -98,7 +116,7 @@ export async function addQuestionsToFirstDB(subject: string) {
       if (deletedIds.length > 0) {
         await db.questions.where("$id").anyOf(deletedIds).delete();
         await db.answers.where("$id").anyOf(deletedIds).delete();
-         await db.favorites.where("$id").anyOf(deletedIds).delete();
+        await db.favorites.where("$id").anyOf(deletedIds).delete();
       }
 
       await db.questions.bulkPut(questions);
@@ -118,7 +136,7 @@ export async function addAnswersToProgress(answers: Answer[]) {
 export async function addFavoriteForQuestion(
   question: Question,
   note?: string,
-  userAnswer?: string
+  userAnswer?: string,
 ): Promise<void> {
   const fav: Favorite = {
     $id: question.$id,
@@ -151,12 +169,18 @@ export async function removeFavorite(questionId: string): Promise<void> {
 }
 
 // Update note for a favorite
-export async function updateFavoriteNote(questionId: string, note: string): Promise<void> {
+export async function updateFavoriteNote(
+  questionId: string,
+  note: string,
+): Promise<void> {
   await db.favorites.update(questionId, { note, savedAt: Date.now() });
 }
 
 // Toggle favorite (add if missing, remove if exists). Returns true if added, false if removed.
-export async function toggleFavorite(question: Question, note?: string): Promise<boolean> {
+export async function toggleFavorite(
+  question: Question,
+  note?: string,
+): Promise<boolean> {
   const exists = await isFavorite(question.$id);
   if (exists) {
     await removeFavorite(question.$id);
@@ -182,7 +206,9 @@ export async function getFavorites(subject?: string): Promise<Favorite[]> {
 }
 
 // Get single favorite
-export async function getFavorite(questionId: string): Promise<Favorite | undefined> {
+export async function getFavorite(
+  questionId: string,
+): Promise<Favorite | undefined> {
   return db.favorites.get(questionId);
 }
 
@@ -191,7 +217,7 @@ export async function getQuestionsOrAnswersWithFilter(
   subject: string,
   type: "questions" | "answers",
   sectionName: "season" | "year",
-  sectionValue: string
+  sectionValue: string,
 ): Promise<Question[] | Answer[]> {
   return db[type]
     .where(`[subject+${sectionName}]`)
@@ -207,4 +233,15 @@ export async function getQuestions(subject: string): Promise<Question[]> {
 // Get all answers for a subject
 export async function getAnswers(subject: string): Promise<Answer[]> {
   return db.answers.where("subject").equals(subject).toArray();
+}
+
+export async function deleteAnswersWithFilter(
+  subject: string,
+  sectionName: "season" | "year",
+  sectionValue: string,
+): Promise<void> {
+  db.answers
+    .where(`[subject+${sectionName}]`)
+    .equals([subject, sectionValue])
+    .delete();
 }
