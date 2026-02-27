@@ -34,7 +34,7 @@ export default function FavoritesPage() {
   });
 
   return (
-    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light relative p-6">
+    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light relative p-6 min-h-screen">
       <div class="fixed top-2 left-1/2 w-[95%] -translate-x-1/2 z-20">
         <div class="backdrop-blur-2xl  rounded-2xl px-4 py-2 flex items-center justify-between">
           <button type="button" onClick={() => history.back()} aria-label="رجوع" class="p-1">

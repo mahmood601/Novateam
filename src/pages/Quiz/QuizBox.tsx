@@ -12,7 +12,7 @@ export default function QuizBox(props: any) {
 
 
   return (
-    <div class="bg-main-light dark:bg-main-dark px-5">
+    <div class="bg-main-light dark:bg-main-dark">
         <Show when={subjects[props.subject] && props.currentQuestion}>
           <div class="border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
             <p dir="rtl" class="text-secondary flex-1 px-2">
