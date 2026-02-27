@@ -5,17 +5,12 @@ import {
   removeFavorite,
   updateFavoriteNote,
   getFavorite,
-} from "../../../utils/indexeddb";
+} from "../../utils/indexeddb";
 import toast from "solid-toast";
 
-export default function FavoriteButton(props: {
-  question: { $id: string; [k: string]: any };
-  userAnswer: string;
-  class?: string;
-}) {
+export default function FavoriteButton(props:any) {
   const [active, setActive] = createSignal(false);
   const [note, setNote] = createSignal<string | undefined>(undefined);
-  const qid = props.question?.$id;
 
   let mounted = true;
 
@@ -27,9 +22,11 @@ export default function FavoriteButton(props: {
     mounted = false;
   });
 
+
   // react to question changes (load favorite state for the current question)
   createEffect(async () => {
     const qid = props.question?.$id;
+    
     if (!qid) {
       // no question -> reset UI
       setActive(false);
@@ -52,9 +49,6 @@ export default function FavoriteButton(props: {
     }
   });
 
-
-
-
   const handleAdd = async (e: MouseEvent) => {
     e.stopPropagation();
     if (!props.question) return;
@@ -76,6 +70,8 @@ export default function FavoriteButton(props: {
 
   const handleRemove = async (e: MouseEvent) => {
     e.stopPropagation();
+    const qid = props.question?.$id;
+
     if (!qid) return;
     try {
       await removeFavorite(qid);
@@ -90,10 +86,12 @@ export default function FavoriteButton(props: {
 
   const handleEditNote = async (e: MouseEvent) => {
     e.stopPropagation();
+    const qid = props.question?.$id;
+
     if (!qid) return;
 
-    const userInput = window.prompt("حرّر ملاحظتك:", note())
-    if (userInput === null ) return; // user cancelled -> keep old note
+    const userInput = window.prompt("حرّر ملاحظتك:", note());
+    if (userInput === null) return; // user cancelled -> keep old note
 
     const newNote = userInput.trim();
 
@@ -109,7 +107,7 @@ export default function FavoriteButton(props: {
 
   return (
     <div
-      class={props.class}
+      class={props.class }
       on:click={(e) => {
         // prevent parent handlers when clicking container
         e.stopPropagation();
@@ -121,7 +119,7 @@ export default function FavoriteButton(props: {
           <button
             on:click={handleAdd}
             data-hover="LikeButton"
-            class="mr-3 text-main-dark dark:text-main-light "
+            class="text-main-dark dark:text-main-light mr-3 relative"
             aria-label="Save question to favorites"
             aria-pressed="false"
           >
@@ -132,9 +130,9 @@ export default function FavoriteButton(props: {
               xmlns="http://www.w3.org/2000/svg"
             >
               <circle
-                class="text-main0 origin-center animate-[circle_.3s_forwards] transition-all ease-in-out"
-                cx="12"
-                cy="12"
+                class="text-main origin-center animate-[circle_.3s_forwards] transition-all ease-in-out"
+                cx="4"
+                cy="4"
                 r="11.5"
                 fill="transparent"
                 stroke-width="0"
@@ -142,7 +140,7 @@ export default function FavoriteButton(props: {
               ></circle>
             </svg>
             <svg
-              class="h-6 w-6"
+              class="w-5"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -157,7 +155,7 @@ export default function FavoriteButton(props: {
           </button>
         }
       >
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-fit">
           <button
             on:click={handleRemove}
             class="hover:bg-card text-main focus:bg-main focus:text-main active:bg-main active:text-main relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full outline-none active:scale-95"
@@ -172,8 +170,8 @@ export default function FavoriteButton(props: {
             >
               <circle
                 class="text-main0 origin-center transition-all ease-in-out"
-                cx="12"
-                cy="12"
+                cx="4"
+                cy="4"
                 r="11.5"
                 fill="transparent"
                 stroke-width="0"
@@ -182,7 +180,7 @@ export default function FavoriteButton(props: {
             </svg>
 
             <svg
-              class="h-6 w-6 origin-center animate-[scale_.35s_ease-in-out_forwards] transition-all ease-in-out"
+              class="w-5 origin-center animate-[scale_.35s_ease-in-out_forwards] transition-all ease-in-out"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -197,7 +195,7 @@ export default function FavoriteButton(props: {
           <button
             on:click={handleEditNote}
             title={note() ? "تعديل الملاحظة" : "إضافة ملاحظة"}
-            class="mr-3 text-gray-500 hover:text-gray-700 dark:text-white"
+            class="ml-3 text-gray-500 hover:text-gray-700 dark:text-main-light"
             aria-label="Edit favorite note"
           >
             <svg

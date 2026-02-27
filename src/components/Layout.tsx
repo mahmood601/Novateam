@@ -18,7 +18,7 @@ export default function Layout(props: { children: JSX.Element }) {
 
   return (
     <div class="relative flex h-screen flex-col">
-      {quizMode() || location().includes("/profile") ? null : <Header />}
+      {quizMode() || location().includes("/profile") || location().includes("/favorite") ? null : <Header />}
       {props.children}
     </div>
   );

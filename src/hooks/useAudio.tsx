@@ -1,14 +1,18 @@
 import { createSignal } from "solid-js";
 
-export function useAudio(successSrc: string, wrongSrc: string) {
-    const [audioEnabled, setAudioEnabled] = createSignal(true);
-    const audio = new Audio()
+const success = "/success.mp3";
+const wrong = "/wrong.mp3";
+const audio = new Audio();
+const [audioEnabled, setAudio] = createSignal<boolean>(true);
 
-    function playSound(isCorrect: boolean) {
-       audio.src = isCorrect? successSrc: wrongSrc;
-       if (audioEnabled()) {
-        audio.play()
-       }
+export function useAudio() {
+  function playSound(isCorrect: boolean) {
+
+    audio.src = isCorrect ? success : wrong;
+    if (audioEnabled()) {
+      audio.currentTime = 0;
+      audio.play();
     }
-    return {audioEnabled, setAudioEnabled, playSound}
+  }
+  return { audioEnabled, setAudio, playSound };
 }

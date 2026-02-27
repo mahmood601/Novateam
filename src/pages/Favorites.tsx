@@ -1,11 +1,5 @@
-import {
-  createSignal,
-  onMount,
-  For,
-  Show,
-  Setter,
-} from "solid-js";
-import { createAsync, useNavigate, useParams } from "@solidjs/router";
+import { createSignal, onMount, For, Show, Setter } from "solid-js";
+import { createAsync, useParams } from "@solidjs/router";
 import type { Favorite } from "../utils/indexeddb";
 import {
   getFavorites,
@@ -20,8 +14,7 @@ import subjects from "../components/subjects";
 export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);
   const [loading, setLoading] = createSignal(true);
-  const navigate = useNavigate();
-  const subject = useParams().subject
+  const subject = useParams().subject;
 
   async function load(subject?: string) {
     setLoading(true);
@@ -41,39 +34,37 @@ export default function FavoritesPage() {
   });
 
   return (
-    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light h-[calc(100vh_-_70px)] overflow-y-auto p-6">
-      <div class="mx-auto max-w-4xl">
-        <div class="mb-6 flex items-center justify-between">
-          <button
-            on:click={() => {
-              history.back();
-            }}
-          >
-            <LeftArrow />
+    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light relative p-6">
+      <div class="fixed top-2 left-1/2 w-[95%] -translate-x-1/2 z-20">
+        <div class="backdrop-blur-2xl  rounded-2xl px-4 py-2 flex items-center justify-between">
+          <button type="button" onClick={() => history.back()} aria-label="رجوع" class="p-1">
+        <LeftArrow />
           </button>
+
           <h1 class="text-2xl font-bold">المفضلة</h1>
+
           <button
-            class="bg-main rounded px-3 py-1 text-white"
-            onClick={() => load()}
-            aria-label="تحديث المفضلات"
+        type="button"
+        class="bg-main rounded px-3 py-1 text-white"
+        onClick={() => load()}
+        aria-label="تحديث المفضلات"
           >
-            تحديث
+        تحديث
           </button>
         </div>
-
-        <Show when={!loading()} fallback={<Loading />}>
-          <Show
-            when={favorites().length > 0}
-            fallback={<p class="py-20 text-center">لا توجد عناصر في المفضلة</p>}
-          >
-            <ul class="max-h-[calc(100vh_-_70px_-_120px)] space-y-4 overflow-y-auto">
-              <For each={favorites()}>
-                {(fav) => <FavBox fav={fav} setFavorites={setFavorites} />}
-              </For>
-            </ul>
-          </Show>
+      </div>
+      <Show when={!loading()} fallback={<Loading />}>
+        <Show
+          when={favorites().length > 0}
+          fallback={<p class="py-20 text-center">لا توجد عناصر في المفضلة</p>}
+        >
+          <ul class="mt-[70px] space-y-4 overflow-y-auto">
+            <For each={favorites()}>
+              {(fav) => <FavBox fav={fav} setFavorites={setFavorites} />}
+            </For>
+          </ul>
         </Show>
-      </div>{" "}
+      </Show>
     </div>
   );
 }
@@ -174,7 +165,9 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
           <Show
             when={props.fav.note}
             fallback={
-              <p dir="rtl" class="my-4 text-center text-sm text-gray-500">بدون ملاحظة</p>
+              <p dir="rtl" class="my-4 text-center text-sm text-gray-500">
+                بدون ملاحظة
+              </p>
             }
           >
             <p class="text-main my-4 text-center text-sm whitespace-pre-wrap">
@@ -185,14 +178,14 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
 
         <div class="flex justify-around">
           <button
-            class="bg-main rounded px-3 py-1 text-sm text-main-dark"
+            class="bg-main text-main-dark rounded px-3 py-1 text-sm"
             onClick={() => handleRemove(props.fav.questionId)}
           >
             إزالة
           </button>
 
           <button
-            class="bg-main rounded px-3 py-1 text-sm text-main-dark"
+            class="bg-main text-main-dark rounded px-3 py-1 text-sm"
             onClick={() => handleEditNote(props.fav)}
           >
             تعديل الملاحظة
