@@ -1,8 +1,7 @@
-import { JSX, Show, Suspense } from "solid-js";
+import { createEffect, JSX, Show, Suspense } from "solid-js";
 import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
 import years from "../../components/years";
-
 
 export default function ProfileInfo(user: {
   name: string;
@@ -10,6 +9,7 @@ export default function ProfileInfo(user: {
   isAdmin: boolean;
 }) {
   const year = localStorage.getItem("year");
+ 
   return (
     <ul class="dark:bg-lighter-dark-1 w-screen dark:text-white">
       <Li Icon={NameSvg()} type="الاسم" value={<p>{user.name}</p>} />
@@ -58,8 +58,11 @@ export default function ProfileInfo(user: {
                 </p>
                 <button
                   on:click={() => {
-                    setAccount("devMode", !account.devMode);
-                    localStorage.setItem("dev", `${account.devMode}`);
+                    localStorage.setItem(
+                      "dev",
+                      String(localStorage.getItem("dev")),
+                    );
+                    setAccount("devMode", (prev) => !prev);
                   }}
                   classList={{
                     "bg-main dark:bg-main": account.devMode,
@@ -73,8 +76,7 @@ export default function ProfileInfo(user: {
                       "bg-main-light dark:bg-main-dark -translate-x-5":
                         account.devMode,
                       "bg-main-light dark:bg-main-dark": !account.devMode,
-                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-4 w-4 rounded-full":
-                        true,
+                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-4 w-4 rounded-full": true,
                     }}
                   ></span>
                 </button>

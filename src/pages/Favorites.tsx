@@ -90,13 +90,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
     }
   });
 
-  const options = [
-    snapshot?.firstOption,
-    snapshot?.secondOption,
-    snapshot?.thirdOption,
-    snapshot?.fourthOption,
-    snapshot?.fifthOption,
-  ];
+ 
 
   const handleRemove = async (qid: string) => {
     if (!confirm("هل تريد إزالة هذا السؤال من المفضلة؟")) return;
@@ -138,23 +132,23 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
               {new Date(props.fav.savedAt).toLocaleString()}
             </span>
             <span dir="rtl" class="text-muted flex-1 text-xs">
-              {snapshot?.year ?? "سنة غير معروفة"} - {season()}
+              {snapshot?.yearValue ?? "سنة غير معروفة"} - {season()}
             </span>
           </div>
 
           <p class="mb-3 text-right font-semibold" dir="rtl">
             {props.fav.snapshot?.question ?? "سؤال محفوظ"}
           </p>
-          <For each={options.filter((option) => option)}>
+          <For each={snapshot?.options.filter((option) => option)}>
             {(option, index) => (
               <p
-                dir="auto"
+                dir="rtl"
                 classList={{
                   "bg-main rounded-md p-1 text-white":
-                    snapshot?.correctIndex.includes(index()),
+                    snapshot?.correctIndex == index(),
                   "bg-red-500 rounded-md p-1 text-white":
                     snapshot?.userAnswer == option &&
-                    !snapshot?.correctIndex.includes(index()),
+                    snapshot?.correctIndex != index(),
                   "my-1 text-right ": true,
                 }}
               >

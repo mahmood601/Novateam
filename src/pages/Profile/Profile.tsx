@@ -50,7 +50,7 @@ export default function Profile() {
         <ProfileInfo
           name={user()?.name}
           email={user()?.email}
-          isAdmin={user()?.labels.includes("admin")}
+          isAdmin={user()?.role==="admin"}
         />
       </Show>
     </div>

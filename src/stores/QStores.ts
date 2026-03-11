@@ -1,22 +1,29 @@
 import { createStore } from "solid-js/store";
-import { Question } from "../utils/indexeddb";
 
-export const qStoreObj: Question = {
-  $id: "",
-  subject: "",
-  year: "",
-  season: "",
-  question: "",
-  explanation: "",
-  firstOption: "",
-  secondOption: "",
-  thirdOption: "",
-  fourthOption: "",
-  fifthOption: "",
-  correctIndex: [],
-  user_id: "",
+export type QStoreType = {
+  $id?: string;
+  subject: string;
+  season_id: number | null;
+  year_id: number | null;
+  question: string;
+  explanation: string;
+  options: string[];       
+  correctIndex: number[];
+  user_id: string;
+  [key: string]: any;
 };
 
- const [QStore, setQStore] = createStore<Question[]>([]);
+const initialState: QStoreType = {
+  subject:      "",
+  season_id:    null,
+  year_id:      null,
+  question:     "",
+  explanation:  "",
+  options:      ["", "", "", ""],
+  correctIndex: [],
+  user_id:      "",
+};
 
- export{QStore, setQStore}
+const [QStore, setQStore] = createStore<QStoreType>(initialState);
+
+export { QStore, setQStore };

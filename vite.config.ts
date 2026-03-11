@@ -106,7 +106,8 @@ export default defineConfig({
     tailwindcss(),
     solid(),
     devtools({
-      autoname: true,
+      /* features options - all disabled by default */
+      autoname: true, // e.g. enable autoname
     }),
     // replace({
     //   __DATE__: new Date().toISOString(),

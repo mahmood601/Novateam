@@ -1,12 +1,5 @@
 import { useBeforeLeave, useParams } from "@solidjs/router";
-import {
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-  Show,
-  Suspense,
-} from "solid-js";
+import { createMemo, createResource, Show, Suspense } from "solid-js";
 import subjects from "../../components/subjects";
 import {
   addAnswersToProgress,
@@ -24,36 +17,41 @@ import Result from "./Result";
 
 export default function NormalMode() {
   const subject = useParams().subject;
-  const sectionName = useParams().section.split("-").at(0) as "season" | "year";
-  const sectionValue = useParams().section.split("-").at(1) as string;
+
+  // section param: "season_id-5" أو "year_id-2024"
+  const sectionType = useParams().section.split("-").at(0) as
+    | "season_id"
+    | "year_id";
+  const sectionId = Number(useParams().section.split("-").at(1));
+
   const { playSound } = useAudio();
 
-  // 2. Data Fetching
+  // ─── Data Fetching ────────────────────────────────────────────────────────────
+
   const [questions] = createResource(
-    () => {
-      return getQuestionsOrAnswersWithFilter(
+    () =>
+      getQuestionsOrAnswersWithFilter(
         subject,
         "questions",
-        sectionName,
-        sectionValue,
-      );
-    },
+        sectionType,
+        sectionId,
+      ),
     { deferStream: true },
   );
 
   const [answers] = createResource(
-    async () => {
-      return await getQuestionsOrAnswersWithFilter(
+    () =>
+      getQuestionsOrAnswersWithFilter(
         subject,
         "answers",
-        sectionName,
-        sectionValue,
-      );
-    },
+        sectionType,
+        sectionId,
+      ),
     { deferStream: true },
   );
 
-  // 3. Logic: Ordered Questions (Memoized for performance)
+  // ─── Ordered Questions ────────────────────────────────────────────────────────
+
   const orderedQs = createMemo(() => {
     const qs = questions();
     const ans = answers();
@@ -65,10 +63,11 @@ export default function NormalMode() {
     const answered = qs.filter((q) => answerIds.has(q.$id));
     const unanswered = qs.filter((q) => !answerIds.has(q.$id));
 
-    // update signal to start from where the user stoped
     setQuizState("index", Math.max(0, answered.length - 1));
     return [...answered, ...unanswered];
   });
+
+  // ─── Navigation guard ─────────────────────────────────────────────────────────
 
   useBeforeLeave((e) => {
     if (
@@ -80,8 +79,10 @@ export default function NormalMode() {
     addAnswersToProgress(unwrap(quizState.userAnswers));
   });
 
+  // ─── Handlers ─────────────────────────────────────────────────────────────────
+
   const handleOptionSelect = (q: Question, optIdx: number, content: string) => {
-    const isCorrect = q.correctIndex.includes(optIdx);
+    const isCorrect = q.correctIndex == optIdx;
 
     if (quizState.audioEnabled) playSound(isCorrect);
 
@@ -93,8 +94,8 @@ export default function NormalMode() {
         {
           $id: q.$id,
           subject,
-          year: q.year,
-          season: q.season,
+          season_id: q.season_id,
+          year_id: q.year_id,
           state: true,
           answer: isCorrect,
           answerContent: content,

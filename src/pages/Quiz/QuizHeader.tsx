@@ -17,6 +17,7 @@ export default function QuizHeader(props: {
   createEffect(() => {
     setTimeLeft((props.total - props.index) * 60);
   });
+
   const { audioEnabled, setAudio } = useAudio();
 
   onMount(() => {
@@ -32,8 +33,6 @@ export default function QuizHeader(props: {
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  console.log(timeLeft());
-
   return (
     <header class="p-5">
       <div class="flex items-center justify-between">
@@ -42,7 +41,6 @@ export default function QuizHeader(props: {
         </button>
         <h1 class="text-xl font-bold">{props.subjectName}</h1>
         <button>
-          {/* Audio Icon Logic */}
           <svg
             on:click={(e) => {
               e.stopPropagation();
@@ -78,7 +76,7 @@ export default function QuizHeader(props: {
 
         <FavoriteButton
           question={props.currentQuestion}
-          userAnswer={props.userAnswer.answerContent}
+          userAnswer={props.userAnswer?.answerContent} /* ← optional chaining */
         />
 
         <div class="text-secondary flex items-center gap-2 rounded-full bg-current/5 px-3 py-2">

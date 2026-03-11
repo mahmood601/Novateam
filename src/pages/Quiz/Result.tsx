@@ -1,3 +1,5 @@
+import { createMemo } from "solid-js";
+
 export default function Result(props: { subject: string, answers: any[] }) {
   const stats = createMemo(() => {
     const correct = props.answers.filter(a => a.answer).length;

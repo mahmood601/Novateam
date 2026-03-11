@@ -1,5 +1,5 @@
+import { supabase } from "../services/supabase";
 import { setAccount } from "../stores/account";
-import { account } from "../services/appwrite";
 import {
   Accessor,
   createContext,
@@ -8,7 +8,14 @@ import {
   Setter,
   useContext,
 } from "solid-js";
-import { ensureUserExists } from "../services/user";
+import { ensureUserExists, getUserRole } from "../services/user";
+
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: "student" | "admin";
+};
 
 type UserContextType = {
   user: Accessor<User | null>;
@@ -25,73 +32,90 @@ export function useUser() {
   return useContext(UserContext) as UserContextType;
 }
 
-export function UserProvider(props) {
-  const [user, setUser] = createSignal(null);
+export function UserProvider(props: any) {
+  const [user, setUser] = createSignal<User | null>(null);
   const [isLoading, setIsLoading] = createSignal(true);
 
-  const login = async (provider) => {
-    const origin = location.origin;
-    await account.createOAuth2Session(
-      provider,
-      `${origin}/profile`,
-      `${origin}/login`,
-      [
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile",
-        "openid",
-      ],
-    );
+  const login = async (provider: string) => {
+    await supabase.auth.signInWithOAuth({
+      provider: provider as any,
+      options: {
+        redirectTo: `${location.origin}/profile`,
+        scopes: "email profile openid",
+      },
+    });
   };
 
-  async function logout() {
+  const logout = async () => {
     localStorage.removeItem("user");
     setUser(null);
-    await account.deleteSession("current");
-  }
+    await supabase.auth.signOut();
+  };
 
-  async function fetchUser() {
+  const fetchUser = async () => {
     setIsLoading(true);
     try {
-      let loggedIn;
-      try {
-        loggedIn = await account.get();
-      } catch (networkError) {
-        console.warn("Network issue, using fallback user:", networkError);
-        loggedIn = JSON.parse(localStorage.getItem("user"));
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const authUser = session?.user ?? null;
+
+      // Fallback: offline
+      if (!authUser || !navigator.onLine) {
+        const cached = localStorage.getItem("user");
+        if (cached) {
+          setUser(JSON.parse(cached));
+          return;
+        }
+        setUser(null);
+        return;
       }
 
-      if (!loggedIn) throw new Error("No user data");
+      const name =
+        authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? "";
 
-      const userInfo = {
-        id: loggedIn.$id,
-        email: loggedIn.email,
-        name: loggedIn.name,
-        labels: loggedIn.labels,
+      // ensure if user in users
+      await ensureUserExists({ userId: authUser.id, name });
+
+      //get role from users table (not from app_metadata)
+      const role = await getUserRole(authUser.id);
+
+      const userInfo: User = {
+        id: authUser.id,
+        email: authUser.email ?? "",
+        name,
+        role,
       };
-      ensureUserExists({name: userInfo.name, userId: userInfo.id, year: localStorage.getItem("year") });
 
-      if (!userInfo.labels.includes("admin")) {
-        setAccount("devMode", false);
-      }
 
       localStorage.setItem("user", JSON.stringify(userInfo));
-
       setUser(userInfo);
-    } catch (error) {
-      console.log("Auth error:", error);
+    } catch (err) {
+      console.error("Auth error:", err);
       localStorage.removeItem("user");
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   onMount(() => {
     fetchUser();
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchUser();
+      } else {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
+    });
   });
 
   return (
-    <UserContext.Provider value={{ user, setUser, isLoading, login, logout }}>
+    <UserContext.Provider
+      value={{ user, setUser, isLoading, fetchUser, login, logout }}
+    >
       {props.children}
     </UserContext.Provider>
   );

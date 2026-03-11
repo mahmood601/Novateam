@@ -1,47 +1,58 @@
-import { ID, Query } from "appwrite";
-import { databases } from "./appwrite";
-const dbID = import.meta.env.VITE_DB_ID;
+import { supabase } from "./supabase";
 
+// ─── Ensure user row exists in "users" table ─────────────────────────────────
 export async function ensureUserExists(context: {
   name: string;
   userId: string;
-  year: string;
+  year?: string;
 }) {
-  const userId = context.userId;
-  const name = context.name;
-  const year = context.year;
+  const { userId, name, year } = context;
+  if (!userId) throw new Error("No userId provided");
 
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
 
-  if (!userId) throw new Error("No userId in context");
+  if (error) throw error;
 
-  // Check if user exists
-  const result = await databases.listDocuments(dbID, "users", [
-    Query.equal("user_id", userId),
-  ]);
+  if (!data) {
+    const { error: insertError } = await supabase
+      .from("users")
+      .insert({ id: userId, name, year: year ?? null });
 
-  if (result.total === 0) {
-    // Add user if not exists
-    await databases.createDocument(dbID, "users", ID.unique(), {
-      name: name,
-      user_id: userId,
-      year: year
-    });
-    return true; // User added
+    if (insertError) throw insertError;
+    return true; // user added
   }
 
-  return false; // User already exists
+  return false; // user already exists
 }
 
+// ─── Get user display name by ID ──────────────────────────────────────────────
 export async function getUserNameById(userId: string): Promise<string | null> {
-    if (!userId) return null;
+  if (!userId) return null;
 
-    const result = await databases.listDocuments(dbID, "users", [
-        Query.equal("user_id", userId),
-    ]);
+  const { data, error } = await supabase
+    .from("users")
+    .select("name")
+    .eq("id", userId)
+    .maybeSingle();
 
-    if (!result.documents || result.documents.length === 0) return null;
+  if (error || !data) return null;
+  return typeof data.name === "string" ? data.name : null;
+}
 
-    const doc = result.documents[0] as Record<string, any>;
-    const name = doc.name;
-    return typeof name === "string" ? name : null;
+// ─── Get user role ────────────────────────────────────────────────────────────
+export async function getUserRole(userId: string): Promise<"student" | "admin"> {
+  if (!userId) return "student";
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error || !data) return "student";
+  return data.role === "admin" ? "admin" : "student";
 }

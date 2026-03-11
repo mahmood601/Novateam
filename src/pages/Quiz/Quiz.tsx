@@ -10,7 +10,7 @@ const [user] = createResource(() => useUser().user())
   return (
     <Suspense>
       <Switch>
-        <Match when={user.state =="ready" && user()?.labels.indexOf("admin") != -1 && account.devMode}>
+        <Match when={user.state =="ready" && (account.devMode && user()?.role === "admin" ) }>
           <DevMode />
         </Match>
         <Match when={user.state =="ready" && !account.devMode}>

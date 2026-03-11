@@ -1,24 +1,36 @@
-import { Query } from "appwrite";
-import { databases } from "../services/appwrite";
+import { supabase } from "../services/supabase";
 import { Dexie, Table } from "dexie";
 
-// Define types for questions and answers
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 export type Question = {
   $id: string;
   subject: string;
-  season: string;
-  year: string;
+  subject_id: string;
+  season_id: number | null;
+  year_id: number | null;
+  seasonName?: string;
+  seasonValue?: string;
+  yearName?: string;
+  yearValue?: string;
+  question: string;
+  explanation: string | null;
+  options: string[];
+  correctIndex: number;
+  user_id: string | null;
   [key: string]: any;
 };
 
 export type Answer = {
   $id: string;
   subject: string;
+  season_id: number | null;
+  year_id: number | null;
   [key: string]: any;
 };
 
 export type Favorite = {
-  $id: string; // use question.$id
+  $id: string;
   questionId: string;
   subject: string;
   snapshot?: Partial<Question>;
@@ -26,11 +38,21 @@ export type Favorite = {
   savedAt: number;
 };
 
-// Dexie DB setup
+export type CachedSection = {
+  id: number;
+  subject_id: string;
+  type: "season" | "year";
+  value: string;
+  name: string;
+};
+
+// ─── Dexie DB ─────────────────────────────────────────────────────────────────
+
 class AppDB extends Dexie {
   questions!: Table<Question, "$id">;
   answers!: Table<Answer, "$id">;
   favorites!: Table<Favorite, "$id">;
+  sections!: Table<CachedSection, "id">;
 
   constructor() {
     super("db");
@@ -38,18 +60,18 @@ class AppDB extends Dexie {
       questions: `
         $id,
         subject,
-        season,
-        year,
-        [subject+season],
-        [subject+year]
+        season_id,
+        year_id,
+        [subject+season_id],
+        [subject+year_id]
       `,
       answers: `
         $id,
         subject,
-        season,
-        year,
-        [subject+season],
-        [subject+year]
+        season_id,
+        year_id,
+        [subject+season_id],
+        [subject+year_id]
       `,
       favorites: `
         $id,
@@ -57,118 +79,202 @@ class AppDB extends Dexie {
         subject,
         [subject+questionId]
       `,
+      sections: `
+        id,
+        subject_id,
+        type,
+        [subject_id+type]
+      `,
     });
   }
 }
 
 const db = new AppDB();
 
-const unusedKeys = new Set([
-  "$createdAt",
-  "$permissions",
-  "$sequence",
-  "$updatedAt",
-]);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Add or update questions for a subject
-export async function addQuestionsToFirstDB(subject: string) {
-  const existingQuestions = await db.questions
-    .where("subject")
-    .equals(subject)
+const SYNC_KEY = (subject: string) => `sync_${subject}`;
+
+function saveLastSync(subject: string) {
+  localStorage.setItem(SYNC_KEY(subject), new Date().toISOString());
+}
+
+function getLastSync(subject: string): string | null {
+  return localStorage.getItem(SYNC_KEY(subject));
+}
+
+function toQuestion(row: any, subject: string): Question {
+  return {
+    $id: row.id,
+    subject,
+    subject_id: row.subject_id,
+    season_id: row.season_id,
+    year_id: row.year_id,
+    seasonName: row.season?.name,
+    seasonValue: row.season?.value,
+    yearName: row.year?.name,
+    yearValue: row.year?.value,
+    question: row.question,
+    explanation: row.explanation,
+    options: row.options ?? [],
+    correctIndex: row.correct_index,
+    user_id: row.created_by,
+  };
+}
+
+// ─── Sections: Offline-First ──────────────────────────────────────────────────
+
+/**
+ * 1. اقرأ من IndexedDB فوراً (offline-first)
+ * 2. زامن Supabase في الخلفية وحدّث الكاش
+ * 3. أعد الـ callback بالبيانات الجديدة إن وُجدت
+ */
+export async function syncAndGetSections(
+  subjectId: string,
+  onUpdate?: (sections: CachedSection[]) => void,
+): Promise<CachedSection[]> {
+  // ── اقرأ من الكاش أولاً (فوري) ──────────────────────────────────────────
+  const cached = await db.sections
+    .where("subject_id")
+    .equals(subjectId)
     .toArray();
 
-  try {
-    const questionsResponse = await databases.listDocuments(
-      import.meta.env.VITE_DB_ID,
-      subject,
-      [
-        Query.limit(500),
-        Query.select([
-          "$id",
-          "question",
-          "explanation",
-          "firstOption",
-          "secondOption",
-          "thirdOption",
-          "fourthOption",
-          "fifthOption",
-          "correctIndex",
-          "year",
-          "season",
-        ]),
-      ],
-    );
+  // زامن في الخلفية
+  syncSectionsInBackground(subjectId, onUpdate);
 
-    const questions: Question[] = questionsResponse.documents.map((q: any) => {
-      q.subject = subject;
-      return Object.fromEntries(
-        Object.entries(q).filter(([key]) => !unusedKeys.has(key)),
-      ) as Question;
+  // إذا كان الكاش فارغاً انتظر الشبكة مرة واحدة
+  if (cached.length === 0) {
+    return new Promise((resolve) => {
+      syncSectionsInBackground(subjectId, (fresh) => {
+        onUpdate?.(fresh);
+        resolve(fresh);
+      });
     });
+  }
 
-    if (existingQuestions.length === 0) {
-      await db.questions.bulkPut(questions);
-    } else {
-      const existingIds = new Set(existingQuestions.map((q) => q.$id));
-      const newIds = new Set(questions.map((q) => q.$id));
-      const deletedIds = [...existingIds].filter((id) => !newIds.has(id));
+  return cached;
+}
 
-      if (deletedIds.length > 0) {
-        await db.questions.where("$id").anyOf(deletedIds).delete();
-        await db.answers.where("$id").anyOf(deletedIds).delete();
-        await db.favorites.where("$id").anyOf(deletedIds).delete();
-      }
+async function syncSectionsInBackground(
+  subjectId: string,
+  onUpdate?: (sections: CachedSection[]) => void,
+) {
+  try {
+    const { data, error } = await supabase
+      .from("sections")
+      .select("id, subject_id, type, value, name")
+      .eq("subject_id", subjectId)
+      .order("type")
+      .order("value");
 
-      await db.questions.bulkPut(questions);
-    }
-  } catch (error) {
-    console.error("Failed to sync questions:", error);
-    throw error;
+    if (error || !data) return;
+
+    await db.sections.bulkPut(data);
+    onUpdate?.(data as CachedSection[]);
+  } catch {
+    // offline — الكاش كافٍ
   }
 }
 
-// Add answers to progress
+// ─── Questions: Offline-First ─────────────────────────────────────────────────
+
+/**
+ * 1. اقرأ من IndexedDB فوراً
+ * 2. زامن Supabase في الخلفية (فقط المستجد منذ آخر sync)
+ */
+export async function addQuestionsToFirstDB(subject: string): Promise<void> {
+  // ── زامن في الخلفية دائماً ───────────────────────────────────────────────
+  syncQuestionsInBackground(subject);
+}
+
+/** اقرأ الأسئلة من الكاش مباشرة — offline-first */
+export async function getQuestions(subject: string): Promise<Question[]> {
+  return db.questions.where("subject").equals(subject).toArray();
+}
+
+async function syncQuestionsInBackground(subject: string) {
+  try {
+    const lastSync = getLastSync(subject);
+    const SELECT = `
+      *,
+      season:sections!season_id(id,name,value),
+      year:sections!year_id(id,name,value)
+    `;
+
+    let query = supabase
+      .from("questions")
+      .select(SELECT)
+      .eq("subject_id", subject)
+      .order("updated_at");
+
+    if (lastSync) {
+      // تدريجي: فقط الجديد والمعدّل
+      query = query.gt("updated_at", lastSync);
+    }
+
+    const { data, error } = await query;
+    if (error || !data) return;
+
+    if (data.length === 0) {
+      console.log(`[sync] No changes for ${subject}`);
+      return;
+    }
+
+    const questions = data.map((row: any) => toQuestion(row, subject));
+    await db.questions.bulkPut(questions);
+    saveLastSync(subject);
+    console.log(
+      `[sync] ${lastSync ? "Incremental" : "Full"}: ${questions.length} questions for ${subject}`,
+    );
+  } catch {
+    // offline — لا شيء
+  }
+}
+
+/** أجبر إعادة المزامنة الكاملة (مثلاً بعد حذف سؤال) */
+export function resetSync(subject: string) {
+  localStorage.removeItem(SYNC_KEY(subject));
+}
+
+// ─── Answers ──────────────────────────────────────────────────────────────────
+
 export async function addAnswersToProgress(answers: Answer[]) {
   await db.answers.bulkPut(answers);
 }
 
-// Save a question as favorite (uses question.$id as favorite $id)
+// ─── Favorites ────────────────────────────────────────────────────────────────
+
 export async function addFavoriteForQuestion(
   question: Question,
   note?: string,
-  userAnswer?: string,
+  userAnswer?: number,
 ): Promise<void> {
-  const fav: Favorite = {
+  await db.favorites.put({
     $id: question.$id,
     questionId: question.$id,
     subject: question.subject,
     snapshot: {
       $id: question.$id,
+      subject: question.subject,
       question: question.question,
       explanation: question.explanation,
-      firstOption: question.firstOption,
-      secondOption: question.secondOption,
-      thirdOption: question.thirdOption,
-      fourthOption: question.fourthOption,
-      fifthOption: question.fifthOption,
+      options: question.options,
       correctIndex: question.correctIndex,
-      userAnswer: userAnswer,
-      year: question.year,
-      season: question.season,
+      season_id: question.season_id,
+      year_id: question.year_id,
+      seasonName: question.seasonName,
+      yearValue: question.yearValue,
+      userAnswer,
     },
     note: note ?? "",
     savedAt: Date.now(),
-  };
-
-  await db.favorites.put(fav);
+  });
 }
 
-// Remove favorite by question id
 export async function removeFavorite(questionId: string): Promise<void> {
   await db.favorites.delete(questionId);
 }
 
-// Update note for a favorite
 export async function updateFavoriteNote(
   questionId: string,
   note: string,
@@ -176,7 +282,6 @@ export async function updateFavoriteNote(
   await db.favorites.update(questionId, { note, savedAt: Date.now() });
 }
 
-// Toggle favorite (add if missing, remove if exists). Returns true if added, false if removed.
 export async function toggleFavorite(
   question: Question,
   note?: string,
@@ -185,63 +290,51 @@ export async function toggleFavorite(
   if (exists) {
     await removeFavorite(question.$id);
     return false;
-  } else {
-    await addFavoriteForQuestion(question, note);
-    return true;
   }
+  await addFavoriteForQuestion(question, note);
+  return true;
 }
 
-// Check if question is favorited
 export async function isFavorite(questionId: string): Promise<boolean> {
-  const item = await db.favorites.get(questionId);
-  return !!item;
+  return !!(await db.favorites.get(questionId));
 }
 
-// Get all favorites (optionally filter by subject)
 export async function getFavorites(subject?: string): Promise<Favorite[]> {
-  if (subject) {
-    return db.favorites.where("subject").equals(subject).toArray();
-  }
+  if (subject) return db.favorites.where("subject").equals(subject).toArray();
   return db.favorites.toArray();
 }
 
-// Get single favorite
 export async function getFavorite(
   questionId: string,
 ): Promise<Favorite | undefined> {
   return db.favorites.get(questionId);
 }
 
-// Get questions with filter (by season or year)
+// ─── Queries ──────────────────────────────────────────────────────────────────
+
 export async function getQuestionsOrAnswersWithFilter(
   subject: string,
   type: "questions" | "answers",
-  sectionName: "season" | "year",
-  sectionValue: string,
+  sectionType: "season_id" | "year_id",
+  sectionId: number,
 ): Promise<Question[] | Answer[]> {
   return db[type]
-    .where(`[subject+${sectionName}]`)
-    .equals([subject, sectionValue])
+    .where(`[subject+${sectionType}]`)
+    .equals([subject, sectionId])
     .toArray();
 }
 
-// Get all questions for a subject
-export async function getQuestions(subject: string): Promise<Question[]> {
-  return db.questions.where("subject").equals(subject).toArray();
-}
-
-// Get all answers for a subject
 export async function getAnswers(subject: string): Promise<Answer[]> {
   return db.answers.where("subject").equals(subject).toArray();
 }
 
 export async function deleteAnswersWithFilter(
   subject: string,
-  sectionName: "season" | "year",
-  sectionValue: string,
+  sectionType: "season_id" | "year_id",
+  sectionId: number,
 ): Promise<void> {
-  db.answers
-    .where(`[subject+${sectionName}]`)
-    .equals([subject, sectionValue])
+  await db.answers
+    .where(`[subject+${sectionType}]`)
+    .equals([subject, sectionId])
     .delete();
 }

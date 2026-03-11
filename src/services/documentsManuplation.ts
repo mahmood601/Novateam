@@ -1,171 +1,214 @@
-import { ID, Query } from "appwrite";
-import { databases } from "./appwrite";
+import { supabase } from "./supabase";
 import toast from "solid-toast";
 import { setQStore } from "../stores/QStores";
 import { reconcile } from "solid-js/store";
-import { useUser } from "../context/user";
-const dbID = import.meta.env.VITE_DB_ID;
 
-const user = useUser();
+// Types
 
-// TODO: replace it with correct data type
-export async function insertQuestion(subjectId: string, data: any) {
-  try {
-    const response = await databases.createDocument(
-      dbID,
-      subjectId,
-      ID.unique(),
-      {
-        question: data.question,
-        explanation: data.explanation,
-        firstOption: data.firstOption,
-        secondOption: data.secondOption,
-        thirdOption: data.thirdOption,
-        fourthOption: data.fourthOption,
-        fifthOption: data.fifthOption,
-        correctIndex: data.correctIndex,
-        year: data.year,
-        season: data.season,
-        user_id: data.user_id,
-      },
-    );
-    setQStore(
-      reconcile({
-        subject: "",
-        year: "",
-        season: "",
-        question: "",
-        explanation: "",
-        firstOption: "",
-        secondOption: "",
-        thirdOption: "",
-        fourthOption: "",
-        fifthOption: "",
-        correctIndex: [],
-        user_id: "",
-      }),
-    );
+export type Section = {
+  id: number;
+  subject_id: string;
+  type: "season" | "year";
+  value: string;
+  name: string;
+};
 
-    toast.success("Question added successfully 🎉");
-  } catch (error: any) {
-    toast.error("there is an error 😕: \n" + error);
-  }
+export type QuestionUI = {
+  $id: string;
+  subject_id: string;
+  season_id: number | null;
+  year_id: number | null;
+  question: string;
+  explanation: string | null;
+  options: string[];           
+  correctIndex: number;
+  user_id: string | null;
+  seasonName?: string;
+  seasonValue?: string;
+  yearName?: string;
+  yearValue?: string;
+};
+
+const emptyQStore = {
+  subject:      "",
+  season_id:    null as number | null,
+  year_id:      null as number | null,
+  question:     "",
+  explanation:  "",
+  options:      ["", "", "", ""] as string[],
+  correctIndex: 0 as number,
+  user_id:      "",
+};
+
+//  Helpers 
+
+function toSnake(data: any) {
+  return {
+    season_id:     data.season_id   ?? null,
+    year_id:       data.year_id     ?? null,
+    question:      data.question,
+    explanation:   data.explanation || null,
+    options:       (data.options as string[]).filter(Boolean),
+    correct_index: data.correctIndex,
+    created_by:    data.user_id     || null,
+  };
 }
+
+function toCamel(row: any): QuestionUI {
+  return {
+    $id:          row.id,
+    subject_id:   row.subject_id,
+    season_id:    row.season_id,
+    year_id:      row.year_id,
+    question:     row.question,
+    explanation:  row.explanation,
+    options:      row.options ?? [],
+    correctIndex: row.correct_index,
+    user_id:      row.created_by,
+    seasonName:   row.season?.name,
+    seasonValue:  row.season?.value,
+    yearName:     row.year?.name,
+    yearValue:    row.year?.value,
+  };
+}
+
+//  Sections
+
+export async function getSections(subjectId: string): Promise<Section[]> {
+  const { data, error } = await supabase
+    .from("sections")
+    .select("id, subject_id, type, value, name")
+    .eq("subject_id", subjectId)
+    .order("type")
+    .order("value");
+
+  if (error) {
+    toast.error("فشل تحميل الفصول: " + error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
+// INSERT 
+
+export async function insertQuestion(subjectId: string, data: any) {
+  const { error } = await supabase
+    .from("questions")
+    .insert({ ...toSnake(data), subject_id: subjectId });
+
+  if (error) {
+    toast.error("there is an error 😕: " + error.message);
+    return;
+  }
+
+  setQStore(reconcile(emptyQStore as any));
+  toast.success("Question added successfully 🎉");
+}
+
+// UPDATE 
 
 export async function updateQuestion(
   subjectId: string,
   questionId: string,
   data: any,
 ) {
-  try {
-    const response = await databases.updateDocument(
-      dbID,
-      subjectId,
-      questionId,
-      {
-        question: data.question,
-        explanation: data.explanation,
-        firstOption: data.firstOption,
-        secondOption: data.secondOption,
-        thirdOption: data.thirdOption,
-        fourthOption: data.fourthOption,
-        fifthOption: data.fifthOption,
-        correctIndex: data.correctIndex,
-        year: data.year,
-        season: data.season,
-        user_id: data.user_id,
-      },
-    );
-    setQStore(
-      reconcile({
-        subject: "",
-        year: "",
-        season: "",
-        question: "",
-        explanation: "",
-        firstOption: "",
-        secondOption: "",
-        thirdOption: "",
-        fourthOption: "",
-        fifthOption: "",
-        correctIndex: [],
-        user_id: "",
-      }),
-    );
-    toast.success("Question updated successfully 🎉");
-    return response;
-  } catch (error: any) {
-    toast.error("there is an error 😕: " + error);
-    return { erorr: error.message };
+  const { error } = await supabase
+    .from("questions")
+    .update({ ...toSnake(data), subject_id: subjectId })
+    .eq("id", questionId);
+
+  if (error) {
+    toast.error("there is an error 😕: " + error.message);
+    return { error: error.message };
   }
+
+  setQStore(reconcile(emptyQStore as any));
+  toast.success("Question updated successfully 🎉");
 }
+
+// DELETE 
+
 export async function deleteQuestion(subjectId: string, questionId: string) {
-  try {
-    const response = await databases.deleteDocument(
-      dbID,
-      subjectId,
-      questionId,
-    );
-    toast.success("Question deleted successfully 🎉");
-    return response;
-  } catch (error: any) {
-    toast.error("there is an error 😕: " + error);
-    return { erorr: error.message };
+  const { error } = await supabase
+    .from("questions")
+    .delete()
+    .eq("id", questionId)
+    .eq("subject_id", subjectId);
+
+  if (error) {
+    toast.error("there is an error 😕: " + error.message);
+    return { error: error.message };
   }
+
+  toast.success("Question deleted successfully 🎉");
 }
+
+//  LIST paginated (DevMode) 
 
 export async function listQuestions(
   subjectId: string,
-  selectQueries: any,
-  equalQueries: { attribute: string; value: string }[],
-  pageIndex?: number,
+  _selectFields: string[],
+  filters: { attribute: string; value: string }[],
+  pageIndex: number = 0,
 ) {
-  try {
-    const queries = [Query.limit(5), Query.select(selectQueries)];
+  const from = pageIndex * 5;
+  const to   = from + 4;
 
-    if (pageIndex) {
-      queries.push(Query.offset(pageIndex * 5)); // (PageNum - 1) * offset
+  let query = supabase
+    .from("questions")
+    .select(
+      `*, season:sections!season_id(id,name,value),
+           year:sections!year_id(id,name,value)`,
+      { count: "exact" },
+    )
+    .eq("subject_id", subjectId)
+    .range(from, to);
+
+  for (const f of filters) {
+    if (f.attribute === "season" || f.attribute === "year") {
+      const { data: sec } = await supabase
+        .from("sections")
+        .select("id")
+        .eq("subject_id", subjectId)
+        .eq("type", f.attribute)
+        .eq("value", f.value)
+        .maybeSingle();
+
+      if (sec) {
+        query = query.eq(
+          f.attribute === "season" ? "season_id" : "year_id",
+          sec.id,
+        );
+      }
     }
+  }
 
-    equalQueries.forEach((element) => {
-      queries.push(Query.equal(element.attribute, element.value));
-    });
+  const { data, error, count } = await query;
 
-    const response = await databases.listDocuments(dbID, subjectId, queries);
-    return response;
-  } catch (error: any) {
+  if (error) {
     toast.error("there is an error 😕: " + error.message);
     return { error: error.message };
   }
+
+  return { documents: (data ?? []).map(toCamel), total: count ?? 0 };
 }
 
-export async function listQuestion(subjectId: string, id?: string) {
-  try {
-    const queries = [
-      Query.select([
-        "question",
-        "explanation",
-        "firstOption",
-        "secondOption",
-        "thirdOption",
-        "fourthOption",
-        "fifthOption",
-        "correctIndex",
-        "year",
-        "season",
-      ]),
-      Query.equal("$id", `${id}`),
-    ];
+//  SINGLE question 
 
-    const response = await databases.listDocuments(dbID, subjectId, queries);
-    return response.documents[0];
-  } catch (error: any) {
-    toast.error("there is an error 😕: " + error.message);
-    return { error: error.message };
-  }
-}
+export async function getQuestion(
+  subjectId: string,
+  questionId: string,
+): Promise<QuestionUI | null> {
+  const { data, error } = await supabase
+    .from("questions")
+    .select(
+      `*, season:sections!season_id(id,name,value),
+           year:sections!year_id(id,name,value)`,
+    )
+    .eq("subject_id", subjectId)
+    .eq("id", questionId)
+    .maybeSingle();
 
-export async function listQuestionsToIndexeddb(subjectId: string) {
-  const response = await databases.listDocuments(dbID, subjectId);
-  return response;
+  if (error || !data) return null;
+  return toCamel(data);
 }

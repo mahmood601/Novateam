@@ -1,5 +1,4 @@
 import { createEffect, onCleanup, onMount } from "solid-js";
-import { OAuthProvider } from "appwrite";
 import { useUser } from "../context/user";
 import { useNavigate } from "@solidjs/router";
 
@@ -21,7 +20,7 @@ export default function Login() {
           </p>
           <Oauth
             name="Google"
-            provider={OAuthProvider.Google}
+            provider={"google"}
             imageSrc="/app/google.svg"
           />
         </div>
