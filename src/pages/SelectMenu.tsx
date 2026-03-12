@@ -118,7 +118,7 @@ function SectionBox(props: {
 
       <div
         class="overflow-hidden transition-all duration-200"
-        style={{ "max-height": isActive() ? "300px" : "0px" }}
+        style={{ "max-height": isActive() ? "250px" : "0px" }}
       >
         <div 
         
@@ -143,16 +143,18 @@ function ItemRow(props: {
   sectionId: number;
 }) {
   const handleClick = () => {
-    if (window.confirm("هل تريد الاكمال من حيث توقفت؟")) {
       setQuizType("continue");
-    } else {
-      setQuizType("restart");
-      void deleteAnswersWithFilter(
-        props.subject,
-        props.sectionType,
-        props.sectionId,
-      );
-    }
+
+    // if (window.confirm("هل تريد الاكمال من حيث توقفت؟")) {
+    //   setQuizType("continue");
+    // } else {
+    //   setQuizType("restart");
+    //   void deleteAnswersWithFilter(
+    //     props.subject,
+    //     props.sectionType,
+    //     props.sectionId,
+    //   );
+    // }
   };
 
   return (

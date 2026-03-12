@@ -209,36 +209,34 @@ function SmartImporter(props: {
     setLoading(true);
 
     const blocks = rawText()
-      .split(/\n(?=- نص السؤال:)/g)
-      .map((b) => b.trim())
+      .split("#")
+      .filter((b) => b.trim())
       .filter(Boolean);
+    if (!rawText().startsWith("#")) blocks.shift();
+    console.log("blocks", blocks);
 
     const questions = blocks.map((block) => {
-      const lines = block.split("\n");
+      const lines = block.split(/\n(?=[=+!])/g);
 
-      const question = lines[0].replace(/^-\s*نص السؤال:\s*/i, "").trim();
+      const question = lines[0].trim();
 
-      // الخيارات: أسطر تبدأ بحرف + قوس
-      const optionLines = lines.filter((l) =>
-        /^[A-Eأبجده]\s*[\)\-]/.test(l.trim()),
+      const optionLines = lines.filter(
+        (l) => l.trim().startsWith("=") || l.trim().startsWith("+"),
       );
+
+      const correctLine = optionLines.findIndex((l: string) =>
+        l.startsWith("+"),
+      );
+      const correct_index = correctLine >= 0 ? correctLine : -1;
 
       const options = optionLines.map((l) =>
-        l
-          .trim()
-          .replace(/^\*/, "")
-          .replace(/^[A-Eأبجده]\s*[\)\-]\s*/i, "")
-          .replace(/\*$/, "")
-          .trim(),
+        l.trim().replace("=", "").replace("+", "").trim(),
       );
 
-      const correctLine = optionLines.findIndex((l) => l.includes("*"));
-      const correct_index = correctLine >= 0 ? [correctLine] : [0];
+      const explLine = lines.find((l) => l.trim().startsWith("!"));
+      const explanation = explLine ? explLine.replace("!", "").trim() : null;
 
-      const explLine = lines.find((l) => /الشرح:|التفسير:/.test(l));
-      const explanation = explLine
-        ? explLine.replace(/الشرح:|التفسير:/g, "").trim()
-        : null;
+      console.log("explLine", explLine);
 
       return {
         subject_id: props.subjectId,
@@ -250,6 +248,7 @@ function SmartImporter(props: {
         correct_index,
       };
     });
+    console.log(questions);
 
     const { error } = await supabase.from("questions").insert(questions);
     setLoading(false);
@@ -276,9 +275,9 @@ function SmartImporter(props: {
       <textarea
         value={rawText()}
         onInput={(e) => setRawText(e.currentTarget.value)}
-        placeholder={`- نص السؤال: ما هو...\nA) خيار أول\n* B) الجواب الصحيح\nالشرح: لأن...`}
-        class="h-64 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
-        dir="auto"
+        placeholder={`# النور أدرينالين يفرز من:\n= الجهاز نظير الودي\n+ الجهاز الودي\n= كلاهما\n= لا شيء مما سبق\n! لان الجهاز الودي هو فقط من يحرر النورأدرينالين (شرح اختياري)`}
+        class="h-64 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
+        dir="rtl"
       />
       <button
         disabled={loading()}
@@ -371,7 +370,7 @@ function ManualForm(props: {
   };
 
   return (
-    <div class="space-y-4" dir="rtl">
+    <div class="space-y-4 text-right" dir="rtl">
       <SectionSelectors
         sections={props.sections}
         seasonId={seasonId()}
@@ -385,7 +384,7 @@ function ManualForm(props: {
         onInput={(e) => setQuestion(e.currentTarget.value)}
         placeholder="نص السؤال..."
         rows={3}
-        dir="auto"
+        dir="rtl"
         class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-fuchsia-300 dark:bg-slate-900 dark:text-white"
       />
 
@@ -393,11 +392,11 @@ function ManualForm(props: {
         value={explanation()}
         onInput={(e) => setExplanation(e.currentTarget.value)}
         placeholder="الشرح (اختياري)"
-        dir="auto"
+        dir="rtl"
         class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-amber-300 dark:bg-slate-900 dark:text-white"
       />
 
-      <div class="grid gap-2">
+      <div class="flex flex-col gap-2">
         <For each={options()}>
           {(opt, i) => (
             <div class="flex items-center gap-2">
@@ -417,12 +416,12 @@ function ManualForm(props: {
                 onChange={(e) => updateOption(i(), e.currentTarget.value)}
                 placeholder={`الخيار ${i() + 1}`}
                 required={i() < 2}
-                dir="auto"
-                class="flex-1 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                dir="rtl"
+                class="rounded-xl flex  flex-1 min-w-0 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
               />
               {/* حذف خيار إضافي */}
               <Show when={i() >= 2}>
-                <button
+                <button 
                   type="button"
                   onClick={() =>
                     setOptions(options().filter((_, idx) => idx !== i()))
@@ -435,9 +434,7 @@ function ManualForm(props: {
             </div>
           )}
         </For>
-      </div>
-
-      <Show when={options().length < 5}>
+         <Show when={options().length < 5}>
         <button
           type="button"
           onClick={() => setOptions([...options(), ""])}
@@ -446,9 +443,12 @@ function ManualForm(props: {
           + إضافة خيار
         </button>
       </Show>
+      </div>
+
+     
 
       <p class="text-center text-xs text-slate-400">
-        اضغط على الرقم لتحديد الإجابة الصحيحة 
+        اضغط على الرقم لتحديد الإجابة الصحيحة
       </p>
 
       <button
@@ -536,7 +536,10 @@ export default function DevMode() {
 
   return (
     <Show when={!isInFavorite()}>
-      <div class="min-h-screen bg-[#f8fafc]  py-10 dark:bg-[#0f172a]" dir="rtl">
+      <div
+        class="min-h-screen bg-[#f8fafc] px-5 pt-22 pb-10 dark:bg-[#0f172a]"
+        dir="rtl"
+      >
         {/* Header */}
         <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between rounded-[2.5rem] bg-white/80 p-6 shadow-sm backdrop-blur-md dark:bg-slate-800/80">
           <div>
