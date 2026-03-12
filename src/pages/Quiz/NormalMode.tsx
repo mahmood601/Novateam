@@ -1,16 +1,16 @@
 import { useBeforeLeave, useParams } from "@solidjs/router";
-import { createMemo, createResource, Show, Suspense } from "solid-js";
-import subjects from "../../components/subjects";
+import { createMemo, createResource, onMount, Show, Suspense } from "solid-js";
+import subjects from "../subjects";
 import {
   addAnswersToProgress,
   getQuestionsOrAnswersWithFilter,
   Question,
-} from "../../utils/indexeddb";
+} from "../../services/local/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
 import { quizType } from "../../stores/quizType";
 import QuizHeader from "./QuizHeader";
-import { quizState, setQuizState } from "./quizStore";
+import { quizState, resetQuizState, setQuizState } from "./quizStore";
 import QuizBox from "./QuizBox";
 import QuizFooter from "./QuizFooter";
 import Result from "./Result";
@@ -26,6 +26,8 @@ export default function NormalMode() {
 
   const { playSound } = useAudio();
 
+   onMount(() => resetQuizState());
+   
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
   const [questions] = createResource(

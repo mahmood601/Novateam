@@ -9,4 +9,15 @@ const [quizState, setQuizState] = createStore({
   audioEnabled: true
 });
 
+export function resetQuizState() {
+  setQuizState({
+    index: 0,
+    showResult: false,
+    userAnswers: [],
+    isOptionDisabled: false,
+    selectedOption: 7,
+    // audioEnabled يبقى كما هو — إعداد المستخدم
+  });
+}
+
 export { quizState, setQuizState };

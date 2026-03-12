@@ -1,7 +1,7 @@
 import { createEffect, JSX, Show, Suspense } from "solid-js";
 import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
-import years from "../../components/years";
+import years from "../../services/local/years";
 
 export default function ProfileInfo(user: {
   name: string;

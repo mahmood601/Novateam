@@ -1,15 +1,15 @@
 import { createSignal, onMount, For, Show, Setter } from "solid-js";
 import { createAsync, useParams } from "@solidjs/router";
-import type { Favorite } from "../utils/indexeddb";
+import type { Favorite } from "../services/local/indexeddb";
 import {
   getFavorites,
   removeFavorite,
   updateFavoriteNote,
-} from "../utils/indexeddb";
+} from "../services/local/indexeddb";
 import toast from "solid-toast";
 import Loading from "../components/loading";
 import LeftArrow from "../components/Icons/LeftArrow";
-import subjects from "../components/subjects";
+import subjects from "./subjects";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);

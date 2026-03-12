@@ -4,7 +4,7 @@ import {
   removeFavorite,
   updateFavoriteNote,
   getFavorite,
-} from "../../utils/indexeddb";
+} from "../../services/local/indexeddb";
 import toast from "solid-toast";
 
 export default function FavoriteButton(props: any) {

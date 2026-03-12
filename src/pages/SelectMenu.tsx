@@ -1,10 +1,12 @@
 import { useParams, A } from "@solidjs/router";
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
+import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { setQuizType } from "../stores/quizType";
-import { getFavorites, deleteAnswersWithFilter } from "../utils/indexeddb";
-import { syncAndGetSections } from "../utils/indexeddb";
-import subjects from "./subjects";
+import {
+  getFavorites,
+  deleteAnswersWithFilter,
+} from "../services/local/indexeddb";
+import { syncAndGetSections } from "../services/local/indexeddb";
 
 type FavoriteItem = {
   $id: string;
@@ -12,22 +14,19 @@ type FavoriteItem = {
 };
 
 export default function SelectMenu() {
-  const subject = useParams<{ subject: string }>().subject;
+  const subject = `${useParams<{ subject: string }>().subject}` ;
 
   // sections من Supabase (تحتوي على id حقيقي)
-  const [sections] = createResource(() => syncAndGetSections(subject));
+  const [sections] = createResource(async() => syncAndGetSections(subject));
   const [favorites] = createResource(() => getFavorites(subject));
 
   const seasons = () => sections()?.filter((s) => s.type === "season") ?? [];
-  const years   = () => sections()?.filter((s) => s.type === "year")   ?? [];
+  const years = () => sections()?.filter((s) => s.type === "year") ?? [];
 
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
-  const subjectName = subjects[subject]?.name ?? subject;
-
   return (
-    <div class="bg-main-light dark:bg-main-dark flex w-screen flex-1 flex-col items-center justify-center">
-
+    <div class="bg-main-light dark:bg-main-dark h-screen flex w-screen flex-col flex-wrap items-center justify-center gap-5 py-22">
       {/* السنوات */}
       <SectionBox
         text="السنوات"
@@ -77,23 +76,20 @@ export default function SelectMenu() {
       >
         <Show
           when={(favorites() ?? []).length > 0}
-          fallback={<p class="my-3 text-gray-400">لا توجد أسئلة مفضلة لهذا الموضوع</p>}
+          fallback={
+            <p class="my-3  h-fit w-3/4 text-center">لا توجد أسئلة مفضلة لهذا الموضوع</p>
+          }
         >
-          <For each={favorites() as FavoriteItem[]}>
-            {(fav) => (
-              <div class="flex w-11/12 items-center gap-2">
-                <A
-                  href="favorite"
-                  class="bg-main m-2 flex-1 rounded-md p-2 text-center"
-                >
-                  {fav.snapshot?.question?.slice(0, 40) ?? fav.$id.slice(0, 8)}
-                </A>
-              </div>
-            )}
-          </For>
+          <div class="flex w-11/12 items-center gap-2">
+            <A
+              href="favorite"
+              class="bg-main m-2 flex-1 rounded-md p-2 text-center"
+            >
+              {favorites()?.length + "سؤال بالمفضلة"}
+            </A>
+          </div>
         </Show>
       </SectionBox>
-
     </div>
   );
 }
@@ -110,11 +106,11 @@ function SectionBox(props: {
   const isActive = () => props.activeIndex() === props.index;
 
   return (
-    <div class="hover:border-main bg-darker-light-1 dark:bg-lighter-dark-1 mb-5 w-5/6 rounded-md border border-black">
+    <div class="hover:border-main relative w-3/4 flex-row-reverse justify-between rounded-2xl border p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <button
         type="button"
         onClick={() => props.setActiveIndex(isActive() ? null : props.index)}
-        class="dark:text-main-light w-full p-8"
+        class="dark:text-main-light w-full"
         aria-expanded={isActive()}
       >
         <p class="text-center text-lg font-bold">{props.text}</p>
@@ -122,12 +118,15 @@ function SectionBox(props: {
 
       <div
         class="overflow-hidden transition-all duration-200"
-        style={{ "max-height": isActive() ? "280px" : "0px" }}
+        style={{ "max-height": isActive() ? "300px" : "0px" }}
       >
-        <div class="bg-darker-light-2 dark:bg-lighter-dark-2 -mt-1 flex max-h-70 flex-col items-center overflow-y-auto">
-          <TransitionGroup name="dropdown">
-            {props.children}
-          </TransitionGroup>
+        <div 
+        
+        class="bg-darker-light-2 dark:bg-lighter-dark-2 mt-5 rounded-2xl h-fit flex max-h-70 flex-col items-center overflow-y-auto">
+          <Show when={isActive()}>
+          <TransitionGroup name="dropdown">{props.children}</TransitionGroup>
+
+          </Show>
         </div>
       </div>
     </div>
@@ -148,7 +147,11 @@ function ItemRow(props: {
       setQuizType("continue");
     } else {
       setQuizType("restart");
-      void deleteAnswersWithFilter(props.subject, props.sectionType, props.sectionId);
+      void deleteAnswersWithFilter(
+        props.subject,
+        props.sectionType,
+        props.sectionId,
+      );
     }
   };
 

@@ -9,7 +9,7 @@ import {
 import { Transition } from "solid-transition-group";
 import Atom from "../Icons/Atom";
 
-export default function AppName(props: { hide: Accessor<boolean> }) {
+export default function AppName(props: { hide?: Accessor<boolean> }) {
   const [connectionState, setConnectionState] = createSignal(
     navigator.onLine ? "online" : "offline",
   );
@@ -41,9 +41,7 @@ export default function AppName(props: { hide: Accessor<boolean> }) {
   });
 
   return (
-    <div
-      class={`${props.hide() ? "hidden" : ""} ml-3 flex-1 text-xl font-bold`}
-    >
+    <div class={`w-fit py-2 px-4 rounded-full ml-3 text-xl font-bold bg-main-light dark:bg-main-dark`}>
       <Transition name="slide-fade">
         <Switch>
           <Match

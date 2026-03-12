@@ -1,16 +1,16 @@
 import { Route } from "@solidjs/router";
-import UI from "../pages/UI";
+import SubjectsPage from "../pages/SubjectsPage";
 import Profile from "../pages/Profile/Profile";
 import Login from "../pages/Login";
 import Settings from "../pages/Settings";
-import SelectMenu from "../components/SelectMenu";
+import SelectMenu from "../pages/SelectMenu";
 import Quiz from "../pages/Quiz/Quiz";
 import FavoritesPage from "../pages/Favorites";
 
 export default function AppRoutes() {
   return (
     <>
-      <Route path="/" component={UI} />
+      <Route path="/" component={SubjectsPage} />
       <Route path="/profile" component={Profile} />
       <Route path="/login" component={Login} />
       <Route path="/settings" component={Settings} />

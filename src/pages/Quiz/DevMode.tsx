@@ -536,7 +536,7 @@ export default function DevMode() {
 
   return (
     <Show when={!isInFavorite()}>
-      <div class="min-h-screen bg-[#f8fafc] p-4 dark:bg-[#0f172a]" dir="rtl">
+      <div class="min-h-screen bg-[#f8fafc]  py-10 dark:bg-[#0f172a]" dir="rtl">
         {/* Header */}
         <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between rounded-[2.5rem] bg-white/80 p-6 shadow-sm backdrop-blur-md dark:bg-slate-800/80">
           <div>
