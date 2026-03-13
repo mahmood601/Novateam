@@ -1,23 +1,15 @@
 import { useParams, A } from "@solidjs/router";
-import { createEffect, createResource, createSignal, For, Show } from "solid-js";
+import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { setQuizType } from "../stores/quizType";
-import {
-  getFavorites,
-  deleteAnswersWithFilter,
-} from "../services/local/indexeddb";
+import { getFavorites } from "../services/local/indexeddb";
 import { syncAndGetSections } from "../services/local/indexeddb";
 
-type FavoriteItem = {
-  $id: string;
-  snapshot?: { question?: string };
-};
-
 export default function SelectMenu() {
-  const subject = `${useParams<{ subject: string }>().subject}` ;
+  const subject = `${useParams<{ subject: string }>().subject}`;
 
   // sections من Supabase (تحتوي على id حقيقي)
-  const [sections] = createResource(async() => syncAndGetSections(subject));
+  const [sections] = createResource(async () => syncAndGetSections(subject));
   const [favorites] = createResource(() => getFavorites(subject));
 
   const seasons = () => sections()?.filter((s) => s.type === "season") ?? [];
@@ -26,7 +18,7 @@ export default function SelectMenu() {
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
   return (
-    <div class="bg-main-light dark:bg-main-dark h-screen flex w-screen flex-col flex-wrap items-center justify-center gap-5 py-22">
+    <div class="bg-main-light dark:bg-main-dark flex h-screen w-screen flex-col flex-wrap items-center justify-center gap-5 py-22">
       {/* السنوات */}
       <SectionBox
         text="السنوات"
@@ -77,15 +69,18 @@ export default function SelectMenu() {
         <Show
           when={(favorites() ?? []).length > 0}
           fallback={
-            <p class="my-3  h-fit w-3/4 text-center">لا توجد أسئلة مفضلة لهذا الموضوع</p>
+            <p class="my-3 h-fit w-3/4 text-center">
+              لا توجد أسئلة مفضلة لهذا الموضوع
+            </p>
           }
         >
           <div class="flex w-11/12 items-center gap-2">
             <A
               href="favorite"
+              dir="rtl"
               class="bg-main m-2 flex-1 rounded-md p-2 text-center"
             >
-              {favorites()?.length + "سؤال بالمفضلة"}
+              {favorites()?.length + " سؤال بالمفضلة"}
             </A>
           </div>
         </Show>
@@ -106,7 +101,7 @@ function SectionBox(props: {
   const isActive = () => props.activeIndex() === props.index;
 
   return (
-    <div class="hover:border-main relative w-3/4 flex-row-reverse justify-between rounded-2xl border p-10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div class="dark:bg-lighter-dark-1 hover:border-main relative w-10/12 flex-row-reverse justify-between rounded-2xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <button
         type="button"
         onClick={() => props.setActiveIndex(isActive() ? null : props.index)}
@@ -118,14 +113,11 @@ function SectionBox(props: {
 
       <div
         class="overflow-hidden transition-all duration-200"
-        style={{ "max-height": isActive() ? "250px" : "0px" }}
+        style={{ "max-height": isActive() ? "220px" : "0px" }}
       >
-        <div 
-        
-        class="bg-darker-light-2 dark:bg-lighter-dark-2 mt-5 rounded-2xl h-fit flex max-h-70 flex-col items-center overflow-y-auto">
+        <div class="bg-darker-light-2 dark:bg-lighter-dark-2 mt-5 flex max-h-30 flex-col items-center overflow-y-auto rounded-2xl">
           <Show when={isActive()}>
-          <TransitionGroup name="dropdown">{props.children}</TransitionGroup>
-
+            <TransitionGroup name="dropdown">{props.children}</TransitionGroup>
           </Show>
         </div>
       </div>
@@ -143,7 +135,7 @@ function ItemRow(props: {
   sectionId: number;
 }) {
   const handleClick = () => {
-      setQuizType("continue");
+    setQuizType("continue");
 
     // if (window.confirm("هل تريد الاكمال من حيث توقفت؟")) {
     //   setQuizType("continue");

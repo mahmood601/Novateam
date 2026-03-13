@@ -11,7 +11,7 @@ export default function ProfileInfo(user: {
   const year = localStorage.getItem("year");
  
   return (
-    <ul class="dark:bg-lighter-dark-1 w-screen dark:text-white">
+    <ul class=" pt-5 flex flex-col self-center gap-5  items-center justify-center dark:text-white w-3/4">
       <Li Icon={NameSvg()} type="الاسم" value={<p>{user.name}</p>} />
       <Li Icon={EmailSvg()} type="الحساب" value={<p>{user.email}</p>} />
       <Li
@@ -97,7 +97,7 @@ function Li(props: {
   value: JSX.Element;
 }) {
   return (
-    <li class="dark:border-dark-hover flex h-fit w-full items-center justify-between border-t-[1px] border-b-[1px] border-gray-300 py-2 pl-3">
+    <li class="dark:border-dark-hover shadow-md rounded-2xl flex h-fit w-full items-center justify-between dark:bg-lighter-dark-1 py-2 pl-3">
       <div class="flex-1">
         <div class="flex w-full items-center justify-end">
           <Suspense>{props.type}</Suspense>
@@ -201,7 +201,7 @@ function Logout(props: { class?: string; Icon: JSX.Element; type: string }) {
       onClick={async () => {
         user.logout();
       }}
-      class="text-warn dark:border-dark-hover flex h-20 w-full cursor-pointer items-center justify-between border-b-[1px] border-gray-300 py-2"
+      class="text-warn dark:border-dark-hover dark:bg-lighter-dark-1 rounded-2xl shadow-xl  flex h-20 w-full cursor-pointer items-center justify-between py-2"
     >
       <div class="flex h-4 w-full flex-1 items-center justify-end text-xl font-bold">
         {props.type}

@@ -1,6 +1,6 @@
 import { Route } from "@solidjs/router";
 import SubjectsPage from "../pages/SubjectsPage";
-import Profile from "../pages/Profile/Profile";
+import Profile from "../pages/Profile";
 import Login from "../pages/Login";
 import Settings from "../pages/Settings";
 import SelectMenu from "../pages/SelectMenu";

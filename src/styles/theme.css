@@ -16,9 +16,9 @@
   --color-darker-light-2: #e7e8ec;
 
   /* colors for dark mode like background */
-  --color-main-dark: #1b1b1f;
-  --color-lighter-dark-1: #2f2f2f;
-  --color-lighter-dark-2: #343434;
+  --color-main-dark: #0F172A;
+  --color-lighter-dark-1: #1e293b;
+  --color-lighter-dark-2: #2b394f;
 }
 
 [data-theme="Nova"] {

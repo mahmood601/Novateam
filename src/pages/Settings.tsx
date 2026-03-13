@@ -38,10 +38,10 @@ export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
 
   return (
-    <div class="bg-darker-light-1 dark:bg-lighter-dark-1 h-screen w-screen p-4">
+    <div class="bg-darker-light-1 py-22 dark:bg-main-dark h-screen w-screen p-4">
       <p class="text-md text-main mb-5 text-right font-bold">الألوان</p>
 
-      <div class="flex flex-wrap justify-between">
+      <div class="flex flex-wrap justify-between dark:bg-lighter-dark-2 p-2 rounded-lg">
         <For each={Object.entries(colors)}>
           {([name, color]) => (
             <button

@@ -1,9 +1,9 @@
 import { useNavigate } from "@solidjs/router";
-import LeftArrow from "../../components/Icons/LeftArrow";
-import ProfileInfo from "../../components/Profile/ProfileInfo";
-import { useUser } from "../../context/user";
+import LeftArrow from "../components/Icons/LeftArrow";
+import ProfileInfo from "../components/Profile/ProfileInfo";
+import { useUser } from "../context/user";
 import { createEffect, onMount, Show } from "solid-js";
-import Loading from "../../components/loading";
+import Loading from "../components/loading";
 
 export default function Profile() {
   const { user, isLoading } = useUser();

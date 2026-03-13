@@ -32,7 +32,7 @@ export default function SubjectsPage() {
       when={yearKey()}
       fallback={
         <div class="bg-rainbow-graident fixed z-[100] flex h-screen w-screen items-center justify-center">
-          <div class="bg-main-dark flex h-fit w-fit flex-col rounded-md p-10 text-center">
+          <div class="dark:bg-main-dark flex h-fit w-fit flex-col rounded-md p-10 text-center">
             <label class="text-main-light mb-2 block" for="year">
               اختر السنة
             </label>
@@ -65,7 +65,10 @@ export default function SubjectsPage() {
         </div>
       }
     >
-      <div class="dark:bg-main-dark bg-main-light relative py-22 flex flex-wrap items-center justify-center gap-5">
+      <div
+        class="relative flex flex-wrap items-center justify-center gap-5 py-22"
+        dir="rtl"
+      >
         <Show
           when={!years.loading}
           fallback={<p class="py-10 text-center">جار التحميل...</p>}

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import Download from "./Icons/Download";
-import { createEffect, createResource, createSignal, Show } from "solid-js";
+import { createResource, createSignal } from "solid-js";
 import { Transition } from "solid-transition-group";
 import {
   addQuestionsToFirstDB,
@@ -32,10 +32,10 @@ export default function Box(props: {
   return (
     <A
       href={props.link}
-      class="hover:border-main relative flex h-55 w-80 flex-row-reverse justify-between rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      class="dark:bg-gray-800 hover:border-main relative flex h-55 w-80 justify-between rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       {/* المعلومات */}
-      <div class="flex flex-col items-end justify-center gap-2 text-right">
+      <div class="flex flex-1 flex-col items-center justify-center gap-2">
         <img
           src={"/subjectsIcons/" + props.subject + ".svg"}
           alt={props.info}
@@ -95,7 +95,7 @@ export default function Box(props: {
               },
             );
           }}
-          class="border-border hover:bg-main flex size-9 items-center justify-center rounded-full border transition-all duration-300 hover:text-white disabled:opacity-50"
+          class="border-border hover:bg-main p-1 flex size-9 items-center justify-center rounded-full border transition-all duration-300 hover:text-white disabled:opacity-50"
         >
           <Download />
         </button>
