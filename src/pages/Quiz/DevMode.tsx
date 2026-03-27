@@ -563,7 +563,7 @@ export default function DevMode() {
           </button>
         </div>
 
-        <div class="mx-auto max-w-4xl">
+        <div class="mx-auto max-w-4xl pb-12">
           {/* Form panel */}
           <Show when={showAdd()}>
             <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
@@ -641,7 +641,7 @@ export default function DevMode() {
               </div>
 
               <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
-                <div class="mt-12 flex justify-center gap-2 pb-12">
+                <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
                   <For
                     each={Array.from({
                       length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
@@ -650,7 +650,7 @@ export default function DevMode() {
                     {(_, i) => (
                       <button
                         onClick={() => setPage(i())}
-                        class={`h-10 w-10 rounded-full font-bold transition-all ${
+                        class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
                           page() === i()
                             ? "scale-110 bg-cyan-500 text-white"
                             : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"

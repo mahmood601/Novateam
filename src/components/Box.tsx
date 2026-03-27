@@ -37,7 +37,7 @@ export default function Box(props: {
       {/* المعلومات */}
       <div class="flex flex-1 flex-col items-center justify-center gap-2">
         <img
-          src={"/subjectsIcons/" + props.subject + ".svg"}
+          src={"/subjectsIcons/" + props.subject + ".jpg"}
           alt={props.info}
           class="from-main/30 to-main/10 size-16 rounded-lg bg-gradient-to-br"
         />
