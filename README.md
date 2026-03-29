@@ -1,28 +1,149 @@
-## Usage
+<div align="center">
 
-```bash
-$ npm install # or pnpm install or yarn install
+<br />
+
+```
+███╗   ██╗ ██████╗ ██╗   ██╗ █████╗ ████████╗███████╗ █████╗ ███╗   ███╗
+████╗  ██║██╔═══██╗██║   ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║
+██╔██╗ ██║██║   ██║██║   ██║███████║   ██║   █████╗  ███████║██╔████╔██║
+██║╚██╗██║██║   ██║╚██╗ ██╔╝██╔══██║   ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║
+██║ ╚████║╚██████╔╝ ╚████╔╝ ██║  ██║   ██║   ███████╗██║  ██║██║ ╚═╝ ██║
+╚═╝  ╚═══╝ ╚═════╝   ╚═══╝  ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+**✦ Building the future, together. ✦**
 
-## Available Scripts
+<br />
 
-In the project directory, you can run:
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-novateam.vercel.app-6366f1?style=for-the-badge&logoColor=white)](https://novateam.vercel.app)
+[![SolidJS](https://img.shields.io/badge/SolidJS-2C4F7C?style=for-the-badge&logo=solid&logoColor=white)](https://solidjs.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
 
-### `npm run dev`
+</div>
 
-Runs the app in the development mode.<br>
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+---
 
-### `npm run build`
+## ✨ What is Nova App?
 
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
+**Nova App** is a pwa website for the Nova team — a modern, fast, and beautifully crafted web experience built with cutting-edge technologies. Powered by **SolidJS** for blazing-fast reactivity and **TypeScript** for rock-solid type safety.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+---
 
-## Deployment
+## 🛠️ Tech Stack
 
-Learn more about deploying your application with the [documentations](https://vite.dev/guide/static-deploy.html)
+| Layer | Technology |
+|---|---|
+| ⚡ Framework | [SolidJS](https://solidjs.com) |
+| 🔷 Language | TypeScript |
+| 📦 Bundler | Vite |
+| 🎨 Styling | CSS + PostCSS |
+| 🚀 Deployment | Vercel |
+| 📋 Package Manager | pnpm |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- **Node.js** `>= 18`
+- **pnpm** (recommended) — `npm install -g pnpm`
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/mahmood601/Novateam.git
+cd Novateam
+
+# 2. Install dependencies
+pnpm install        # or: npm install / yarn install
+
+# 3. Start the development server
+pnpm dev            # or: npm run dev
+```
+
+Then open your browser at **[http://localhost:5173](http://localhost:5173)** 🎉
+
+---
+
+## 📜 Available Scripts
+
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start the local development server |
+| `pnpm build` | Build for production (outputs to `/dist`) |
+| `pnpm preview` | Preview the production build locally |
+
+---
+
+## 📁 Project Structure
+
+```
+Novateam/
+├── public/              # Static assets
+├── src/                 # Application source code
+│   ├── components/      # Reusable UI components
+│   ├── pages/           # Page-level components
+│   └── ...
+├── index.html           # HTML entry point
+├── vite.config.ts       # Vite configuration
+├── tsconfig.json        # TypeScript configuration
+└── package.json         # Project metadata & scripts
+```
+
+---
+
+## ☁️ Deployment
+
+This project is deployed on **Vercel** with zero-config continuous deployment from the `master` branch.
+
+To deploy your own fork:
+
+1. Push your code to GitHub
+2. Import the repo on [vercel.com](https://vercel.com)
+3. Vercel auto-detects Vite — hit **Deploy** ✅
+
+For other platforms, refer to the [Vite static deploy guide](https://vite.dev/guide/static-deploy.html).
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get involved:
+
+```bash
+# 1. Fork the project
+# 2. Create your feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Commit your changes
+git commit -m "feat: add something amazing"
+
+# 4. Push to the branch
+git push origin feature/amazing-feature
+
+# 5. Open a Pull Request 🚀
+```
+
+Please make sure your code is formatted with **Prettier** (config included in `.prettierrc`).
+
+---
+
+## 📄 License
+
+This project is open source. Feel free to use, modify, and build upon it.
+
+---
+
+<div align="center">
+
+Made with ❤️ by **[mahmood601](https://github.com/mahmood601)**
+
+⭐ If you like this project, give it a star — it means a lot!
+
+</div>
