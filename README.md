@@ -27,7 +27,23 @@
 
 ## ✨ What is Nova App?
 
-**Nova App** is a pwa website for the Nova team — a modern, fast, and beautifully crafted web experience built with cutting-edge technologies. Powered by **SolidJS** for blazing-fast reactivity and **TypeScript** for rock-solid type safety.
+**Nova App** is an interactive quiz platform built specifically for medical students in Tartous university . It transforms course questions and exam materials into engaging, timed quizzes — helping students study smarter, not harder.
+
+No more staring at static PDFs. With Nova app, your study material comes alive.
+
+> *"Study like the exam is tomorrow. Every day."*
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| ⏱️ **Timed Quizzes** | Simulate real exam pressure with a built-in countdown timer |
+| 🎨 **Color Customization** | Personalize your quiz themes |
+| ⭐ **Favorites** | Bookmark tricky questions and revisit them anytime |
+| 🔊 **Sound Effects** | Instant audio feedback for correct and wrong answers |
+| 🛡️ **Admin Panel** | A dedicated interface to add, edit, and manage all questions |
 
 ---
 
