@@ -1,4 +1,4 @@
-import { createEffect, JSX, Show, Suspense } from "solid-js";
+import { JSX, Show, Suspense } from "solid-js";
 import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
 import years from "../../services/local/years";
@@ -9,9 +9,9 @@ export default function ProfileInfo(user: {
   isAdmin: boolean;
 }) {
   const year = localStorage.getItem("year");
- 
+
   return (
-    <ul class=" pt-5 flex flex-col self-center gap-5  items-center justify-center dark:text-white w-3/4">
+    <ul class="flex w-3/4 flex-col items-center justify-center gap-5 self-center pt-5 dark:text-white">
       <Li Icon={NameSvg()} type="الاسم" value={<p>{user.name}</p>} />
       <Li Icon={EmailSvg()} type="الحساب" value={<p>{user.email}</p>} />
       <Li
@@ -58,11 +58,9 @@ export default function ProfileInfo(user: {
                 </p>
                 <button
                   on:click={() => {
-                    localStorage.setItem(
-                      "dev",
-                      String(localStorage.getItem("dev")),
-                    );
-                    setAccount("devMode", (prev) => !prev);
+                    const devMode = !account.devMode;
+                    localStorage.setItem("dev", String(devMode));
+                    setAccount("devMode", devMode);
                   }}
                   classList={{
                     "bg-main dark:bg-main": account.devMode,
@@ -97,7 +95,7 @@ function Li(props: {
   value: JSX.Element;
 }) {
   return (
-    <li class="dark:border-dark-hover shadow-md rounded-2xl flex h-fit w-full items-center justify-between dark:bg-lighter-dark-1 py-2 pl-3">
+    <li class="dark:border-dark-hover dark:bg-lighter-dark-1 flex h-fit w-full items-center justify-between rounded-2xl py-2 pl-3 shadow-md">
       <div class="flex-1">
         <div class="flex w-full items-center justify-end">
           <Suspense>{props.type}</Suspense>
@@ -201,7 +199,7 @@ function Logout(props: { class?: string; Icon: JSX.Element; type: string }) {
       onClick={async () => {
         user.logout();
       }}
-      class="text-warn dark:border-dark-hover dark:bg-lighter-dark-1 rounded-2xl shadow-xl  flex h-20 w-full cursor-pointer items-center justify-between py-2"
+      class="text-warn dark:border-dark-hover dark:bg-lighter-dark-1 flex h-20 w-full cursor-pointer items-center justify-between rounded-2xl py-2 shadow-xl"
     >
       <div class="flex h-4 w-full flex-1 items-center justify-end text-xl font-bold">
         {props.type}
