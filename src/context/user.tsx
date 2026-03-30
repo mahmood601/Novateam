@@ -1,14 +1,18 @@
 import { supabase } from "../services/supabase";
-import { setAccount } from "../stores/account";
 import {
   Accessor,
   createContext,
+  createEffect,
   createSignal,
   onMount,
   Setter,
   useContext,
 } from "solid-js";
-import { ensureUserExists, getUserRole } from "../services/user";
+import {
+  ensureUserExists,
+  getUserRole,
+  updateUserProfile,
+} from "../services/user";
 
 type User = {
   id: string;
@@ -24,6 +28,10 @@ type UserContextType = {
   fetchUser: () => Promise<void>;
   login: (provider: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (updates: {
+    name?: string;
+    year?: string;
+  }) => Promise<boolean>;
 };
 
 const UserContext = createContext<UserContextType>();
@@ -35,6 +43,25 @@ export function useUser() {
 export function UserProvider(props: any) {
   const [user, setUser] = createSignal<User | null>(null);
   const [isLoading, setIsLoading] = createSignal(true);
+
+  const updateProfile = async (updates: {
+    name?: string;
+    year?: string;
+  }): Promise<boolean> => {
+    if (!user()) return false;
+
+    const success = await updateUserProfile(user()!.id, updates);
+    if (!success) return false;
+
+    const updated = { ...user()!, ...updates };
+    if (updated) {
+      setUser(updated);
+      localStorage.setItem("user", JSON.stringify(updated));
+
+      if (updates.year) localStorage.setItem("year", updates.year);
+    }
+    return true;
+  };
 
   const login = async (provider: string) => {
     await supabase.auth.signInWithOAuth({
@@ -77,16 +104,17 @@ export function UserProvider(props: any) {
       // ensure if user in users
       await ensureUserExists({ userId: authUser.id, name });
 
+const {data: userData} = await supabase.from("users").select("name, role").eq("id", authUser.id).single();
+
       //get role from users table (not from app_metadata)
       const role = await getUserRole(authUser.id);
 
       const userInfo: User = {
         id: authUser.id,
         email: authUser.email ?? "",
-        name,
-        role,
+        name: userData?.name?? "",
+        role: userData?.role === "admin"? "admin" : "student",
       };
-
 
       localStorage.setItem("user", JSON.stringify(userInfo));
       setUser(userInfo);
@@ -114,7 +142,15 @@ export function UserProvider(props: any) {
 
   return (
     <UserContext.Provider
-      value={{ user, setUser, isLoading, fetchUser, login, logout }}
+      value={{
+        user,
+        setUser,
+        isLoading,
+        fetchUser,
+        login,
+        logout,
+        updateProfile,
+      }}
     >
       {props.children}
     </UserContext.Provider>

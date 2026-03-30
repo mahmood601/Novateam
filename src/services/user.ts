@@ -44,7 +44,9 @@ export async function getUserNameById(userId: string): Promise<string | null> {
 }
 
 // ─── Get user role ────────────────────────────────────────────────────────────
-export async function getUserRole(userId: string): Promise<"student" | "admin"> {
+export async function getUserRole(
+  userId: string,
+): Promise<"student" | "admin"> {
   if (!userId) return "student";
 
   const { data, error } = await supabase
@@ -55,4 +57,22 @@ export async function getUserRole(userId: string): Promise<"student" | "admin"> 
 
   if (error || !data) return "student";
   return data.role === "admin" ? "admin" : "student";
+}
+
+export async function updateUserProfile(
+  userId: string,
+  updates: { name?: string; year?: string },
+): Promise<boolean> {
+  if (!userId) throw new Error("No userId provided");
+
+  const { error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("id", userId);
+
+  if (error) {
+    console.error("Error updating user profile:", error);
+    return false;
+  }
+  return true;
 }
