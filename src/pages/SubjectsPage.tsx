@@ -1,31 +1,36 @@
 import {
   getYearsOfflineFirst,
+  getSubjectsByYear,
   getSubjectsOfflineFirst,
 } from "../services/local/indexeddb";
 import Box from "../components/Box";
 import "../index.css";
 import { inject } from "@vercel/analytics";
-import { createResource, createSignal, For, Show } from "solid-js";
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  Show,
+  onMount,
+} from "solid-js";
 
 export default function SubjectsPage() {
   inject();
 
   const [yearKey, setYearKey] = createSignal<string | null>(
     localStorage.getItem("year"),
-  );
+  ); 
 
   // offline-first: IDB أولاً، Supabase في الخلفية
   const [years] = createResource(getYearsOfflineFirst);
-  const [allSubjects] = createResource(getSubjectsOfflineFirst);
-
-  const currentYear = () => years()?.find((y) => y.id === yearKey());
-
-  // خريطة سريعة: id → name
-  const subjectMap = () => {
-    const map: Record<string, string> = {};
-    allSubjects()?.forEach((s) => (map[s.id] = s.name));
-    return map;
-  };
+  const [yearSubjects] = createResource(
+    () => yearKey(),
+    async (year) => {
+      if (!year) return [];
+      return getSubjectsByYear(year);
+    },
+  );
 
   return (
     <Show
@@ -73,15 +78,24 @@ export default function SubjectsPage() {
           when={!years.loading}
           fallback={<p class="py-10 text-center">جار التحميل...</p>}
         >
-          <For each={currentYear()?.subjects}>
-            {(subjectId) => (
-              <Box
-                subject={subjectId}
-                info={subjectMap()[subjectId] ?? subjectId}
-                link={subjectId}
-              />
-            )}
-          </For>
+          <Show
+            when={(yearSubjects()?.length ?? 0) > 0}
+            fallback={
+              <div class="py-10 text-center text-gray-400">
+                لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
+              </div>
+            }
+          >
+            <For each={yearSubjects()}>
+              {(subject) => (
+                <Box
+                  subject={subject.id}
+                  info={subject.name}
+                  link={subject.id}
+                />
+              )}
+            </For>
+          </Show>
         </Show>
       </div>
     </Show>

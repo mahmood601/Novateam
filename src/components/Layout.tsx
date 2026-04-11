@@ -20,7 +20,10 @@ export default function Layout(props: { children: JSX.Element }) {
   return (
     <div class="dark:bg-main-dark bg-main-light relative flex h-screen flex-col">
       {quizMode() ||
+      location().includes("/search") ||
       location().includes("/profile") ||
+      location().includes("/stats") ||
+      location().includes("/settings") ||
       location().includes("/favorite") ? null : (
         <>
           <Header />

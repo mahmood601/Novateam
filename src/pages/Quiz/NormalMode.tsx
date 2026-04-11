@@ -1,9 +1,9 @@
 import { useBeforeLeave, useParams } from "@solidjs/router";
 import { createMemo, createResource, onMount, Show, Suspense } from "solid-js";
-import subjects from "../subjects";
 import {
   addAnswersToProgress,
   getQuestionsOrAnswersWithFilter,
+  getSubjectsOfflineFirst,
   Question,
 } from "../../services/local/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
@@ -26,6 +26,10 @@ export default function NormalMode() {
   const sectionId = Number(useParams().section.split("-").at(1));
 
   const { playSound } = useAudio();
+  const [subjectInfo] = createResource(async () => {
+    const subjects = await getSubjectsOfflineFirst();
+    return subjects.find((item) => item.id === subject);
+  });
 
    onMount(() => resetQuizState());
    
@@ -127,7 +131,7 @@ export default function NormalMode() {
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <QuizHeader
-            subjectName={subjects[subject].name}
+            subjectName={subjectInfo()?.name ?? subject}
             index={quizState.index}
             isDisabled={quizState.isOptionDisabled}
             total={orderedQs().length}

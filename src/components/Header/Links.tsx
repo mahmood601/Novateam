@@ -1,14 +1,29 @@
-import { A } from "@solidjs/router";
-import { For, Show } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { For, on, onCleanup, onMount, Show } from "solid-js";
 import ThemeBtn from "./ThemeBtn";
 
 const links = [
   { name: "وضع الإضاءة", image: "mode", route: null },
   { name: "الحساب", image: "account", route: "profile" },
   { name: "الإعدادات", image: "settings", route: "settings" },
+  { name: "الاحصائيات", image: "stats", route: "stats" },
+  { name: "البحث", image: "search", route: "search" },
 ];
 
 export function Links() {
+  const navigate = useNavigate();
+const hadelPopState = (e: PopStateEvent) => {
+    navigate("/", { replace: true });
+  }
+
+  onMount(() => {
+    window.addEventListener("popstate", hadelPopState);
+  });
+
+onCleanup(() => {
+    window.removeEventListener("popstate", hadelPopState);
+  });
+
   return (
     <nav class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
       <ul class="dark:bg-main-dark bg-main-light flex gap-5 rounded-2xl border px-6 py-3 shadow-sm transition-all hover:shadow-md">

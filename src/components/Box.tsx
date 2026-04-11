@@ -18,13 +18,16 @@ export default function Box(props: {
   const [downloadStatus, setDownloadStatus] = createSignal<"pending" | "">("");
 
   const [stats, { refetch }] = createResource(async () => {
-    const q = await getQuestions(props.subject);
-    const a = await getAnswers(props.subject);
+if (!props.subject) {
+  return { qLen: 0, aLen: 0 };
+}
+const q = await getQuestions(props.subject);
+const a = await getAnswers(props.subject);
 
-    return {
-      qLen: q?.length || 0,
-      aLen: a.filter((i) => i.answer).length,
-    };
+return {
+  qLen: q?.length || 0,
+  aLen: Array.isArray(a) ? a.filter((i) => i.answer).length : 0,
+};
   });
   const percentage = () =>
     stats()?.qLen ? Math.round((stats()?.aLen / stats()?.qLen) * 100) : 0;
@@ -81,7 +84,7 @@ export default function Box(props: {
             if (!props.subject) return;
 
             toast.promise(
-              addQuestionsToFirstDB(props.subject).then(() => refetch()),
+              addQuestionsToFirstDB(props.subject, true).then(() => refetch()),
               {
                 loading: () => {
                   setDownloadStatus("pending");

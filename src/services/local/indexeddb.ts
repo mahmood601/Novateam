@@ -1,7 +1,5 @@
 import { supabase } from "../supabase";
 import { Dexie, Table } from "dexie";
-// fallback ثابت عند غياب الشبكة في أول تشغيل
-import subjectsFallback from "../../pages/subjects";
 import yearsFallback from "./years";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -21,6 +19,7 @@ export type Question = {
   options: string[];
   correctIndex: number;
   user_id: string | null;
+  image_url?: string | null; // ← جاهز للصور مستقبلاً
   [key: string]: any;
 };
 
@@ -50,13 +49,13 @@ export type CachedSection = {
 };
 
 export type CachedSubject = {
-  id: string;       // subject_id مثل "anatomy-2"
+  id: string;
   name: string;
-  year_keys: string[]; // ["second", "third", ...]
+  year_keys: string[];
 };
 
 export type CachedYear = {
-  id: string;       // "second" | "third" | ...
+  id: string;
   name: string;
   subjects: string[];
 };
@@ -64,15 +63,17 @@ export type CachedYear = {
 // ─── Dexie DB ─────────────────────────────────────────────────────────────────
 
 class AppDB extends Dexie {
-  questions!: Table<Question, "$id">;
-  answers!: Table<Answer, "$id">;
-  favorites!: Table<Favorite, "$id">;
-  sections!: Table<CachedSection, "id">;
-  subjects!: Table<CachedSubject, "id">;
-  years!: Table<CachedYear, "id">;
+  questions!: Table<Question, string>;
+  answers!: Table<Answer, string>;
+  favorites!: Table<Favorite, string>;
+  sections!: Table<CachedSection, number>;
+  subjects!: Table<CachedSubject, string>;
+  years!: Table<CachedYear, string>;
 
   constructor() {
     super("db");
+
+    // ← الإصدار القديم يبقى دون تغيير لضمان migration صحيح
     this.version(2).stores({
       questions: `
         $id,
@@ -102,13 +103,18 @@ class AppDB extends Dexie {
         type,
         [subject_id+type]
       `,
-      subjects: `id`,
+      subjects: `id, *year_keys`,
       years: `id`,
     });
+
+    // ← عند إضافة image_url أو أي حقل جديد ارفع الإصدار هنا
+    // this.version(3).stores({ questions: `$id, subject, ... , image_url` });
   }
 }
 
+// ✅ instance واحدة فقط — يُصدَّر ليُستخدَم في باقي الملفات مباشرة
 const db = new AppDB();
+export { db };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -122,8 +128,10 @@ function getLastSync(subject: string): string | null {
   return localStorage.getItem(SYNC_KEY(subject));
 }
 
+// ✅ spread-safe: أي حقل جديد في Supabase يُحفظ تلقائياً (image_url مثلاً)
 function toQuestion(row: any, subject: string): Question {
   return {
+    ...row,
     $id: row.id,
     subject,
     subject_id: row.subject_id,
@@ -138,72 +146,85 @@ function toQuestion(row: any, subject: string): Question {
     options: row.options ?? [],
     correctIndex: row.correct_index,
     user_id: row.created_by,
+    image_url: row.image_url ?? null,
   };
 }
 
-// ─── Subjects: Offline-First ──────────────────────────────────────────────────
+// ─── Subjects ─────────────────────────────────────────────────────────────────
 
-/**
- * اقرأ المواد من IDB أولاً.
- * إذا كانت فارغة: حاول Supabase، وإلا استخدم subjects.ts كـ fallback.
- * زامن في الخلفية دائماً.
- */
-export async function getSubjectsOfflineFirst(): Promise<CachedSubject[]> {
-  const cached = await db.subjects.toArray();
+// ✅ إصلاح: تستخدم IDB index مباشرة بدل جلب الكل + تنتظر الشبكة عند الحاجة
+export async function getSubjectsOfflineFirst(
+  yearKey: string,
+): Promise<CachedSubject[]> {
+  const cached = await db.subjects
+    .where("year_keys")
+    .equals(yearKey)
+    .toArray();
 
-  // زامن في الخلفية دائماً
-  syncSubjectsInBackground();
+  if (cached.length > 0) {
+    // زامن في الخلفية بدون انتظار
+    syncSubjectsInBackground(yearKey);
+    return cached;
+  }
 
-  if (cached.length > 0) return cached;
-
-  // أول تشغيل بدون اتصال → fallback من subjects.ts
-  return buildSubjectsFallback();
+  // أول تشغيل — انتظر الشبكة مرة واحدة
+  return new Promise((resolve) => {
+    syncSubjectsInBackground(yearKey, resolve);
+  });
 }
 
-function buildSubjectsFallback(): CachedSubject[] {
-  return Object.entries(subjectsFallback).map(([id, data]) => ({
-    id,
-    name: data.name,
-    year_keys: [], // لا نعرف السنوات من subjects.ts مباشرة
-  }));
+export async function getSubjectsByYear(
+  yearKey: string,
+): Promise<CachedSubject[]> {
+  if (!yearKey) return [];
+
+  return db.subjects
+    .where("year_keys")
+    .anyOf(yearKey)
+    .toArray();
 }
 
-async function syncSubjectsInBackground() {
-  if (!navigator.onLine) return;
+// ✅ إصلاح: أضيف onUpdate callback لإبلاغ الـ UI عند التحديث
+async function syncSubjectsInBackground(
+  year_key: string,
+  onUpdate?: (subjects: CachedSubject[]) => void,
+) {
+  if (!navigator.onLine) {
+    onUpdate?.([]);
+    return;
+  }
   try {
-    // إذا كان عندك جدول subjects في Supabase
     const { data, error } = await supabase
       .from("subjects")
-      .select("id, name");
+      .select("id, name, year_key")
+      .eq("year_key", year_key);
 
     if (!error && data && data.length > 0) {
-      await db.subjects.bulkPut(data as CachedSubject[]);
+      const subjects = (data as any[]).map((row) => ({
+        id: row.id,
+        name: row.name,
+        year_keys: Array.isArray(row.year_key)
+          ? row.year_key
+          : row.year_key
+            ? [row.year_key]
+            : [],
+      }));
+
+      await db.subjects.bulkPut(subjects as CachedSubject[]);
+      onUpdate?.(subjects as CachedSubject[]);
       return;
     }
   } catch {
-    // offline أو الجدول غير موجود
-    console.log("error");
-    
+    // offline
   }
-
-  // Fallback: بناء من subjects.ts وتخزين في IDB
-  const fallback = buildSubjectsFallback();
-  await db.subjects.bulkPut(fallback);
+  onUpdate?.([]);
 }
 
-// ─── Years: Offline-First ─────────────────────────────────────────────────────
+// ─── Years ────────────────────────────────────────────────────────────────────
 
-/**
- * اقرأ السنوات من IDB أولاً.
- * إذا كانت فارغة: حاول Supabase، وإلا استخدم years.ts كـ fallback.
- */
 export async function getYearsOfflineFirst(): Promise<CachedYear[]> {
   const cached = await db.years.toArray();
-
-  syncYearsInBackground();
-
   if (cached.length > 0) return cached;
-
   return buildYearsFallback();
 }
 
@@ -215,28 +236,7 @@ function buildYearsFallback(): CachedYear[] {
   }));
 }
 
-async function syncYearsInBackground() {
-  if (!navigator.onLine) return;
-  try {
-    // إذا كان عندك جدول years في Supabase
-    const { data, error } = await supabase
-      .from("years")
-      .select("id, name, subjects");
-
-    if (!error && data && data.length > 0) {
-      await db.years.bulkPut(data as CachedYear[]);
-      return;
-    }
-  } catch {
-    // offline أو الجدول غير موجود
-  }
-
-  // Fallback: بناء من years.ts وتخزين في IDB
-  const fallback = buildYearsFallback();
-  await db.years.bulkPut(fallback);
-}
-
-// ─── Sections: Offline-First ──────────────────────────────────────────────────
+// ─── Sections ─────────────────────────────────────────────────────────────────
 
 export async function syncAndGetSections(
   subjectId: string,
@@ -247,11 +247,8 @@ export async function syncAndGetSections(
     .equals(subjectId)
     .toArray();
 
-  // زامن في الخلفية
-  syncSectionsInBackground(subjectId, onUpdate);
-
   if (cached.length === 0) {
-    // أول تشغيل — انتظر الشبكة مرة واحدة
+    // ✅ إصلاح: استدعاء واحد فقط (كان يُستدعى مرتين سابقاً)
     return new Promise((resolve) => {
       syncSectionsInBackground(subjectId, (fresh) => {
         onUpdate?.(fresh);
@@ -260,6 +257,8 @@ export async function syncAndGetSections(
     });
   }
 
+  // زامن في الخلفية فقط عند وجود كاش
+  syncSectionsInBackground(subjectId, onUpdate);
   return cached;
 }
 
@@ -275,7 +274,6 @@ async function syncSectionsInBackground(
       .eq("subject_id", subjectId)
       .order("type")
       .order("value");
-      
 
     if (error || !data) return;
 
@@ -286,18 +284,27 @@ async function syncSectionsInBackground(
   }
 }
 
-// ─── Questions: Offline-First ─────────────────────────────────────────────────
+// ─── Questions ────────────────────────────────────────────────────────────────
 
-export async function addQuestionsToFirstDB(subject: string): Promise<void> {  
+// ✅ إصلاح: ترجع boolean لإعلام الـ caller بنجاح أو فشل المزامنة
+export async function addQuestionsToFirstDB(
+  subject: string,
+  wait = false,
+): Promise<boolean> {
+  if (wait) {
+    return await syncQuestionsInBackground(subject);
+  }
   syncQuestionsInBackground(subject);
+  return true;
 }
 
 export async function getQuestions(subject: string): Promise<Question[]> {
   return db.questions.where("subject").equals(subject).toArray();
 }
 
-async function syncQuestionsInBackground(subject: string) {
-  if (!navigator.onLine) return;
+// ✅ إصلاح: ترجع boolean + حد أولي للطلب الأول
+async function syncQuestionsInBackground(subject: string): Promise<boolean> {
+  if (!navigator.onLine) return false;
   try {
     const lastSync = getLastSync(subject);
     const SELECT = `
@@ -309,25 +316,31 @@ async function syncQuestionsInBackground(subject: string) {
     let query = supabase
       .from("questions")
       .select(SELECT)
+      .select("*")
       .eq("subject_id", subject)
-      .order("updated_at");
+      .order("updated_at")
+      .limit(lastSync ? 500 : 200); // ✅ حد مؤقت للأول تشغيل
 
     if (lastSync) {
-      query = query.gt("updated_at", lastSync);
+      // query = query.gt("updated_at", lastSync);
     }
 
     const { data, error } = await query;
+
     console.log(data);
     
-    if (error || !data) return;
-    if (data.length === 0) return;
+    if (error || !data || data.length === 0) return false;
 
     const questions = data.map((row: any) => toQuestion(row, subject));
     await db.questions.bulkPut(questions);
     saveLastSync(subject);
+
+
+    return true;
   } catch {
-    // offline
+    return false;
   }
+  
 }
 
 export function resetSync(subject: string) {
@@ -338,6 +351,43 @@ export function resetSync(subject: string) {
 
 export async function addAnswersToProgress(answers: Answer[]) {
   await db.answers.bulkPut(answers);
+}
+
+// ✅ إصلاح: كل دوال clear تُرجع boolean مع error handling
+export async function clearAnswers(): Promise<boolean> {
+  try {
+    await db.answers.clear();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearQuestions(): Promise<boolean> {
+  try {
+    await db.questions.clear();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearSubjects(): Promise<boolean> {
+  try {
+    await db.subjects.clear();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearSections(): Promise<boolean> {
+  try {
+    await db.sections.clear();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
@@ -362,6 +412,7 @@ export async function addFavoriteForQuestion(
       year_id: question.year_id,
       seasonName: question.seasonName,
       yearValue: question.yearValue,
+      image_url: question.image_url,
       userAnswer,
     },
     note: note ?? "",

@@ -6,6 +6,9 @@ import Settings from "../pages/Settings";
 import SelectMenu from "../pages/SelectMenu";
 import Quiz from "../pages/Quiz/Quiz";
 import FavoritesPage from "../pages/Favorites";
+import StatsPage from "../pages/Stats";
+import SearchPage from "../pages/Search";
+
 
 export default function AppRoutes() {
   return (
@@ -13,6 +16,8 @@ export default function AppRoutes() {
       <Route path="/" component={SubjectsPage} />
       <Route path="/profile" component={Profile} />
       <Route path="/login" component={Login} />
+      <Route path="/search" component={SearchPage} />
+      <Route path="/stats" component={StatsPage} />
       <Route path="/settings" component={Settings} />
       <Route path="/:subject" component={SelectMenu} />
       <Route path="/:subject/:section" component={Quiz} />

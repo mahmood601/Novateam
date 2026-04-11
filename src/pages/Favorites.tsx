@@ -9,7 +9,7 @@ import {
 import toast from "solid-toast";
 import Loading from "../components/loading";
 import LeftArrow from "../components/Icons/LeftArrow";
-import subjects from "./subjects";
+import subjects from "./subjeccts";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);

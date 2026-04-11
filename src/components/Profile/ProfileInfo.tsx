@@ -2,6 +2,13 @@ import { createSignal, For, JSX, Show, Suspense } from "solid-js";
 import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
 import years from "../../services/local/years";
+import {
+  clearAnswers,
+  clearQuestions,
+  clearSections,
+  clearSubjects,
+  getSubjectsOfflineFirst,
+} from "../../services/local/indexeddb";
 import toast from "solid-toast";
 
 export default function ProfileInfo(props: {
@@ -33,11 +40,24 @@ export default function ProfileInfo(props: {
   };
 
   const saveYear = async () => {
+    const previousYear = localStorage.getItem("year");
+    const newYear = yearValue();
+
     setSaving(true);
-    const ok = await updateProfile({ year: yearValue() });
+    const ok = await updateProfile({ year: newYear });
     setSaving(false);
+
     if (ok) {
-      toast.success("تم تحديث السنة ✓");
+      if (previousYear && previousYear !== newYear) {
+        await clearAnswers();
+        await clearQuestions();
+        await clearSubjects();
+        await clearSections();
+        getSubjectsOfflineFirst(newYear); // prefetch subjects for the selected year
+        toast.success("تم حذف بيانات السنة القديمة و تحديث السنة");
+      } else {
+        toast.success("تم تحديث السنة ✓");
+      }
       setEditingYear(false);
     } else {
       toast.error("فشل التحديث، حاول مجدداً");
@@ -72,7 +92,7 @@ export default function ProfileInfo(props: {
               <input
                 value={nameValue()}
                 onInput={(e) => setNameValue(e.currentTarget.value)}
-                class="focus:ring-main flex-1 rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                class="focus:ring-main rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
                 dir="rtl"
                 autofocus
               />
@@ -95,7 +115,11 @@ export default function ProfileInfo(props: {
       />
 
       {/* الحساب */}
-      <Li Icon={EmailSvg()} type="الحساب" value={<p>{props.email}</p>} />
+      <Li
+        Icon={EmailSvg()}
+        type="الحساب"
+        value={<p class="overflow-x-scroll">{props.email}</p>}
+      />
 
       {/* السنة */}
       <Li
@@ -121,7 +145,7 @@ export default function ProfileInfo(props: {
                 value={yearValue()}
                 onChange={(e) => setYearValue(e.currentTarget.value)}
                 aria-placeholder="اختر السنة"
-                class="text-main-dark focus:ring-main flex-1 rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                class="text-main-dark focus:ring-main w-auto rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
                 dir="rtl"
               >
                 <For each={Object.entries(years)}>
@@ -150,7 +174,6 @@ export default function ProfileInfo(props: {
         }
       />
 
-      {/* devMode للأدمن */}
       <Show when={props.isAdmin}>
         <Li
           Icon={TeamSvg()}
@@ -198,21 +221,21 @@ export default function ProfileInfo(props: {
         />
       </Show>
 
-      <Logout Icon={LogoutSvg()} type="تسجيل الخروج" />
+      <Show when={<p></p>}>
+        <Logout Icon={LogoutSvg()} type="تسجيل الخروج" />
+      </Show>
     </ul>
   );
 }
 
-// ─── مكونات مساعدة ────────────────────────────────────────────────────────────
-
 function Li(props: { Icon?: JSX.Element; type?: string; value: JSX.Element }) {
   return (
-    <li class="dark:border-dark-hover dark:bg-lighter-dark-1 flex h-fit w-full items-center justify-between rounded-2xl py-2 pl-3 shadow-md">
-      <div class="flex-1">
+    <li class="dark:border-dark-hover dark:bg-lighter-dark-1 flex h-fit w-full items-center justify-between gap-1 rounded-2xl py-2 pl-3 shadow-md">
+      <div class="flex w-[calc(100%-4.5em)] flex-col items-center justify-center gap-1">
         <div class="flex w-full items-center justify-end">
           <Suspense>{props.type}</Suspense>
         </div>
-        <div class="rainbow-graident flex w-full items-center justify-end text-lg font-bold">
+        <div class="flex w-full items-center justify-end overflow-x-scroll font-bold">
           <Suspense>{props.value}</Suspense>
         </div>
       </div>
