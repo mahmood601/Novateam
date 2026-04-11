@@ -222,7 +222,10 @@ export default function SearchPage() {
   const [showAll, setShowAll] = createSignal(false);
 
   const [allQuestions] = createResource(getAllQuestions);
-  const [subjects] = createResource(getSubjectsOfflineFirst);
+  const [subjects] = createResource(async () => {
+    const year = localStorage.getItem("year");
+    return year ? getSubjectsOfflineFirst(year) : [];
+  });
   const subjectMap = createMemo(() => {
     const list = subjects();
     return list
