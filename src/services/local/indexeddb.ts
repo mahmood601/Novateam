@@ -327,8 +327,6 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
 
     const { data, error } = await query;
 
-    console.log(data);
-    
     if (error || !data || data.length === 0) return false;
 
     const questions = data.map((row: any) => toQuestion(row, subject));
@@ -486,4 +484,13 @@ export async function deleteAnswersWithFilter(
     .where(`[subject+${sectionType}]`)
     .equals([subject, sectionId])
     .delete();
+}
+
+export async function getSeasons(
+  subject: string,
+): Promise<CachedSection[]> {
+  return db.sections
+    .where(`[subject_id+type]`)
+    .equals([subject, "season"])
+    .toArray();
 }

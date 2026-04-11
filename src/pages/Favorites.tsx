@@ -1,15 +1,16 @@
-import { createSignal, onMount, For, Show, Setter } from "solid-js";
+import { createSignal, onMount, For, Show, Setter, createResource } from "solid-js";
 import { createAsync, useParams } from "@solidjs/router";
 import type { Favorite } from "../services/local/indexeddb";
 import {
   getFavorites,
+  getSeasons,
+  getSubjectsByYear,
   removeFavorite,
   updateFavoriteNote,
 } from "../services/local/indexeddb";
 import toast from "solid-toast";
 import Loading from "../components/loading";
 import LeftArrow from "../components/Icons/LeftArrow";
-import subjects from "./subjeccts";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = createSignal<Favorite[]>([]);
@@ -70,6 +71,18 @@ export default function FavoritesPage() {
 }
 
 function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
+     const [yearKey, setYearKey] = createSignal<string | null>(
+    localStorage.getItem("year"),
+  ); 
+
+  
+  const [yearSubjects] = createResource(
+      () => yearKey(),
+      async (year) => {
+        if (!year) return [];
+        return getSubjectsByYear(year);
+      },
+    );
   const snapshot = props.fav.snapshot;
 
   const [season, setSeason] = createSignal("");
@@ -77,13 +90,12 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
   // resolve season name (ensure we set a string, not an object)
   createAsync(async () => {
     try {
-      const subj = (subjects as any)[props.fav.subject];
+      
+      const sections = await getSeasons(props.fav.subject)
       let seasonName = "";
-      if (subj?.season) {
         const idx = Number(snapshot?.season);
-        seasonName = subj.season.at(idx)?.name ?? "";
+        seasonName = sections.at(idx)?.name ?? "";
         setSeason(seasonName);
-      }
     } catch (err) {
       console.error("resolve season name:", err);
       setSeason("");
