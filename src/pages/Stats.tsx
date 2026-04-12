@@ -4,6 +4,7 @@ import {
   getFavorites,
   getSubjectsOfflineFirst,
 } from "../services/local/indexeddb";
+import { calcStreak, countActiveDays } from "../services/local/streak";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,15 +48,9 @@ async function buildStats() {
   const overallAccuracy =
     totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
 
-  // streak: consecutive days with at least one answer (using localStorage keys)
-  const syncKeys = Object.keys(localStorage).filter((k) =>
-    k.startsWith("sync_"),
-  );
-  const syncDates = syncKeys
-    .map((k) => localStorage.getItem(k))
-    .filter(Boolean)
-    .map((d) => new Date(d!).toDateString());
-  const uniqueDays = [...new Set(syncDates)].length;
+  // streak: أيام متتالية حقيقية من activity_days
+  const streak = calcStreak();
+  const activeDays = countActiveDays();
 
   return {
     subjectStats,
@@ -63,7 +58,8 @@ async function buildStats() {
     totalCorrect,
     overallAccuracy,
     favoritesCount: allFavorites.length,
-    activeDays: uniqueDays,
+    streak,
+    activeDays,
   };
 }
 
@@ -286,7 +282,7 @@ export default function StatsPage() {
               </div>
 
               {/* Summary grid */}
-              <div class="mb-6 grid grid-cols-3 gap-3">
+              <div class="mb-6 grid grid-cols-2 gap-3">
                 <StatCard
                   label="أسئلة مجابة"
                   value={stats.totalAnswered}
@@ -301,7 +297,13 @@ export default function StatsPage() {
                 <StatCard
                   label="أيام نشاط"
                   value={stats.activeDays}
+                  icon="📅"
+                />
+                <StatCard
+                  label={stats.streak > 1 ? `${stats.streak} أيام متتالية 🔥` : "سلسلة الأيام"}
+                  value={stats.streak}
                   icon="🔥"
+                  accent={stats.streak >= 3}
                 />
               </div>
 

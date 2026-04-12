@@ -6,22 +6,16 @@ import {
   onMount,
   createResource,
 } from "solid-js";
-import { type Question, getSubjectsOfflineFirst } from "../services/local/indexeddb";
-import { Dexie } from "dexie";
+import {
+  type Question,
+  db,
+  getSubjectsOfflineFirst,
+} from "../services/local/indexeddb";
 
 // ─── Fetch all questions from IndexedDB ───────────────────────────────────────
 
 async function getAllQuestions(): Promise<Question[]> {
-  const db = new Dexie("db");
-  db.version(2).stores({
-    questions: `$id, subject, season_id, year_id, [subject+season_id], [subject+year_id]`,
-    answers: `$id, subject, season_id, year_id, [subject+season_id], [subject+year_id]`,
-    favorites: `$id, questionId, subject, [subject+questionId]`,
-    sections: `id, subject_id, type, [subject_id+type]`,
-    subjects: `id`,
-    years: `id`,
-  });
-  return (db as any).questions.toArray();
+  return await db.questions.toArray();
 }
 
 // ─── Highlight ────────────────────────────────────────────────────────────────
@@ -93,24 +87,27 @@ function ResultCard(props: {
               {subjectName()}
             </span>
             <Show when={props.question.seasonName}>
-              <span class="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-bold text-secondary">
+              <span class="bg-secondary/10 text-secondary rounded-full px-2 py-0.5 text-[10px] font-bold">
                 {props.question.seasonName}
               </span>
             </Show>
             <Show when={props.question.yearValue}>
-              <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300">
+              <span class="dark:bg-lighter-dark-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:text-gray-300">
                 {props.question.yearValue}
               </span>
             </Show>
           </div>
 
-          <p class="text-sm font-bold leading-relaxed dark:text-white">
+          <p class="text-sm leading-relaxed font-bold dark:text-white">
             <Highlight text={props.question.question} query={props.query} />
           </p>
 
           <Show when={matchingOptionsCount() > 0 && !expanded()}>
             <p class="text-secondary mt-1 text-xs">
-              تطابق في {matchingOptionsCount() > 1 ? `${matchingOptionsCount()} خيارات` : "أحد الخيارات"}
+              تطابق في{" "}
+              {matchingOptionsCount() > 1
+                ? `${matchingOptionsCount()} خيارات`
+                : "أحد الخيارات"}
             </p>
           </Show>
         </div>
@@ -131,7 +128,7 @@ function ResultCard(props: {
       </button>
 
       <Show when={expanded()}>
-        <div class="border-t border-gray-100 px-4 pb-4 pt-3 dark:border-lighter-dark-2">
+        <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-4 pt-3 pb-4">
           <ul class="space-y-2">
             <For each={props.question.options ?? []}>
               {(opt, i) => (
@@ -159,8 +156,7 @@ function ResultCard(props: {
                     classList={{
                       "text-true font-bold":
                         i() === props.question.correctIndex,
-                      "dark:text-gray-200":
-                        i() !== props.question.correctIndex,
+                      "dark:text-gray-200": i() !== props.question.correctIndex,
                     }}
                   >
                     <Highlight text={opt} query={props.query} />
@@ -265,8 +261,6 @@ export default function SearchPage() {
       {/* Sticky top bar */}
       <div class="dark:bg-lighter-dark-1 sticky top-0 z-30 bg-white shadow-sm">
         <div class="flex flex-row-reverse items-center gap-3 px-4 py-3">
-       
-
           <div class="relative flex-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -288,7 +282,7 @@ export default function SearchPage() {
                 setQuery(e.currentTarget.value);
                 setShowAll(false);
               }}
-              class="dark:bg-lighter-dark-2 w-full rounded-xl bg-gray-100 py-2 pr-9 pl-8 text-sm outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-main/30 dark:text-white dark:placeholder:text-gray-500"
+              class="dark:bg-lighter-dark-2 focus:ring-main/30 w-full rounded-xl bg-gray-100 py-2 pr-9 pl-8 text-sm outline-none placeholder:text-gray-400 focus:ring-2 dark:text-white dark:placeholder:text-gray-500"
             />
             <Show when={query()}>
               <button
@@ -310,7 +304,7 @@ export default function SearchPage() {
         </div>
 
         {/* Subject filter chips */}
-        <div class="flex gap-2 overflow-x-auto px-4 pb-3 pt-0">
+        <div class="flex gap-2 overflow-x-auto px-4 pt-0 pb-3">
           <SubjectChip
             name="الكل"
             active={activeSubject() === null}
@@ -364,7 +358,7 @@ export default function SearchPage() {
               يبحث في السؤال، الخيارات، والشرح
             </p>
             <Show when={allQuestions()}>
-              <p class="mt-3 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-400 dark:bg-lighter-dark-2">
+              <p class="dark:bg-lighter-dark-2 mt-3 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-400">
                 {allQuestions()!.length} سؤال محلي
               </p>
             </Show>
@@ -391,9 +385,7 @@ export default function SearchPage() {
               </Show>
             </p>
             <Show when={query().trim()}>
-              <p class="text-main truncate text-xs font-bold">
-                "{query()}"
-              </p>
+              <p class="text-main truncate text-xs font-bold">"{query()}"</p>
             </Show>
           </div>
 
@@ -413,7 +405,7 @@ export default function SearchPage() {
           <Show when={!showAll() && results().length > 20}>
             <button
               onClick={() => setShowAll(true)}
-              class="border-main/30 text-main mt-4 w-full rounded-2xl border-2 py-3 text-sm font-bold transition-colors hover:bg-main/5"
+              class="border-main/30 text-main hover:bg-main/5 mt-4 w-full rounded-2xl border-2 py-3 text-sm font-bold transition-colors"
             >
               عرض باقي {results().length - 20} نتيجة
             </button>

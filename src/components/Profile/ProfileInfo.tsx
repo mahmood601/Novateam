@@ -3,10 +3,7 @@ import { useUser } from "../../context/user";
 import { account, setAccount } from "../../stores/account";
 import years from "../../services/local/years";
 import {
-  clearAnswers,
-  clearQuestions,
-  clearSections,
-  clearSubjects,
+  clearDBAfterChangeYear,
   getSubjectsOfflineFirst,
 } from "../../services/local/indexeddb";
 import toast from "solid-toast";
@@ -49,10 +46,7 @@ export default function ProfileInfo(props: {
 
     if (ok) {
       if (previousYear && previousYear !== newYear) {
-        await clearAnswers();
-        await clearQuestions();
-        await clearSubjects();
-        await clearSections();
+        clearDBAfterChangeYear();
         getSubjectsOfflineFirst(newYear); // prefetch subjects for the selected year
         toast.success("تم حذف بيانات السنة القديمة و تحديث السنة");
       } else {
@@ -220,8 +214,7 @@ export default function ProfileInfo(props: {
           }
         />
       </Show>
-
-      <Show when={<p></p>}>
+      <Show when={user()?.id}>
         <Logout Icon={LogoutSvg()} type="تسجيل الخروج" />
       </Show>
     </ul>

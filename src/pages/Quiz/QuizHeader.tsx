@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createEffect, createSignal, on, onCleanup, onMount, Show } from "solid-js";
 import LeftArrow from "../../components/Icons/LeftArrow";
 import { useAudio } from "../../hooks/useAudio";
 import FavoriteButton from "./Favorite";

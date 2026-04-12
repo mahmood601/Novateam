@@ -17,7 +17,7 @@ import {
   type Section,
   type QuestionUI,
 } from "../../services/documentsManuplation";
-import { getUserNameById } from "../../services/user";
+import { fetchUserNames } from "../../services/user";
 import toast from "solid-toast";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
@@ -29,16 +29,16 @@ const PAGE_SIZE = 10;
 function QuestionCard(props: {
   question: QuestionUI;
   subjectId: string;
+  namesMap: Map<string, string>;
   onRefetch: () => void;
   onEdit: (q: QuestionUI) => void;
 }) {
   const [open, setOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
 
-  const [inserterName] = createResource(
-    () => props.question.user_id ?? "",
-    getUserNameById,
-  );
+  // قراءة مباشرة من الـ Map — لا طلب Supabase
+  const inserterName = () =>
+    props.question.user_id ? props.namesMap.get(props.question.user_id) : undefined;
 
   const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -498,27 +498,30 @@ export default function DevMode() {
 
     if (error) {
       toast.error(error.message);
-      return { questions: [], total: 0 };
+      return { questions: [], total: 0, namesMap: new Map<string, string>() };
     }
 
-    return {
-      questions: (rows ?? []).map((row: any) => ({
-        $id: row.id,
-        subject_id: row.subject_id,
-        season_id: row.season_id,
-        year_id: row.year_id,
-        question: row.question,
-        explanation: row.explanation,
-        options: row.options ?? [],
-        correctIndex: row.correct_index,
-        user_id: row.created_by,
-        seasonName: row.season?.name,
-        seasonValue: row.season?.value,
-        yearName: row.year?.name,
-        yearValue: row.year?.value,
-      })) as QuestionUI[],
-      total: count ?? 0,
-    };
+    const questions: QuestionUI[] = (rows ?? []).map((row: any) => ({
+      $id: row.id,
+      subject_id: row.subject_id,
+      season_id: row.season_id,
+      year_id: row.year_id,
+      question: row.question,
+      explanation: row.explanation,
+      options: row.options ?? [],
+      correctIndex: row.correct_index,
+      user_id: row.created_by,
+      seasonName: row.season?.name,
+      seasonValue: row.season?.value,
+      yearName: row.year?.name,
+      yearValue: row.year?.value,
+    }));
+
+    // طلب واحد لكل الأسماء بدل طلب لكل card
+    const userIds = questions.map((q) => q.user_id).filter(Boolean) as string[];
+    const namesMap = await fetchUserNames(userIds);
+
+    return { questions, total: count ?? 0, namesMap };
   });
 
   const openEdit = (q: QuestionUI) => {
@@ -633,6 +636,7 @@ export default function DevMode() {
                     <QuestionCard
                       question={q}
                       subjectId={params.subject}
+                      namesMap={data()?.namesMap ?? new Map()}
                       onRefetch={refetch}
                       onEdit={openEdit}
                     />

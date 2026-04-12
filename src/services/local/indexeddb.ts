@@ -107,8 +107,10 @@ class AppDB extends Dexie {
       years: `id`,
     });
 
-    // ← عند إضافة image_url أو أي حقل جديد ارفع الإصدار هنا
-    // this.version(3).stores({ questions: `$id, subject, ... , image_url` });
+    // v3: أضفنا *subjects على years لتمكين index lookup بدل full scan
+    this.version(3).stores({
+      years: `id, *subjects`,
+    });
   }
 }
 
@@ -156,10 +158,7 @@ function toQuestion(row: any, subject: string): Question {
 export async function getSubjectsOfflineFirst(
   yearKey: string,
 ): Promise<CachedSubject[]> {
-  const cached = await db.subjects
-    .where("year_keys")
-    .equals(yearKey)
-    .toArray();
+  const cached = await db.subjects.where("year_keys").equals(yearKey).toArray();
 
   if (cached.length > 0) {
     // زامن في الخلفية بدون انتظار
@@ -178,10 +177,7 @@ export async function getSubjectsByYear(
 ): Promise<CachedSubject[]> {
   if (!yearKey) return [];
 
-  return db.subjects
-    .where("year_keys")
-    .anyOf(yearKey)
-    .toArray();
+  return db.subjects.where("year_keys").anyOf(yearKey).toArray();
 }
 
 // ✅ إصلاح: أضيف onUpdate callback لإبلاغ الـ UI عند التحديث
@@ -222,9 +218,18 @@ async function syncSubjectsInBackground(
 
 // ─── Years ────────────────────────────────────────────────────────────────────
 
-export async function getYearsOfflineFirst(): Promise<CachedYear[]> {
-  const cached = await db.years.toArray();
-  if (cached.length > 0) return cached;
+// subjectId اختياري — لو مُرِّر يستخدم الـ index مباشرة بدل جلب الكل
+export async function getYearsOfflineFirst(
+  subjectId?: string,
+): Promise<CachedYear[]> {
+  if (subjectId) {
+    // O(log n) بفضل الـ multi-entry index بدل full scan
+    const cached = await db.years.where("subjects").equals(subjectId).toArray();
+    if (cached.length > 0) return cached;
+  } else {
+    const cached = await db.years.toArray();
+    if (cached.length > 0) return cached;
+  }
   return buildYearsFallback();
 }
 
@@ -333,12 +338,10 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
     await db.questions.bulkPut(questions);
     saveLastSync(subject);
 
-
     return true;
   } catch {
     return false;
   }
-  
 }
 
 export function resetSync(subject: string) {
@@ -382,6 +385,32 @@ export async function clearSubjects(): Promise<boolean> {
 export async function clearSections(): Promise<boolean> {
   try {
     await db.sections.clear();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearAllSyncKeys(): Promise<boolean> {
+  try {
+    const keys = Object.keys(localStorage).filter((key) =>
+      key.startsWith("sync_"),
+    );
+    keys.forEach((key) => localStorage.removeItem(key));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearDBAfterChangeYear() {
+  try {
+    await clearAnswers();
+    await clearQuestions();
+    await clearSections();
+    await clearSubjects();
+    await clearAllSyncKeys();
+
     return true;
   } catch {
     return false;
@@ -486,9 +515,7 @@ export async function deleteAnswersWithFilter(
     .delete();
 }
 
-export async function getSeasons(
-  subject: string,
-): Promise<CachedSection[]> {
+export async function getSeasons(subject: string): Promise<CachedSection[]> {
   return db.sections
     .where(`[subject_id+type]`)
     .equals([subject, "season"])

@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
 
 // ─── Ensure user row exists in "users" table ─────────────────────────────────
+// upsert بدل select + insert — طلب واحد لـ Supabase بدل طلبين.
+// ignoreDuplicates: true يعني لو الـ row موجود ما يلمسه (يحافظ على name/role الحالي).
 export async function ensureUserExists(context: {
   name: string;
   userId: string;
@@ -9,24 +11,36 @@ export async function ensureUserExists(context: {
   const { userId, name, year } = context;
   if (!userId) throw new Error("No userId provided");
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("users")
-    .select("id")
-    .eq("id", userId)
-    .maybeSingle();
+    .upsert(
+      { id: userId, name, year: year ?? null },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
 
   if (error) throw error;
+}
 
-  if (!data) {
-    const { error: insertError } = await supabase
-      .from("users")
-      .insert({ id: userId, name, year: year ?? null });
+// ─── Batch: جلب أسماء قائمة من IDs بطلب واحد ────────────────────────────────
+// بدل N طلب (كل card يطلب بنفسه)، طلب واحد يرجع Map<id, name>
+export async function fetchUserNames(
+  userIds: string[],
+): Promise<Map<string, string>> {
+  const ids = [...new Set(userIds.filter(Boolean))]; // إزالة التكرار والفراغات
+  if (ids.length === 0) return new Map();
 
-    if (insertError) throw insertError;
-    return true; // user added
-  }
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name")
+    .in("id", ids);
 
-  return false; // user already exists
+  if (error || !data) return new Map();
+
+  return new Map(
+    data
+      .filter((row) => typeof row.name === "string")
+      .map((row) => [row.id, row.name as string]),
+  );
 }
 
 // ─── Get user display name by ID ──────────────────────────────────────────────

@@ -15,6 +15,7 @@ import QuizBox from "./QuizBox";
 import QuizFooter from "./QuizFooter";
 import Result from "./Result";
 import { account } from "../../stores/account";
+import { recordActivityToday } from "../../services/local/streak";
 
 export default function NormalMode() {
   const subject = useParams().subject;
@@ -26,8 +27,9 @@ export default function NormalMode() {
   const sectionId = Number(useParams().section.split("-").at(1));
 
   const { playSound } = useAudio();
-  const [subjectInfo] = createResource(async () => {
-    const subjects = await getSubjectsOfflineFirst();
+   const [subjectInfo] = createResource(async () => {
+    const yearKey = localStorage.getItem("year") ?? "";
+    const subjects = await getSubjectsOfflineFirst(yearKey);
     return subjects.find((item) => item.id === subject);
   });
 
@@ -90,6 +92,8 @@ export default function NormalMode() {
 
   const handleOptionSelect = (q: Question, optIdx: number, content: string) => {
     const isCorrect = q.correctIndex == optIdx;
+
+    recordActivityToday(); // ← تسجيل نشاط اليوم
 
     if (quizState.audioEnabled) playSound(isCorrect);
 

@@ -104,16 +104,17 @@ export function UserProvider(props: any) {
       // ensure if user in users
       await ensureUserExists({ userId: authUser.id, name });
 
-const {data: userData} = await supabase.from("users").select("name, role").eq("id", authUser.id).single();
-
-      //get role from users table (not from app_metadata)
-      const role = await getUserRole(authUser.id);
+      const { data: userData } = await supabase
+        .from("users")
+        .select("name, role")
+        .eq("id", authUser.id)
+        .single();
 
       const userInfo: User = {
         id: authUser.id,
         email: authUser.email ?? "",
-        name: userData?.name?? "",
-        role: userData?.role === "admin"? "admin" : "student",
+        name: userData?.name ?? "",
+        role: userData?.role === "admin" ? "admin" : "student",
       };
 
       localStorage.setItem("user", JSON.stringify(userInfo));
