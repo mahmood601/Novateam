@@ -1,16 +1,8 @@
-import {
-  getYearsOfflineFirst,
-  getSubjectsOfflineFirst,
-} from "../services/local/indexeddb";
+import { getSubjectsOfflineFirst } from "../services/local/indexeddb";
 import Box from "../components/Box";
 import "../index.css";
 import { inject } from "@vercel/analytics";
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-} from "solid-js";
+import { createResource, createSignal, For, Show } from "solid-js";
 
 export default function SubjectsPage() {
   inject();
@@ -20,8 +12,25 @@ export default function SubjectsPage() {
   );
 
   // offline-first: IDB أولاً، Supabase في الخلفية
-  const [years] = createResource(getYearsOfflineFirst);
- 
+  const years = [
+    {
+      id: "second",
+      name: "الثانية",
+    },
+    {
+      id: "third",
+      name: "الثالثة",
+    },
+    {
+      id: "fourth",
+      name: "الرابعة",
+    },
+    {
+      id: "fifth",
+      name: "الخامسة",
+    },
+  ];
+
   const [yearSubjects] = createResource(
     () => yearKey(),
     async (year) => {
@@ -39,31 +48,26 @@ export default function SubjectsPage() {
             <label class="text-main-light mb-2 block" for="year">
               اختر السنة
             </label>
-            <Show
-              when={!years.loading}
-              fallback={<p class="text-main-light">جار التحميل...</p>}
+            <select
+              class="text-main-light bg-transparent"
+              id="year"
+              onInput={(e) => {
+                const val = e.currentTarget.value;
+                setYearKey(val);
+                localStorage.setItem("year", val);
+              }}
             >
-              <select
-                class="text-main-light bg-transparent"
-                id="year"
-                onInput={(e) => {
-                  const val = e.currentTarget.value;
-                  setYearKey(val);
-                  localStorage.setItem("year", val);
-                }}
-              >
-                <option value="" disabled selected>
-                  اختر...
-                </option>
-                <For each={years()}>
-                  {(year) => (
-                    <option value={year.id} class="text-main-dark bg-white">
-                      {year.name}
-                    </option>
-                  )}
-                </For>
-              </select>
-            </Show>
+              <option value="" disabled selected>
+                اختر...
+              </option>
+              <For each={years}>
+                {(year) => (
+                  <option value={year.id} class="text-main-dark bg-white">
+                    {year.name}
+                  </option>
+                )}
+              </For>
+            </select>
           </div>
         </div>
       }
@@ -73,27 +77,18 @@ export default function SubjectsPage() {
         dir="rtl"
       >
         <Show
-          when={!years.loading}
-          fallback={<p class="py-10 text-center">جار التحميل...</p>}
+          when={!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0}
+          fallback={
+            <div class="py-10 text-center text-gray-400">
+              لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
+            </div>
+          }
         >
-          <Show
-            when={!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0}
-            fallback={
-              <div class="py-10 text-center text-gray-400">
-                لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
-              </div>
-            }
-          >
-            <For each={yearSubjects()}>
-              {(subject) => (
-                <Box
-                  subject={subject.id}
-                  info={subject.name}
-                  link={subject.id}
-                />
-              )}
-            </For>
-          </Show>
+          <For each={yearSubjects()}>
+            {(subject) => (
+              <Box subject={subject.id} info={subject.name} link={subject.id} />
+            )}
+          </For>
         </Show>
       </div>
     </Show>
