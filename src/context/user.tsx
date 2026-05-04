@@ -67,7 +67,7 @@ export function UserProvider(props: any) {
     await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${location.origin}/profile`,
+        redirectTo: `${location.origin}/auth/callback`,
         scopes: "email profile openid",
       },
     });

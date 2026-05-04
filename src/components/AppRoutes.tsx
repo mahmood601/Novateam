@@ -8,6 +8,7 @@ import Quiz from "../pages/Quiz/Quiz";
 import FavoritesPage from "../pages/Favorites";
 import StatsPage from "../pages/Stats";
 import SearchPage from "../pages/Search";
+import AuthCallback from "./auth/AuthCallback";
 
 
 export default function AppRoutes() {
@@ -15,6 +16,7 @@ export default function AppRoutes() {
     <>
       <Route path="/" component={SubjectsPage} />
       <Route path="/profile" component={Profile} />
+      <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/login" component={Login} />
       <Route path="/search" component={SearchPage} />
       <Route path="/stats" component={StatsPage} />
