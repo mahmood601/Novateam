@@ -15,7 +15,7 @@ export default function QuizHeader(props: {
   const [isPaused, setIsPaused] = createSignal(false);
 
   createEffect(() => {
-    setTimeLeft((props.total - props.index) * 60);
+    setTimeLeft((props.total - 1) * 60);
   });
 
   const { audioEnabled, setAudio } = useAudio();

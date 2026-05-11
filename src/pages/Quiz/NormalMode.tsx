@@ -2,9 +2,11 @@ import { useBeforeLeave, useParams } from "@solidjs/router";
 import { createMemo, createResource, onMount, Show, Suspense } from "solid-js";
 import {
   addAnswersToProgress,
+  getPassagesForSubject,
   getQuestionsOrAnswersWithFilter,
   getSubjectsOfflineFirst,
   Question,
+  syncPassagesOfflineFirst,
 } from "../../services/local/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
@@ -48,6 +50,11 @@ export default function NormalMode() {
     { deferStream: true },
   );
 
+  const [passages] = createResource(async () => {
+  await syncPassagesOfflineFirst(subject);
+  return getPassagesForSubject(subject);
+});
+
   const [answers] = createResource(
     () =>
       getQuestionsOrAnswersWithFilter(
@@ -75,6 +82,12 @@ export default function NormalMode() {
     setQuizState("index", Math.max(0, answered.length - 1));
     return [...answered, ...unanswered];
   });
+
+  const currentPassage = createMemo(() => {
+  const q = orderedQs()[quizState.index];
+  if (!q?.passage_id) return null;
+  return passages()?.find((p) => p.$id === q.passage_id) ?? null;
+});
 
   // ─── Navigation guard ─────────────────────────────────────────────────────────
 
@@ -151,6 +164,7 @@ export default function NormalMode() {
               selectedOption={quizState.selectedOption}
               isDisabled={quizState.isOptionDisabled}
               onSelect={handleOptionSelect}
+              passage={currentPassage()}
               currentQuestion={orderedQs()[quizState.index]}
             />
           </main>

@@ -4,6 +4,17 @@ export default function QuizBox(props: any) {
   return (
     <div class="bg-main-light dark:bg-main-dark">
       {/* شارة الفصل والسنة */}
+      <Show when={props.passage}>
+        <div
+          dir="rtl"
+          class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
+        >
+          <p class="mb-1 text-[10px] font-bold tracking-widest text-amber-500 uppercase">
+            🗒️ اقرأ المقالة ثم أجب
+          </p>
+          <p>{props.passage.content}</p>
+        </div>
+      </Show>
       <Show when={props.currentQuestion}>
         <div class="border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
           <Show when={props.currentQuestion.seasonName}>

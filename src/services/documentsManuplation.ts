@@ -27,6 +27,16 @@ export type QuestionUI = {
   seasonValue?: string;
   yearName?: string;
   yearValue?: string;
+  passage_id?: string | null;
+};
+
+export type PassageUI = {
+  $id: string;
+  subject_id: string;
+  season_id: number | null;
+  year_id: number | null;
+  content: string;
+  image_url?: string | null;
 };
 
 const emptyQStore = {
@@ -51,6 +61,7 @@ function toSnake(data: any) {
     options:       (data.options as string[]).filter(Boolean),
     correct_index: data.correctIndex,
     created_by:    data.user_id     || null,
+    passage_id:    data.passage_id ?? null,
   };
 }
 
@@ -69,6 +80,7 @@ function toCamel(row: any): QuestionUI {
     seasonValue:  row.season?.value,
     yearName:     row.year?.name,
     yearValue:    row.year?.value,
+    passage_id:   row.passage_id ?? null,
   };
 }
 
@@ -211,4 +223,59 @@ export async function getQuestion(
 
   if (error || !data) return null;
   return toCamel(data);
+}
+
+
+// ─── Passages ─────────────────────────────────────────────────────────────────
+
+export async function getPassages(subjectId: string): Promise<PassageUI[]> {
+  const { data, error } = await supabase
+    .from("passages")
+    .select("*")
+    .eq("subject_id", subjectId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    toast.error("فشل تحميل المقالات: " + error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row: any) => ({
+    $id: row.id,
+    subject_id: row.subject_id,
+    season_id: row.season_id ?? null,
+    year_id: row.year_id ?? null,
+    content: row.content,
+    image_url: row.image_url ?? null,
+  }));
+}
+
+export async function insertPassage(
+  subjectId: string,
+  data: { content: string; season_id: number | null; year_id: number | null },
+): Promise<string | null> {
+  const { data: row, error } = await supabase
+    .from("passages")
+    .insert({ subject_id: subjectId, ...data })
+    .select("id")
+    .single();
+
+  if (error) {
+    toast.error("فشل إضافة المقالة: " + error.message);
+    return null;
+  }
+  return row.id as string;
+}
+
+export async function deletePassage(passageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("passages")
+    .delete()
+    .eq("id", passageId);
+
+  if (error) {
+    toast.error("فشل حذف المقالة: " + error.message);
+  } else {
+    toast.success("تم حذف المقالة 🗑️");
+  }
 }

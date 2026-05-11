@@ -16,6 +16,8 @@ import {
   updateQuestion,
   type Section,
   type QuestionUI,
+  insertPassage,
+  getPassages,
 } from "../../services/documentsManuplation";
 import { fetchUserNames } from "../../services/user";
 import toast from "solid-toast";
@@ -38,7 +40,9 @@ function QuestionCard(props: {
 
   // قراءة مباشرة من الـ Map — لا طلب Supabase
   const inserterName = () =>
-    props.question.user_id ? props.namesMap.get(props.question.user_id) : undefined;
+    props.question.user_id
+      ? props.namesMap.get(props.question.user_id)
+      : undefined;
 
   const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -73,6 +77,11 @@ function QuestionCard(props: {
           <Show when={inserterName()}>
             <span class="rounded-full bg-green-50 px-2 py-1 text-[10px] font-bold text-green-600 dark:bg-green-900/30">
               ✍️ {inserterName()}
+            </span>
+          </Show>
+          <Show when={props.question.passage_id}>
+            <span class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600 dark:bg-amber-900/30">
+              🗒️ مقالة
             </span>
           </Show>
         </div>
@@ -208,35 +217,82 @@ function SmartImporter(props: {
     }
     setLoading(true);
 
-    const blocks = rawText()
-      .split("#")
-      .filter((b) => b.trim())
-      .filter(Boolean);
-    if (!rawText().startsWith("#")) blocks.shift();
-    console.log("blocks", blocks);
+    const inputLines = rawText().split("\n");
+    const questionBlocks: { text: string; passageText: string | null }[] = [];
+    let currentPassageText: string | null = null;
+    let currentQuestionLines: string[] = [];
 
-    const questions = blocks.map((block) => {
-      const lines = block.split(/\n(?=[=+!])/g);
+    const flushQuestion = () => {
+      if (currentQuestionLines.length > 0) {
+        questionBlocks.push({
+          text: currentQuestionLines.join("\n").trim(),
+          passageText: currentPassageText,
+        });
+        currentQuestionLines = [];
+      }
+    };
 
-      const question = lines[0].trim();
+    for (const line of inputLines) {
+      const trimmed = line.trim();
+      if (trimmed === "@@") {
+        flushQuestion();
+        currentPassageText = null; // ← إلغاء المقالة
+      } else if (trimmed.startsWith("@")) {
+        flushQuestion();
+        currentPassageText = trimmed.slice(1).trim(); // ← مقالة جديدة
+      } else if (trimmed.startsWith("#")) {
+        flushQuestion();
+        currentQuestionLines = [trimmed.slice(1).trim()]; // ← سؤال جديد
+      } else if (
+        trimmed.startsWith("=") ||
+        trimmed.startsWith("+") ||
+        trimmed.startsWith("!")
+      ) {
+        currentQuestionLines.push(trimmed);
+      } else if (
+        trimmed &&
+        currentPassageText !== null &&
+        currentQuestionLines.length === 0
+      ) {
+        currentPassageText += "\n" + trimmed; // ← تكملة المقالة متعددة الأسطر
+      }
+    }
+    flushQuestion();
 
-      const optionLines = lines.filter(
+    if (questionBlocks.length === 0) {
+      toast.error("لم يتم العثور على أسئلة في النص");
+      setLoading(false);
+      return;
+    }
+
+    // رفع المقالات مع dedup — نفس المقالة لا تُرفع مرتين
+    const passageCache = new Map<string, string>(); // النص → id
+    for (const block of questionBlocks) {
+      if (block.passageText && !passageCache.has(block.passageText)) {
+        const id = await insertPassage(props.subjectId, {
+          content: block.passageText,
+          season_id: seasonId(),
+          year_id: yearId(),
+        });
+        if (id) passageCache.set(block.passageText, id);
+      }
+    }
+
+    const questions = questionBlocks.map((block) => {
+      const blockLines = block.text.split(/\n(?=[=+!])/g);
+      const question = blockLines[0].trim();
+      const optionLines = blockLines.filter(
         (l) => l.trim().startsWith("=") || l.trim().startsWith("+"),
       );
-
-      const correctLine = optionLines.findIndex((l: string) =>
-        l.startsWith("+"),
-      );
-      const correct_index = correctLine >= 0 ? correctLine : -1;
-
+      const correctLine = optionLines.findIndex((l) => l.startsWith("+"));
       const options = optionLines.map((l) =>
-        l.trim().replace("=", "").replace("+", "").trim(),
+        l.trim().replace(/^[=+]/, "").trim(),
       );
-
-      const explLine = lines.find((l) => l.trim().startsWith("!"));
+      const explLine = blockLines.find((l) => l.trim().startsWith("!"));
       const explanation = explLine ? explLine.replace("!", "").trim() : null;
-
-      console.log("explLine", explLine);
+      const passage_id = block.passageText
+        ? (passageCache.get(block.passageText) ?? null)
+        : null;
 
       return {
         subject_id: props.subjectId,
@@ -245,14 +301,13 @@ function SmartImporter(props: {
         question,
         explanation,
         options,
-        correct_index,
+        correct_index: correctLine >= 0 ? correctLine : 0,
+        passage_id,
       };
     });
-    console.log(questions);
 
     const { error } = await supabase.from("questions").insert(questions);
     setLoading(false);
-
     if (error) {
       toast.error("خطأ في الرفع: " + error.message);
       return;
@@ -272,13 +327,35 @@ function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
+      {/* تعليمات الرموز */}
+      <div
+        class="space-y-1 rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900"
+        dir="rtl"
+      >
+        <p>
+          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ←
+          تفعيل مقالة للأسئلة التالية
+        </p>
+        <p>
+          <span class="font-mono font-bold">@@</span> ← إلغاء المقالة
+        </p>
+        <p>
+          <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
+          &nbsp;
+          <span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;
+          <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
+          <span class="font-mono font-bold text-amber-500">!</span> شرح
+        </p>
+      </div>
+
       <textarea
         value={rawText()}
         onInput={(e) => setRawText(e.currentTarget.value)}
-        placeholder={`# النور أدرينالين يفرز من:\n= الجهاز نظير الودي\n+ الجهاز الودي\n= كلاهما\n= لا شيء مما سبق\n! لان الجهاز الودي هو فقط من يحرر النورأدرينالين (شرح اختياري)`}
+        placeholder={`# النور أدرينالين يفرز من:\n= الجهاز نظير الودي\n+ الجهاز الودي\n= كلاهما\n= لا شيء مما سبق\n! لان الجهاز الودي هو فقط من يحرر النورأدرينالين (شرح اختياري)\n\n مخصص للمقالة\n@ نص المقالة...\n\n# السؤال الأول\n= خاطئ\n+ صحيح\n\n@@\n\n# سؤال عادي\n+ ...`}
         class="h-64 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
         dir="rtl"
       />
+
       <button
         disabled={loading()}
         onClick={parseAndUpload}
@@ -333,6 +410,13 @@ function ManualForm(props: {
     setOptions(updated);
   };
 
+  const [passages] = createResource(() => getPassages(props.subjectId));
+  const [passageId, setPassageId] = createSignal<string | null>(
+    props.editQuestion?.passage_id ?? null,
+  );
+  const [newPassageText, setNewPassageText] = createSignal("");
+  const [showNewPassage, setShowNewPassage] = createSignal(false);
+
   const save = async () => {
     if (!seasonId() || !yearId()) {
       toast.error("اختر الفصل والسنة");
@@ -347,6 +431,16 @@ function ManualForm(props: {
     //   return;
     // }
 
+    let finalPassageId = passageId();
+    if (showNewPassage() && newPassageText().trim()) {
+      const id = await insertPassage(props.subjectId, {
+        content: newPassageText().trim(),
+        season_id: seasonId(),
+        year_id: yearId(),
+      });
+      if (id) finalPassageId = id;
+    }
+
     setSaving(true);
     const data = {
       subject: props.subjectId,
@@ -357,6 +451,7 @@ function ManualForm(props: {
       options: options().filter(Boolean),
       correctIndex: correctIndex(),
       user_id: JSON.parse(localStorage.getItem("user") ?? "{}").id ?? "",
+      passage_id: finalPassageId ?? null,
     };
 
     if (isEdit() && props.editQuestion) {
@@ -417,11 +512,11 @@ function ManualForm(props: {
                 placeholder={`الخيار ${i() + 1}`}
                 required={i() < 2}
                 dir="rtl"
-                class="rounded-xl flex  flex-1 min-w-0 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                class="flex min-w-0 flex-1 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
               />
               {/* حذف خيار إضافي */}
               <Show when={i() >= 2}>
-                <button 
+                <button
                   type="button"
                   onClick={() =>
                     setOptions(options().filter((_, idx) => idx !== i()))
@@ -434,23 +529,64 @@ function ManualForm(props: {
             </div>
           )}
         </For>
-         <Show when={options().length < 5}>
-        <button
-          type="button"
-          onClick={() => setOptions([...options(), ""])}
-          class="text-main text-sm underline"
-        >
-          + إضافة خيار
-        </button>
-      </Show>
+        <Show when={options().length < 5}>
+          <button
+            type="button"
+            onClick={() => setOptions([...options(), ""])}
+            class="text-main text-sm underline"
+          >
+            + إضافة خيار
+          </button>
+        </Show>
       </div>
-
-     
 
       <p class="text-center text-xs text-slate-400">
         اضغط على الرقم لتحديد الإجابة الصحيحة
       </p>
+      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+          🗒️ مقالة (اختياري)
+        </p>
 
+        <Show when={!showNewPassage()}>
+          <select
+            class="w-full rounded-xl bg-white p-3 text-sm outline-none dark:bg-slate-800 dark:text-white"
+            onChange={(e) => setPassageId(e.currentTarget.value || null)}
+          >
+            <option value="">بدون مقالة</option>
+            <For each={passages() ?? []}>
+              {(p) => (
+                <option value={p.$id} selected={passageId() === p.$id}>
+                  {p.content.slice(0, 60)}...
+                </option>
+              )}
+            </For>
+          </select>
+        </Show>
+
+        <Show when={showNewPassage()}>
+          <textarea
+            value={newPassageText()}
+            onInput={(e) => setNewPassageText(e.currentTarget.value)}
+            placeholder="أدخل نص المقالة الجديدة..."
+            rows={4}
+            dir="rtl"
+            class="w-full rounded-xl bg-white p-3 text-sm outline-none dark:bg-slate-800 dark:text-white"
+          />
+        </Show>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShowNewPassage(!showNewPassage());
+            setPassageId(null);
+            setNewPassageText("");
+          }}
+          class="text-xs text-cyan-600 underline"
+        >
+          {showNewPassage() ? "← اختر مقالة موجودة" : "+ إضافة مقالة جديدة"}
+        </button>
+      </div>
       <button
         onClick={save}
         disabled={saving()}
@@ -645,7 +781,7 @@ export default function DevMode() {
               </div>
 
               <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
-                <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
+                <div class="mt-12 flex flex-wrap justify-center gap-2 pb-12">
                   <For
                     each={Array.from({
                       length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
@@ -654,7 +790,7 @@ export default function DevMode() {
                     {(_, i) => (
                       <button
                         onClick={() => setPage(i())}
-                        class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
+                        class={`h-8 w-8 rounded-full p-1 text-sm font-bold transition-all ${
                           page() === i()
                             ? "scale-110 bg-cyan-500 text-white"
                             : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"

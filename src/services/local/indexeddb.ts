@@ -21,6 +21,7 @@ export type Question = {
   user_id: string | null;
   image_url?: string | null; // ← جاهز للصور مستقبلاً
   [key: string]: any;
+  passage_id?: string | null;
 };
 
 export type Answer = {
@@ -60,6 +61,15 @@ export type CachedYear = {
   subjects: string[];
 };
 
+export type Passage = {
+  $id: string;
+  subject_id: string;
+  season_id: number | null;
+  year_id: number | null;
+  content: string;
+  image_url?: string | null;
+};
+
 // ─── Dexie DB ─────────────────────────────────────────────────────────────────
 
 class AppDB extends Dexie {
@@ -69,20 +79,30 @@ class AppDB extends Dexie {
   sections!: Table<CachedSection, number>;
   subjects!: Table<CachedSubject, string>;
   years!: Table<CachedYear, string>;
+  passages!: Table<Passage, string>;
 
   constructor() {
     super("db");
 
     // ← الإصدار القديم يبقى دون تغيير لضمان migration صحيح
-    this.version(2).stores({
+    this.version(4).stores({
       questions: `
         $id,
         subject,
         season_id,
         year_id,
+        passage_id,
         [subject+season_id],
         [subject+year_id]
       `,
+      passages: `
+        $id,
+        subject_id,
+        season_id,
+        year_id,
+        [subject_id+season_id],
+        [subject_id+year_id]
+  `,
       answers: `
         $id,
         subject,
@@ -324,10 +344,9 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
       .select("*")
       .eq("subject_id", subject)
       .order("updated_at")
-      .limit(lastSync ? 500 : 200); // ✅ حد مؤقت للأول تشغيل
 
     if (lastSync) {
-      // query = query.gt("updated_at", lastSync);
+      query = query.gt("updated_at", lastSync);
     }
 
     const { data, error } = await query;
@@ -520,4 +539,47 @@ export async function getSeasons(subject: string): Promise<CachedSection[]> {
     .where(`[subject_id+type]`)
     .equals([subject, "season"])
     .toArray();
+}
+
+// ─── Passages ─────────────────────────────────────────────────────────────────
+
+export async function getPassagesForSubject(subject: string): Promise<Passage[]> {
+  return db.passages.where("subject_id").equals(subject).toArray();
+}
+
+export async function syncPassagesOfflineFirst(subject: string): Promise<boolean> {
+  try {
+    const existing = await db.passages.where("subject_id").equals(subject).count();
+    if (existing > 0) return true;
+
+    const { data, error } = await supabase
+      .from("passages")
+      .select("*")
+      .eq("subject_id", subject);
+
+    if (error || !data || data.length === 0) return false;
+
+    const passages: Passage[] = data.map((row: any) => ({
+      $id: row.id,
+      subject_id: row.subject_id,
+      season_id: row.season_id ?? null,
+      year_id: row.year_id ?? null,
+      content: row.content,
+      image_url: row.image_url ?? null,
+    }));
+
+    await db.passages.bulkPut(passages);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function clearPassages(): Promise<boolean> {
+  try {
+    await db.passages.clear();
+    return true;
+  } catch {
+    return false;
+  }
 }
