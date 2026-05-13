@@ -1,12 +1,20 @@
 import { useBeforeLeave, useParams } from "@solidjs/router";
-import { createMemo, createResource, onMount, Show, Suspense } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  onMount,
+  Show,
+  Suspense,
+} from "solid-js";
 import {
   addAnswersToProgress,
-  getPassagesForSubject,
   getQuestionsOrAnswersWithFilter,
   getSubjectsOfflineFirst,
-  Question,
   syncPassagesOfflineFirst,
+  getPassagesForSubject,
+  Question,
+  Answer,
 } from "../../services/local/indexeddb";
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
@@ -29,42 +37,70 @@ export default function NormalMode() {
   const sectionId = Number(useParams().section.split("-").at(1));
 
   const { playSound } = useAudio();
-   const [subjectInfo] = createResource(async () => {
+  const [subjectInfo] = createResource(async () => {
     const yearKey = localStorage.getItem("year") ?? "";
     const subjects = await getSubjectsOfflineFirst(yearKey);
     return subjects.find((item) => item.id === subject);
   });
 
-   onMount(() => resetQuizState());
+  const SESSION_KEY = `quiz_index_${subject}_${sectionType}_${sectionId}`;
+
+  onMount(() => {
+    resetQuizState();
+    // استعادة الموضع عند إعادة التحميل
+    const saved = parseInt(sessionStorage.getItem(SESSION_KEY) ?? "0");
+    if (saved > 0) setQuizState("index", saved);
    
+    const answers = getQuestionsOrAnswersWithFilter(
+      subject,
+      "answers",
+      sectionType,
+      sectionId,
+    );
+    answers.then((ans) => {
+      if (quizType() === "continue" && ans.length > 0) {
+        const lastAnswer = ans[ans.length - 1];
+        const lastIndex = unwrap(quizState).index;
+        const nextIndex = lastIndex + 1;
+        setQuizState("index", nextIndex);
+      }
+  });
+})
+
+  // حفظ الموضع عند كل تغيير
+  createEffect(() => {
+    sessionStorage.setItem(SESSION_KEY, String(quizState.index));
+  });
+
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [questions] = createResource(
+  const [questions] = createResource<Question[]>(
     () =>
       getQuestionsOrAnswersWithFilter(
         subject,
         "questions",
         sectionType,
         sectionId,
-      ),
+      ) as Promise<Question[]>,
     { deferStream: true },
   );
 
-  const [passages] = createResource(async () => {
-  await syncPassagesOfflineFirst(subject);
-  return getPassagesForSubject(subject);
-});
-
-  const [answers] = createResource(
+  const [answers] = createResource<Answer[]>(
     () =>
       getQuestionsOrAnswersWithFilter(
         subject,
         "answers",
         sectionType,
         sectionId,
-      ),
+      ) as Promise<Answer[]>,
     { deferStream: true },
   );
+
+  // ─── Passages ─────────────────────────────────────────────────────────────
+  const [passages] = createResource(async () => {
+    await syncPassagesOfflineFirst(subject);
+    return getPassagesForSubject(subject);
+  });
 
   // ─── Ordered Questions ────────────────────────────────────────────────────────
 
@@ -73,31 +109,67 @@ export default function NormalMode() {
     const ans = answers();
 
     if (!qs) return [];
-    if (quizType() !== "continue" || !ans) return qs;
+
+    const groupByPassage = (items: Question[]) => {
+      const passageGroups = new Map<string, Question[]>();
+      const passageOrder: string[] = [];
+      const noPassage: Question[] = [];
+
+      for (const q of items) {
+        if (!q.passage_id) {
+          noPassage.push(q);
+          continue;
+        }
+
+        if (!passageGroups.has(q.passage_id)) {
+          passageGroups.set(q.passage_id, []);
+          passageOrder.push(q.passage_id);
+        }
+        passageGroups.get(q.passage_id)!.push(q);
+      }
+
+      return [
+        ...passageOrder.flatMap(
+          (passageId) => passageGroups.get(passageId) ?? [],
+        ),
+        ...noPassage,
+      ];
+    };
+
+    const groupedQs = groupByPassage(qs);
+    if (quizType() !== "continue" || !ans) return groupedQs;
 
     const answerIds = new Set(ans.map((a) => a.$id));
-    const answered = qs.filter((q) => answerIds.has(q.$id));
-    const unanswered = qs.filter((q) => !answerIds.has(q.$id));
+    const firstUnansweredIndex = groupedQs.findIndex(
+      (q) => !answerIds.has(q.$id),
+    );
+    const resumeIndex =
+      firstUnansweredIndex >= 0
+        ? firstUnansweredIndex
+        : Math.max(0, groupedQs.length - 1);
 
-    setQuizState("index", Math.max(0, answered.length - 1));
-    return [...answered, ...unanswered];
+    setQuizState("index", resumeIndex);
+
+    return groupedQs;
   });
 
   const currentPassage = createMemo(() => {
-  const q = orderedQs()[quizState.index];
-  if (!q?.passage_id) return null;
-  return passages()?.find((p) => p.$id === q.passage_id) ?? null;
-});
+    const q = orderedQs()[quizState.index];
+    if (!q?.passage_id) return null;
+    return passages()?.find((p) => p.$id === q.passage_id) ?? null;
+  });
 
   // ─── Navigation guard ─────────────────────────────────────────────────────────
 
   useBeforeLeave((e) => {
     if (
-      !quizState.showResult && !account.devMode &&
+      !quizState.showResult &&
+      !account.devMode &&
       !confirm("هل تريد مغادرة الاختبار؟ سيتم حفظ تقدمك.")
     ) {
       e.preventDefault();
     }
+    sessionStorage.removeItem(SESSION_KEY); // مسح الموضع المحفوظ عند المغادرة
     addAnswersToProgress(unwrap(quizState.userAnswers));
   });
 
@@ -164,8 +236,8 @@ export default function NormalMode() {
               selectedOption={quizState.selectedOption}
               isDisabled={quizState.isOptionDisabled}
               onSelect={handleOptionSelect}
-              passage={currentPassage()}
               currentQuestion={orderedQs()[quizState.index]}
+              passage={currentPassage()}
             />
           </main>
 

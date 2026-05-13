@@ -2,7 +2,6 @@ import { supabase } from "../services/supabase";
 import {
   Accessor,
   createContext,
-  createEffect,
   createSignal,
   onMount,
   Setter,
@@ -10,7 +9,6 @@ import {
 } from "solid-js";
 import {
   ensureUserExists,
-  getUserRole,
   updateUserProfile,
 } from "../services/user";
 
@@ -64,13 +62,46 @@ export function UserProvider(props: any) {
   };
 
   const login = async (provider: string) => {
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${location.origin}/auth/callback`,
+        redirectTo: `${location.origin}/profile`,
         scopes: "email profile openid",
+        skipBrowserRedirect: true, // ← لا تحوّل الـ tab الحالي
       },
     });
+
+    if (error || !data.url) return;
+
+    // افتح Google في popup منفصل — لا يُلوّث الـ history
+    const popup = window.open(
+      data.url,
+      "oauth_popup",
+      "width=500,height=600,scrollbars=yes,resizable=yes",
+    );
+
+    // استمع لإغلاق الـ popup (بعد إتمام تسجيل الدخول)
+    const timer = setInterval(async () => {
+      if (popup?.closed) {
+        clearInterval(timer);
+        await fetchUser(); // ← أعد جلب الـ session بعد الإغلاق
+        return;
+      }
+
+      // تحقق من الـ session — إذا كان المستخدم قد سجّل دخول، أغلق الـ popup تلقائياً
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.user) {
+          popup?.close(); // أغلق الـ popup فوراً
+          clearInterval(timer);
+          await fetchUser(); // أعد جلب البيانات
+        }
+      } catch {
+        // ignore
+      }
+    }, 500);
   };
 
   const logout = async () => {

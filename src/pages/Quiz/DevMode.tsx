@@ -14,10 +14,13 @@ import {
   deleteQuestion,
   insertQuestion,
   updateQuestion,
+  getPassages,
+  insertPassage,
+  deletePassage,
+  updatePassage,
   type Section,
   type QuestionUI,
-  insertPassage,
-  getPassages,
+  type PassageUI,
 } from "../../services/documentsManuplation";
 import { fetchUserNames } from "../../services/user";
 import toast from "solid-toast";
@@ -40,9 +43,7 @@ function QuestionCard(props: {
 
   // قراءة مباشرة من الـ Map — لا طلب Supabase
   const inserterName = () =>
-    props.question.user_id
-      ? props.namesMap.get(props.question.user_id)
-      : undefined;
+    props.question.user_id ? props.namesMap.get(props.question.user_id) : undefined;
 
   const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation();
@@ -217,6 +218,8 @@ function SmartImporter(props: {
     }
     setLoading(true);
 
+    // ─── تقسيم النص إلى كتل ───────────────────────────────────────────────
+    // الرموز: @ = مقالة جديدة | @@ = إلغاء المقالة | # = سؤال
     const inputLines = rawText().split("\n");
     const questionBlocks: { text: string; passageText: string | null }[] = [];
     let currentPassageText: string | null = null;
@@ -236,25 +239,21 @@ function SmartImporter(props: {
       const trimmed = line.trim();
       if (trimmed === "@@") {
         flushQuestion();
-        currentPassageText = null; // ← إلغاء المقالة
+        currentPassageText = null;
       } else if (trimmed.startsWith("@")) {
         flushQuestion();
-        currentPassageText = trimmed.slice(1).trim(); // ← مقالة جديدة
+        currentPassageText = trimmed.slice(1).trim();
       } else if (trimmed.startsWith("#")) {
         flushQuestion();
-        currentQuestionLines = [trimmed.slice(1).trim()]; // ← سؤال جديد
+        currentQuestionLines = [trimmed.slice(1).trim()];
       } else if (
         trimmed.startsWith("=") ||
         trimmed.startsWith("+") ||
         trimmed.startsWith("!")
       ) {
         currentQuestionLines.push(trimmed);
-      } else if (
-        trimmed &&
-        currentPassageText !== null &&
-        currentQuestionLines.length === 0
-      ) {
-        currentPassageText += "\n" + trimmed; // ← تكملة المقالة متعددة الأسطر
+      } else if (trimmed && currentPassageText !== null && currentQuestionLines.length === 0) {
+        currentPassageText += "\n" + trimmed;
       }
     }
     flushQuestion();
@@ -265,8 +264,8 @@ function SmartImporter(props: {
       return;
     }
 
-    // رفع المقالات مع dedup — نفس المقالة لا تُرفع مرتين
-    const passageCache = new Map<string, string>(); // النص → id
+    // ─── رفع المقالات أولاً (مع dedup) ───────────────────────────────────
+    const passageCache = new Map<string, string>();
     for (const block of questionBlocks) {
       if (block.passageText && !passageCache.has(block.passageText)) {
         const id = await insertPassage(props.subjectId, {
@@ -278,6 +277,7 @@ function SmartImporter(props: {
       }
     }
 
+    // ─── بناء الأسئلة ─────────────────────────────────────────────────────
     const questions = questionBlocks.map((block) => {
       const blockLines = block.text.split(/\n(?=[=+!])/g);
       const question = blockLines[0].trim();
@@ -285,6 +285,7 @@ function SmartImporter(props: {
         (l) => l.trim().startsWith("=") || l.trim().startsWith("+"),
       );
       const correctLine = optionLines.findIndex((l) => l.startsWith("+"));
+      const correct_index = correctLine >= 0 ? correctLine : 0;
       const options = optionLines.map((l) =>
         l.trim().replace(/^[=+]/, "").trim(),
       );
@@ -301,13 +302,14 @@ function SmartImporter(props: {
         question,
         explanation,
         options,
-        correct_index: correctLine >= 0 ? correctLine : 0,
+        correct_index,
         passage_id,
       };
     });
 
     const { error } = await supabase.from("questions").insert(questions);
     setLoading(false);
+
     if (error) {
       toast.error("خطأ في الرفع: " + error.message);
       return;
@@ -327,35 +329,18 @@ function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
-      {/* تعليمات الرموز */}
-      <div
-        class="space-y-1 rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900"
-        dir="rtl"
-      >
-        <p>
-          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ←
-          تفعيل مقالة للأسئلة التالية
-        </p>
-        <p>
-          <span class="font-mono font-bold">@@</span> ← إلغاء المقالة
-        </p>
-        <p>
-          <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
-          &nbsp;
-          <span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;
-          <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
-          <span class="font-mono font-bold text-amber-500">!</span> شرح
-        </p>
+      <div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900 space-y-1 leading-relaxed" dir="rtl">
+        <p><span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ← تفعيل مقالة للأسئلة التالية</p>
+        <p><span class="font-mono font-bold text-slate-800 dark:text-slate-200">@@</span> ← إلغاء المقالة (أسئلة عادية بعدها)</p>
+        <p><span class="font-mono font-bold text-fuchsia-600">#</span> سؤال &nbsp;<span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;<span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;<span class="font-mono font-bold text-amber-500">!</span> شرح</p>
       </div>
-
       <textarea
         value={rawText()}
         onInput={(e) => setRawText(e.currentTarget.value)}
-        placeholder={`# النور أدرينالين يفرز من:\n= الجهاز نظير الودي\n+ الجهاز الودي\n= كلاهما\n= لا شيء مما سبق\n! لان الجهاز الودي هو فقط من يحرر النورأدرينالين (شرح اختياري)\n\n مخصص للمقالة\n@ نص المقالة...\n\n# السؤال الأول\n= خاطئ\n+ صحيح\n\n@@\n\n# سؤال عادي\n+ ...`}
-        class="h-64 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
+        placeholder={"@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."}
+        class="h-72 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
         dir="rtl"
       />
-
       <button
         disabled={loading()}
         onClick={parseAndUpload}
@@ -402,6 +387,14 @@ function ManualForm(props: {
   );
   const [saving, setSaving] = createSignal(false);
 
+  // ─── Passage state ────────────────────────────────────────────────────────
+  const [passages] = createResource(() => getPassages(props.subjectId));
+  const [passageId, setPassageId] = createSignal<string | null>(
+    props.editQuestion?.passage_id ?? null,
+  );
+  const [newPassageText, setNewPassageText] = createSignal("");
+  const [showNewPassage, setShowNewPassage] = createSignal(false);
+
   const toggleCorrect = (idx: number) => setCorrectIndex(idx);
 
   const updateOption = (idx: number, val: string) => {
@@ -409,13 +402,6 @@ function ManualForm(props: {
     updated[idx] = val;
     setOptions(updated);
   };
-
-  const [passages] = createResource(() => getPassages(props.subjectId));
-  const [passageId, setPassageId] = createSignal<string | null>(
-    props.editQuestion?.passage_id ?? null,
-  );
-  const [newPassageText, setNewPassageText] = createSignal("");
-  const [showNewPassage, setShowNewPassage] = createSignal(false);
 
   const save = async () => {
     if (!seasonId() || !yearId()) {
@@ -426,11 +412,10 @@ function ManualForm(props: {
       toast.error("أدخل نص السؤال");
       return;
     }
-    // if (correctIndex().length === 0) {
-    //   toast.error("اختر إجابة صحيحة واحدة على الأقل");
-    //   return;
-    // }
 
+    setSaving(true);
+
+    // رفع مقالة جديدة إذا أُدخلت
     let finalPassageId = passageId();
     if (showNewPassage() && newPassageText().trim()) {
       const id = await insertPassage(props.subjectId, {
@@ -441,7 +426,6 @@ function ManualForm(props: {
       if (id) finalPassageId = id;
     }
 
-    setSaving(true);
     const data = {
       subject: props.subjectId,
       season_id: seasonId(),
@@ -512,9 +496,8 @@ function ManualForm(props: {
                 placeholder={`الخيار ${i() + 1}`}
                 required={i() < 2}
                 dir="rtl"
-                class="flex min-w-0 flex-1 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                class="rounded-xl flex flex-1 min-w-0 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
               />
-              {/* حذف خيار إضافي */}
               <Show when={i() >= 2}>
                 <button
                   type="button"
@@ -540,17 +523,13 @@ function ManualForm(props: {
         </Show>
       </div>
 
-      <p class="text-center text-xs text-slate-400">
-        اضغط على الرقم لتحديد الإجابة الصحيحة
-      </p>
-      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
-          🗒️ مقالة (اختياري)
-        </p>
+      {/* ─── ربط مقالة ─────────────────────────────────────────────────── */}
+      <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3 dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">🗒️ مقالة (اختياري)</p>
 
         <Show when={!showNewPassage()}>
           <select
-            class="w-full rounded-xl bg-white p-3 text-sm outline-none dark:bg-slate-800 dark:text-white"
+            class="w-full rounded-xl bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-800 dark:text-white"
             onChange={(e) => setPassageId(e.currentTarget.value || null)}
           >
             <option value="">بدون مقالة</option>
@@ -571,7 +550,7 @@ function ManualForm(props: {
             placeholder="أدخل نص المقالة الجديدة..."
             rows={4}
             dir="rtl"
-            class="w-full rounded-xl bg-white p-3 text-sm outline-none dark:bg-slate-800 dark:text-white"
+            class="w-full rounded-xl bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-800 dark:text-white"
           />
         </Show>
 
@@ -587,6 +566,11 @@ function ManualForm(props: {
           {showNewPassage() ? "← اختر مقالة موجودة" : "+ إضافة مقالة جديدة"}
         </button>
       </div>
+
+      <p class="text-center text-xs text-slate-400">
+        اضغط على الرقم لتحديد الإجابة الصحيحة
+      </p>
+
       <button
         onClick={save}
         disabled={saving()}
@@ -602,6 +586,113 @@ function ManualForm(props: {
   );
 }
 
+// ─── PassageManager ───────────────────────────────────────────────────────────
+
+function PassageManager(props: { subjectId: string }) {
+  const [passages, { refetch }] = createResource(() =>
+    getPassages(props.subjectId),
+  );
+  const [editingId, setEditingId] = createSignal<string | null>(null);
+  const [editText, setEditText] = createSignal("");
+
+  const startEdit = (p: PassageUI) => {
+    setEditingId(p.$id);
+    setEditText(p.content);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId()) return;
+    await updatePassage(editingId()!, editText());
+    setEditingId(null);
+    refetch();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذه المقالة؟ سيتم إلغاء ربطها بجميع الأسئلة."))
+      return;
+    await deletePassage(id);
+    refetch();
+  };
+
+  return (
+    <div class="space-y-4" dir="rtl">
+      <Show
+        when={(passages() ?? []).length > 0}
+        fallback={
+          <p class="py-10 text-center text-slate-400">لا توجد مقالات بعد 📄</p>
+        }
+      >
+        <p class="text-sm text-slate-400">
+          إجمالي:{" "}
+          <span class="font-bold text-slate-600 dark:text-slate-300">
+            {passages()?.length}
+          </span>
+        </p>
+        <For each={passages()}>
+          {(p) => (
+            <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 space-y-3">
+              {/* معرّف مختصر */}
+              <span class="text-[10px] font-mono text-slate-400">
+                {p.$id.slice(0, 8)}
+              </span>
+
+              {/* عرض أو تعديل */}
+              <Show
+                when={editingId() === p.$id}
+                fallback={
+                  <p class="whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                    {p.content}
+                  </p>
+                }
+              >
+                <textarea
+                  value={editText()}
+                  onInput={(e) => setEditText(e.currentTarget.value)}
+                  rows={6}
+                  dir="rtl"
+                  class="w-full rounded-xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white whitespace-pre-wrap"
+                />
+              </Show>
+
+              {/* أزرار */}
+              <div class="flex gap-2 justify-end">
+                <Show when={editingId() === p.$id}>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-500 dark:bg-slate-700"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    onClick={saveEdit}
+                    class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white"
+                  >
+                    حفظ ✏️
+                  </button>
+                </Show>
+                <Show when={editingId() !== p.$id}>
+                  <button
+                    onClick={() => startEdit(p)}
+                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                  >
+                    تعديل ✏️
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p.$id)}
+                    class="rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-500 dark:bg-red-900/20"
+                  >
+                    حذف 🗑️
+                  </button>
+                </Show>
+              </div>
+            </div>
+          )}
+        </For>
+      </Show>
+    </div>
+  );
+}
+
 // ─── DevMode — main ───────────────────────────────────────────────────────────
 
 export default function DevMode() {
@@ -613,6 +704,7 @@ export default function DevMode() {
   const [mode, setMode] = createSignal<"smart" | "manual">("smart");
   const [showAdd, setShowAdd] = createSignal(false);
   const [editTarget, setEditTarget] = createSignal<QuestionUI | null>(null);
+  const [mainTab, setMainTab] = createSignal<"questions" | "passages">("questions");
 
   const [sections] = createResource(() => getSections(params.subject));
 
@@ -702,7 +794,28 @@ export default function DevMode() {
           </button>
         </div>
 
+        {/* Main Tab Switcher */}
+        <div class="mx-auto mb-6 flex max-w-4xl w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+          <button
+            onClick={() => setMainTab("questions")}
+            class={`rounded-full px-6 py-2 font-bold transition-all text-sm ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+          >
+            📋 الأسئلة
+          </button>
+          <button
+            onClick={() => setMainTab("passages")}
+            class={`rounded-full px-6 py-2 font-bold transition-all text-sm ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+          >
+            🗒️ المقالات
+          </button>
+        </div>
+
         <div class="mx-auto max-w-4xl pb-12">
+          <Show when={mainTab() === "passages"}>
+            <PassageManager subjectId={params.subject} />
+          </Show>
+
+          <Show when={mainTab() === "questions"}>
           {/* Form panel */}
           <Show when={showAdd()}>
             <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
@@ -781,7 +894,7 @@ export default function DevMode() {
               </div>
 
               <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
-                <div class="mt-12 flex flex-wrap justify-center gap-2 pb-12">
+                <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
                   <For
                     each={Array.from({
                       length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
@@ -790,7 +903,7 @@ export default function DevMode() {
                     {(_, i) => (
                       <button
                         onClick={() => setPage(i())}
-                        class={`h-8 w-8 rounded-full p-1 text-sm font-bold transition-all ${
+                        class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
                           page() === i()
                             ? "scale-110 bg-cyan-500 text-white"
                             : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"
@@ -804,6 +917,7 @@ export default function DevMode() {
               </Show>
             </Show>
           </Suspense>
+          </Show>
         </div>
       </div>
     </Show>

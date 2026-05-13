@@ -1,32 +1,51 @@
-import { For, Show } from "solid-js";
+import { createResource, For, Show } from "solid-js";
+import { getSeasonName, getYearName } from "../../services/local/indexeddb";
 
 export default function QuizBox(props: any) {
+  const [yearName] = createResource(
+    () => props.currentQuestion?.year_id,
+    (yearId) => getYearName(props.subject, yearId ?? null),
+  );
+
+  const [seasonName] = createResource(
+    () => props.currentQuestion?.season_id,
+    (seasonId) => getSeasonName(props.subject, seasonId ?? null),
+  );
+
+
   return (
     <div class="bg-main-light dark:bg-main-dark">
       {/* شارة الفصل والسنة */}
+      <Show when={props.currentQuestion}>
+        <div class="text-xs border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
+          <Show when={seasonName()}>
+            <p dir="rtl" class="text-secondary flex-1 px-2">
+              {seasonName()}
+            </p>
+          </Show>
+          <Show when={yearName()}>
+            <p class="bg-secondary text-main-light rounded-full px-2 py-1">
+              {yearName()}
+            </p>
+          </Show>
+        </div>
+      </Show>
+
+      {/* نص المقالة — تظهر مرة واحدة فوق السؤال */}
       <Show when={props.passage}>
         <div
           dir="rtl"
           class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
         >
-          <p class="mb-1 text-[10px] font-bold tracking-widest text-amber-500 uppercase">
-            🗒️ اقرأ المقالة ثم أجب
-          </p>
-          <p>{props.passage.content}</p>
-        </div>
-      </Show>
-      <Show when={props.currentQuestion}>
-        <div class="border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
-          <Show when={props.currentQuestion.seasonName}>
-            <p dir="rtl" class="text-secondary flex-1 px-2">
-              {props.currentQuestion.seasonName}
-            </p>
-          </Show>
-          <Show when={props.currentQuestion.yearValue}>
-            <p class="bg-secondary text-main-light rounded-full px-2 py-1">
-              {props.currentQuestion.yearValue}
-            </p>
-          </Show>
+          <p class="mb-1 text-[10px] font-bold tracking-widest text-amber-500 uppercase"></p>
+          <details>
+            <summary class="cursor-pointer text-[10px] font-bold text-amber-500">
+              🗒️ اضغط هنا لقراءة النص ثم أجب
+            </summary>
+            <pre dir="auto" class="font-sans whitespace-pre-wrap">
+              {props.passage.content}
+            </pre>
+          </details>
         </div>
       </Show>
 
@@ -35,7 +54,7 @@ export default function QuizBox(props: any) {
         <pre dir="rtl" class="text-md font-bold">
           {props.index + 1}.{" "}
         </pre>
-        <p dir="auto">{props.currentQuestion?.question}:</p>
+        <p dir="auto">{props.currentQuestion?.question}</p>
       </div>
 
       {/* الخيارات — options[] مصفوفة */}

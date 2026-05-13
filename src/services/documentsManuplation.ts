@@ -279,3 +279,19 @@ export async function deletePassage(passageId: string): Promise<void> {
     toast.success("تم حذف المقالة 🗑️");
   }
 }
+
+export async function updatePassage(
+  passageId: string,
+  content: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("passages")
+    .update({ content })
+    .eq("id", passageId);
+
+  if (error) {
+    toast.error("فشل تعديل المقالة: " + error.message);
+  } else {
+    toast.success("تم تعديل المقالة ✏️");
+  }
+}

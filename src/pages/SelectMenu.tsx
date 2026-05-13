@@ -1,9 +1,13 @@
-import { useParams, A } from "@solidjs/router";
+import { useParams, A, useNavigate } from "@solidjs/router";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { setQuizType } from "../stores/quizType";
-import { getFavorites } from "../services/local/indexeddb";
-import { syncAndGetSections } from "../services/local/indexeddb";
+import {
+  deleteAnswersWithFilter,
+  getFavorites,
+  getQuestionsOrAnswersWithFilter,
+  syncAndGetSections,
+} from "../services/local/indexeddb";
 
 export default function SelectMenu() {
   const subject = `${useParams<{ subject: string }>().subject}`;
@@ -134,19 +138,42 @@ function ItemRow(props: {
   sectionType: "season_id" | "year_id";
   sectionId: number;
 }) {
-  const handleClick = () => {
-    setQuizType("continue");
+  const navigate = useNavigate();
+  const route = () => `/${props.subject}/${props.href}`;
+  const sessionKey = () =>
+    `quiz_index_${props.subject}_${props.sectionType}_${props.sectionId}`;
 
-    // if (window.confirm("هل تريد الاكمال من حيث توقفت؟")) {
-    //   setQuizType("continue");
-    // } else {
-    //   setQuizType("restart");
-    //   void deleteAnswersWithFilter(
-    //     props.subject,
-    //     props.sectionType,
-    //     props.sectionId,
-    //   );
-    // }
+  const startFromBeginning = async () => {
+    setQuizType("restart");
+    sessionStorage.removeItem(sessionKey());
+    await deleteAnswersWithFilter(
+      props.subject,
+      props.sectionType,
+      props.sectionId,
+    );
+  };
+
+  const handleClick = async (event: MouseEvent) => {
+    event.preventDefault();
+
+    const savedAnswers = await getQuestionsOrAnswersWithFilter(
+      props.subject,
+      "answers",
+      props.sectionType,
+      props.sectionId,
+    );
+
+    if (savedAnswers.length > 0) {
+      if (window.confirm("هل تريد الإكمال من حيث توقفت سابقا؟")) {
+        setQuizType("continue");
+      } else {
+        await startFromBeginning();
+      }
+    } else {
+      setQuizType("continue");
+    }
+
+    navigate(route());
   };
 
   return (

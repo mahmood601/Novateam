@@ -20,8 +20,8 @@ export type Question = {
   correctIndex: number;
   user_id: string | null;
   image_url?: string | null; // ← جاهز للصور مستقبلاً
+  passage_id?: string | null; // ← مقالة مرتبطة (اختياري)
   [key: string]: any;
-  passage_id?: string | null;
 };
 
 export type Answer = {
@@ -85,24 +85,15 @@ class AppDB extends Dexie {
     super("db");
 
     // ← الإصدار القديم يبقى دون تغيير لضمان migration صحيح
-    this.version(4).stores({
+    this.version(2).stores({
       questions: `
         $id,
         subject,
         season_id,
         year_id,
-        passage_id,
         [subject+season_id],
         [subject+year_id]
       `,
-      passages: `
-        $id,
-        subject_id,
-        season_id,
-        year_id,
-        [subject_id+season_id],
-        [subject_id+year_id]
-  `,
       answers: `
         $id,
         subject,
@@ -130,6 +121,27 @@ class AppDB extends Dexie {
     // v3: أضفنا *subjects على years لتمكين index lookup بدل full scan
     this.version(3).stores({
       years: `id, *subjects`,
+    });
+
+    // v4: جدول passages + passage_id على questions
+    this.version(4).stores({
+      questions: `
+        $id,
+        subject,
+        season_id,
+        year_id,
+        passage_id,
+        [subject+season_id],
+        [subject+year_id]
+      `,
+      passages: `
+        $id,
+        subject_id,
+        season_id,
+        year_id,
+        [subject_id+season_id],
+        [subject_id+year_id]
+      `,
     });
   }
 }
@@ -169,6 +181,7 @@ function toQuestion(row: any, subject: string): Question {
     correctIndex: row.correct_index,
     user_id: row.created_by,
     image_url: row.image_url ?? null,
+    passage_id: row.passage_id ?? null, // ← صريح لضمان الحفظ في Dexie
   };
 }
 
@@ -344,9 +357,10 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
       .select("*")
       .eq("subject_id", subject)
       .order("updated_at")
+      .limit(lastSync ? 500 : 200); // ✅ حد مؤقت للأول تشغيل
 
     if (lastSync) {
-      query = query.gt("updated_at", lastSync);
+      // query = query.gt("updated_at", lastSync);
     }
 
     const { data, error } = await query;
@@ -541,10 +555,35 @@ export async function getSeasons(subject: string): Promise<CachedSection[]> {
     .toArray();
 }
 
+export async function getSeasonName(
+  subject: string,
+  seasonId: number | null,
+): Promise<string | null> {
+  if (!seasonId) return null;
+  const sections = await getSeasons(subject);
+  return sections.find((s) => s.id === seasonId)?.name ?? null;
+}
+
+export async function getYearName(
+  subject: string,
+  yearId: number | null,
+): Promise<string | null> {
+  if (!yearId) return null;
+  const sections = await db.sections
+    .where(`[subject_id+type]`)
+    .equals([subject, "year"])
+    .toArray();
+  return sections.find((s) => s.id === yearId)?.name ?? null;
+}
+
 // ─── Passages ─────────────────────────────────────────────────────────────────
 
 export async function getPassagesForSubject(subject: string): Promise<Passage[]> {
   return db.passages.where("subject_id").equals(subject).toArray();
+}
+
+export async function getPassageById(passageId: string): Promise<Passage | undefined> {
+  return db.passages.get(passageId);
 }
 
 export async function syncPassagesOfflineFirst(subject: string): Promise<boolean> {
