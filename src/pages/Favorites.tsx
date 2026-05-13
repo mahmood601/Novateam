@@ -3,8 +3,10 @@ import { createAsync, useParams } from "@solidjs/router";
 import type { Favorite } from "../services/local/indexeddb";
 import {
   getFavorites,
+  getSeasonName,
   getSeasons,
   getSubjectsByYear,
+  getYearName,
   removeFavorite,
   updateFavoriteNote,
 } from "../services/local/indexeddb";
@@ -85,23 +87,17 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
     );
   const snapshot = props.fav.snapshot;
 
-  const [season, setSeason] = createSignal("");
 
   // resolve season name (ensure we set a string, not an object)
-  createAsync(async () => {
-    try {
-      
-      const sections = await getSeasons(props.fav.subject)
-      let seasonName = "";
-        const idx = Number(snapshot?.season);
-        seasonName = sections.at(idx)?.name ?? "";
-        setSeason(seasonName);
-    } catch (err) {
-      console.error("resolve season name:", err);
-      setSeason("");
-    }
-  });
-
+  const [yearName] = createResource(
+     () => snapshot?.year_id,
+     (yearId) => getYearName(snapshot?.subject, yearId ?? null),
+   );
+ 
+   const [seasonName] = createResource(
+     () => snapshot?.season_id,
+     (seasonId) => getSeasonName(snapshot?.subject, seasonId ?? null),
+   );
  
 
   const handleRemove = async (qid: string) => {
@@ -140,11 +136,11 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
       <div class="flex flex-col">
         <div>
           <div class="mb-3 flex flex-col text-center">
-            <span class="text-muted flex-1 text-xs">
+            <span class="text-gray-500 flex-1 text-xs">
               {new Date(props.fav.savedAt).toLocaleString()}
             </span>
-            <span dir="rtl" class="text-muted flex-1 text-xs">
-              {snapshot?.yearValue ?? "سنة غير معروفة"} - {season()}
+            <span dir="rtl" class="text-gray-500 flex-1 text-xs">
+              {yearName()} - {seasonName()}
             </span>
           </div>
 
