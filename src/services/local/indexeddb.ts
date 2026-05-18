@@ -1,6 +1,10 @@
 import { supabase } from "../supabase";
 import { Dexie, Table } from "dexie";
 import yearsFallback from "./years";
+import toast from "solid-toast";
+
+const SCHEMA_VERSION = 4; // ← غيّره كل ما تضيف ميزة تحتاج بيانات جديدة
+const SCHEMA_KEY = "db_schema_version";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,6 +164,30 @@ function saveLastSync(subject: string) {
 
 function getLastSync(subject: string): string | null {
   return localStorage.getItem(SYNC_KEY(subject));
+}
+
+export async function checkAndMigrateIfNeeded(): Promise<void> {
+  const saved = parseInt(localStorage.getItem(SCHEMA_KEY) ?? "0");
+
+  if (!saved) {
+    localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
+  }
+  if (saved > 0 && saved < SCHEMA_VERSION) {
+    // مستخدم قديم عنده كاش — نخبره
+    toast.loading("جاري تحديث قاعدة البيانات...", { id: "migration" });
+    await db.questions.clear();
+    await db.passages.clear();
+    // امسح كل مفاتيح الـ sync حتى يُعاد التحميل
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sync_"))
+      .forEach((k) => localStorage.removeItem(k));
+
+    // احفظ النسخة الجديدة
+    localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
+
+    console.log(`DB migrated to schema v${SCHEMA_VERSION}`);
+    toast.success("تم تحديث قاعدة البيانات", { id: "migration", duration: 2000 });
+  }
 }
 
 // ✅ spread-safe: أي حقل جديد في Supabase يُحفظ تلقائياً (image_url مثلاً)
@@ -578,17 +606,26 @@ export async function getYearName(
 
 // ─── Passages ─────────────────────────────────────────────────────────────────
 
-export async function getPassagesForSubject(subject: string): Promise<Passage[]> {
+export async function getPassagesForSubject(
+  subject: string,
+): Promise<Passage[]> {
   return db.passages.where("subject_id").equals(subject).toArray();
 }
 
-export async function getPassageById(passageId: string): Promise<Passage | undefined> {
+export async function getPassageById(
+  passageId: string,
+): Promise<Passage | undefined> {
   return db.passages.get(passageId);
 }
 
-export async function syncPassagesOfflineFirst(subject: string): Promise<boolean> {
+export async function syncPassagesOfflineFirst(
+  subject: string,
+): Promise<boolean> {
   try {
-    const existing = await db.passages.where("subject_id").equals(subject).count();
+    const existing = await db.passages
+      .where("subject_id")
+      .equals(subject)
+      .count();
     if (existing > 0) return true;
 
     const { data, error } = await supabase

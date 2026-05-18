@@ -75,7 +75,9 @@ export async function getUserRole(
 
 export async function updateUserProfile(
   userId: string,
-  updates: { name?: string; year?: string },
+  updates: { name?: string; 
+    // year?: string
+   },
 ): Promise<boolean> {
   if (!userId) throw new Error("No userId provided");
 

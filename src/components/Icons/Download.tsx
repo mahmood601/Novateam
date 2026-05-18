@@ -18,12 +18,6 @@ export default function Download() {
           stroke-dashoffset="6"
           d="M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9"
         >
-          <animate
-            attributeName="stroke-dashoffset"
-            dur="0.6s"
-            repeatCount="indefinite"
-            values="6;0"
-          />
         </path>
         <path
           stroke-dasharray="32"

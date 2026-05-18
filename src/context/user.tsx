@@ -53,8 +53,6 @@ export function UserProvider(props: any) {
 
     const updated = { ...user()!, ...updates };
     if (updated) {
-      setUser(updated);
-      localStorage.setItem("user", JSON.stringify(updated));
 
       if (updates.year) localStorage.setItem("year", updates.year);
     }

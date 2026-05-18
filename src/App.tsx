@@ -12,12 +12,14 @@ import AppRoutes from "./components/AppRoutes.tsx";
 import PWAProvider from "./components/PWAProvider.tsx";
 import { useTheme } from "./hooks/useTheme.tsx";
 import { onMount } from "solid-js";
+import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
 
 export default function App() {
   const {applyTheme} = useTheme()
 
-  onMount(()=> {
+  onMount(async ()=> {
     applyTheme(localStorage.getItem("theme") as any || "Ola")
+     await checkAndMigrateIfNeeded();
   })
   return (
     <UserProvider>

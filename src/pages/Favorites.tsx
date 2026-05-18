@@ -1,10 +1,9 @@
 import { createSignal, onMount, For, Show, Setter, createResource } from "solid-js";
-import { createAsync, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import type { Favorite } from "../services/local/indexeddb";
 import {
   getFavorites,
   getSeasonName,
-  getSeasons,
   getSubjectsByYear,
   getYearName,
   removeFavorite,

@@ -41,21 +41,17 @@ export default function ProfileInfo(props: {
     const newYear = yearValue();
 
     setSaving(true);
-    const ok = await updateProfile({ year: newYear });
+    localStorage.setItem("year", newYear);
     setSaving(false);
 
-    if (ok) {
-      if (previousYear && previousYear !== newYear) {
-        clearDBAfterChangeYear();
-        getSubjectsOfflineFirst(newYear); // prefetch subjects for the selected year
-        toast.success("تم حذف بيانات السنة القديمة و تحديث السنة");
-      } else {
-        toast.success("تم تحديث السنة ✓");
-      }
-      setEditingYear(false);
+    if (previousYear && previousYear !== newYear) {
+      clearDBAfterChangeYear();
+      getSubjectsOfflineFirst(newYear); // prefetch subjects for the selected year
+      toast.success("تم حذف بيانات السنة القديمة و تحديث السنة");
     } else {
-      toast.error("فشل التحديث، حاول مجدداً");
+      toast.success("تم تحديث السنة ✓");
     }
+    setEditingYear(false);
   };
 
   return (
@@ -221,7 +217,7 @@ export default function ProfileInfo(props: {
   );
 }
 
-function Li(props: { Icon?: JSX.Element; type?: string; value: JSX.Element }) {
+export function Li(props: { Icon?: JSX.Element; type?: string; value: JSX.Element }) {
   return (
     <li class="dark:border-dark-hover dark:bg-lighter-dark-1 flex h-fit w-full items-center justify-between gap-1 rounded-2xl py-2 pl-3 shadow-md">
       <div class="flex w-[calc(100%-4.5em)] flex-col items-center justify-center gap-1">
@@ -254,7 +250,7 @@ function Logout(props: { Icon: JSX.Element; type: string }) {
 
 // ─── SVGs ─────────────────────────────────────────────────────────────────────
 
-function CalendarSvg() {
+export function CalendarSvg() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

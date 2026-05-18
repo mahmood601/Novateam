@@ -40,7 +40,7 @@ return {
       {/* المعلومات */}
       <div class="flex flex-1 flex-col items-center justify-center gap-2">
         <img
-          src={"/subjectsIcons/" + props.subject + ".jpg"}
+          src={"/subjectsIcons/" + props.subject + ".webp"}
           alt={props.info}
           class="from-main/30 to-main/10 size-16 rounded-lg bg-gradient-to-br"
         />

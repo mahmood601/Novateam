@@ -11,7 +11,7 @@ export default function Login() {
   });
 
   return (
-    <div class="bg-main-light dark:bg-main-dark flex h-screen min-w-screen items-center justify-center">
+    <div class=" dark:bg-main-dark h-auto items-center justify-center">
       <div class="bg-brown/95 relative top-0 flex h-fit w-5/6 flex-col items-center justify-between rounded-3xl">
         <Virus />
         <div class="my-4 flex h-fit w-full flex-col items-center">
@@ -56,7 +56,7 @@ function Oauth(props: { name: string; provider: any; imageSrc: string }) {
 
 function Virus() {
   return (
-    <div class="relative flex justify-center px-1">
+    <div class="relative flex w-52 h-52 justify-center px-1">
       <img
         class="h-52"
         src="/app/login.webp"
