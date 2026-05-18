@@ -46,16 +46,16 @@ export default function Profile() {
   };
 
   return (
-    <div class="dark:bg-header flex min-h-screen w-screen flex-col bg-gray-50">
-      <div class="flex w-full items-center dark:text-white">
-        <h1 class="flex-1 p-5 text-right text-2xl font-bold tracking-wide">
+    <div class="dark:bg-header flex min-h-screen w-screen items-center flex-col bg-gray-50">
+      <div class="flex w-full items-center justify-center dark:text-white">
+        <h1 class="flex-1 p-5  text-right text-2xl font-bold tracking-wide">
           الملف الشخصي
         </h1>
       </div>
       <Show
         when={user()}
         fallback={
-          <div class="flex w-3/4 flex-col items-center justify-center gap-5 self-center pt-5 dark:text-white">
+          <div class="flex w-3/4 flex-col items-center justify-center gap-5 pt-5 dark:text-white">
             <Li
               Icon={CalendarSvg()}
               type="السنة"
