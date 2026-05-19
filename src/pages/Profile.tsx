@@ -74,7 +74,7 @@ export default function Profile() {
                     </div>
                   }
                 >
-                  <div class="flex w-full items-center gap-2">
+                  <div class="flex flex-row-reverse items-center gap-2">
                     <select
                       value={yearValue()}
                       onChange={(e) => setYearValue(e.currentTarget.value)}

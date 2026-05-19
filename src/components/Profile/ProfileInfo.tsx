@@ -78,7 +78,7 @@ export default function ProfileInfo(props: {
               </div>
             }
           >
-            <div class="text-main-dark flex w-full items-center gap-2">
+            <div class="text-main-dark flex flex-row-reverse items-center gap-2">
               <input
                 value={nameValue()}
                 onInput={(e) => setNameValue(e.currentTarget.value)}
@@ -130,7 +130,7 @@ export default function ProfileInfo(props: {
               </div>
             }
           >
-            <div class="flex w-full items-center gap-2">
+            <div class="flex flex-row-reverse items-center gap-2">
               <select
                 value={yearValue()}
                 onChange={(e) => setYearValue(e.currentTarget.value)}
