@@ -186,7 +186,10 @@ export async function checkAndMigrateIfNeeded(): Promise<void> {
     localStorage.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
 
     console.log(`DB migrated to schema v${SCHEMA_VERSION}`);
-    toast.success("تم تحديث قاعدة البيانات", { id: "migration", duration: 2000 });
+    toast.success("تم تحديث قاعدة البيانات", {
+      id: "migration",
+      duration: 2000,
+    });
   }
 }
 
@@ -470,7 +473,12 @@ export async function clearDBAfterChangeYear() {
     await clearQuestions();
     await clearSections();
     await clearSubjects();
+    await clearPassages();
     await clearAllSyncKeys();
+
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("passages_sync_"))
+      .forEach((k) => localStorage.removeItem(k));
 
     return true;
   } catch {
@@ -618,37 +626,52 @@ export async function getPassageById(
   return db.passages.get(passageId);
 }
 
+// ─── Passages ─────────────────────────────────────────────────────────────────
+
+const PASSAGES_SYNC_KEY = (subject: string) => `passages_sync_${subject}`;
+
 export async function syncPassagesOfflineFirst(
   subject: string,
 ): Promise<boolean> {
   try {
-    const existing = await db.passages
-      .where("subject_id")
-      .equals(subject)
-      .count();
-    if (existing > 0) return true;
+    const lastSync = localStorage.getItem(PASSAGES_SYNC_KEY(subject));
+    const TEN_MINUTES = 10 * 60 * 1000;
+    const isFresh =
+      lastSync && Date.now() - new Date(lastSync).getTime() < TEN_MINUTES;
+
+    if (isFresh) return true;
+
+    if (!navigator.onLine) return true;
 
     const { data, error } = await supabase
       .from("passages")
       .select("*")
       .eq("subject_id", subject);
 
-    if (error || !data || data.length === 0) return false;
+    if (error || !data) return false;
 
-    const passages: Passage[] = data.map((row: any) => ({
-      $id: row.id,
-      subject_id: row.subject_id,
-      season_id: row.season_id ?? null,
-      year_id: row.year_id ?? null,
-      content: row.content,
-      image_url: row.image_url ?? null,
-    }));
+    if (data.length > 0) {
+      const passages: Passage[] = data.map((row: any) => ({
+        $id: row.id,
+        subject_id: row.subject_id,
+        season_id: row.season_id ?? null,
+        year_id: row.year_id ?? null,
+        content: row.content,
+        image_url: row.image_url ?? null,
+      }));
 
-    await db.passages.bulkPut(passages);
+      await db.passages.bulkPut(passages);
+    }
+
+    localStorage.setItem(PASSAGES_SYNC_KEY(subject), new Date().toISOString());
     return true;
   } catch {
     return false;
   }
+}
+
+export function resetPassagesSync(subject: string) {
+  localStorage.removeItem(PASSAGES_SYNC_KEY(subject));
 }
 
 export async function clearPassages(): Promise<boolean> {
