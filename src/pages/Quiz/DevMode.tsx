@@ -7,7 +7,7 @@ import {
   Switch,
   Match,
 } from "solid-js";
-import { useParams, useLocation } from "@solidjs/router";
+import { useParams, useLocation, useSearchParams } from "@solidjs/router";
 import { supabase } from "../../services/supabase";
 import {
   getSections,
@@ -33,24 +33,42 @@ const PAGE_SIZE = 10;
 
 function QuestionCard(props: {
   question: QuestionUI;
+  index: number;                    // ✅ إضافة: رقم السؤال في القائمة
   subjectId: string;
   namesMap: Map<string, string>;
+  passagesMap: Map<string, string>; // ✅ إضافة: map للمقالات لعرض معاينتها
   onRefetch: () => void;
   onEdit: (q: QuestionUI) => void;
 }) {
+  // 📌 LESSON 3: createSignal داخل component
+  // كل نسخة من QuestionCard لها signal خاص بها — لا تتداخل مع باقي الكاردات
   const [open, setOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
 
-  // قراءة مباشرة من الـ Map — لا طلب Supabase
   const inserterName = () =>
-    props.question.user_id ? props.namesMap.get(props.question.user_id) : undefined;
+    props.question.user_id
+      ? props.namesMap.get(props.question.user_id)
+      : undefined;
+
+  // ✅ جلب معاينة المقالة من الـ map بدون أي طلب إضافي
+  const passagePreview = () =>
+    props.question.passage_id
+      ? props.passagesMap.get(props.question.passage_id)
+      : undefined;
 
   const handleDelete = async (e: MouseEvent) => {
     e.stopPropagation();
     if (!confirm("هل تريد حذف هذا السؤال؟")) return;
+
     setDeleting(true);
-    await deleteQuestion(props.subjectId, props.question.$id);
+    const error = await deleteQuestion(props.subjectId, props.question.$id);
     setDeleting(false);
+
+    if (error) {
+      toast.error("فشل الحذف، حاول مرة أخرى");
+      return;
+    }
+    toast.success("تم حذف السؤال");
     props.onRefetch();
   };
 
@@ -59,11 +77,20 @@ function QuestionCard(props: {
       onClick={() => setOpen(!open())}
       class="cursor-pointer rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
     >
-      {/* Meta */}
+      {/* ─── Meta row ─── */}
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500 dark:bg-slate-700">
-          {props.question.$id.slice(0, 8)}
-        </span>
+
+        {/* ✅ رقم السؤال + ID */}
+        <div class="flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-black text-white shadow">
+            {props.index}
+          </span>
+          <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500 dark:bg-slate-700">
+            {props.question.$id.slice(0, 8)}
+          </span>
+        </div>
+
+        {/* Badges */}
         <div class="flex flex-wrap gap-1">
           <Show when={props.question.seasonName}>
             <span class="rounded-full bg-cyan-50 px-2 py-1 text-[10px] font-bold text-cyan-600 dark:bg-cyan-900/30">
@@ -80,19 +107,24 @@ function QuestionCard(props: {
               ✍️ {inserterName()}
             </span>
           </Show>
-          <Show when={props.question.passage_id}>
-            <span class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600 dark:bg-amber-900/30">
-              🗒️ مقالة
+          {/* ✅ عرض معاينة المقالة بدل "مقالة" فقط */}
+          <Show when={passagePreview()}>
+            <span
+              class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600 dark:bg-amber-900/30"
+              title={passagePreview()}
+            >
+              🗒️ {passagePreview()!.slice(0, 20)}...
             </span>
           </Show>
         </div>
       </div>
 
-      {/* Question */}
+      {/* ─── نص السؤال ─── */}
       <p class="mb-4 font-bold text-slate-800 dark:text-slate-200" dir="auto">
         {props.question.question}
       </p>
 
+      {/* ─── الخيارات ─── */}
       <div class="grid gap-2">
         <For each={props.question.options}>
           {(opt, i) => (
@@ -110,7 +142,7 @@ function QuestionCard(props: {
         </For>
       </div>
 
-      {/* Explanation */}
+      {/* ─── الشرح ─── */}
       <Show when={props.question.explanation}>
         <p
           class="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
@@ -120,7 +152,19 @@ function QuestionCard(props: {
         </p>
       </Show>
 
-      {/* Actions */}
+      {/* ─── معاينة المقالة الكاملة عند الفتح ─── */}
+      <Show when={open() && passagePreview()}>
+        <div
+          class="mt-3 rounded-xl border border-amber-100 bg-amber-50/50 p-3 text-xs leading-relaxed text-amber-800 dark:border-amber-800/30 dark:bg-amber-900/10 dark:text-amber-300"
+          dir="rtl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p class="mb-1 font-bold">📖 نص المقالة:</p>
+          <p class="whitespace-pre-wrap">{passagePreview()}</p>
+        </div>
+      </Show>
+
+      {/* ─── أزرار الإجراءات (تظهر عند الضغط) ─── */}
       <Show when={open()}>
         <div
           class="mt-4 flex gap-2 border-t border-slate-100 pt-4 dark:border-slate-700"
@@ -146,6 +190,12 @@ function QuestionCard(props: {
 }
 
 // ─── SectionSelectors ─────────────────────────────────────────────────────────
+
+// 📌 LESSON 5: props في SolidJS
+// props تشبه props في React لكن لا تُفككها (destructure) خارج JSX
+// لأن تفكيكها يفقدها التفاعلية (reactivity).
+// الصحيح: props.seasonId  ← يتحدث تلقائياً
+// الخطأ:  const { seasonId } = props  ← لن يتحدث
 
 function SectionSelectors(props: {
   sections: Section[];
@@ -211,6 +261,12 @@ function SmartImporter(props: {
   const [seasonId, setSeasonId] = createSignal<number | null>(null);
   const [yearId, setYearId] = createSignal<number | null>(null);
 
+  // ✅ عداد مرئي للأسئلة المكتشفة في النص قبل الرفع
+  const previewCount = () => {
+    const lines = rawText().split("\n");
+    return lines.filter((l) => l.trim().startsWith("#")).length;
+  };
+
   const parseAndUpload = async () => {
     if (!seasonId() || !yearId()) {
       toast.error("يرجى اختيار الفصل والسنة أولاً");
@@ -218,8 +274,6 @@ function SmartImporter(props: {
     }
     setLoading(true);
 
-    // ─── تقسيم النص إلى كتل ───────────────────────────────────────────────
-    // الرموز: @ = مقالة جديدة | @@ = إلغاء المقالة | # = سؤال
     const inputLines = rawText().split("\n");
     const questionBlocks: { text: string; passageText: string | null }[] = [];
     let currentPassageText: string | null = null;
@@ -252,7 +306,11 @@ function SmartImporter(props: {
         trimmed.startsWith("!")
       ) {
         currentQuestionLines.push(trimmed);
-      } else if (trimmed && currentPassageText !== null && currentQuestionLines.length === 0) {
+      } else if (
+        trimmed &&
+        currentPassageText !== null &&
+        currentQuestionLines.length === 0
+      ) {
         currentPassageText += "\n" + trimmed;
       }
     }
@@ -264,7 +322,7 @@ function SmartImporter(props: {
       return;
     }
 
-    // ─── رفع المقالات أولاً (مع dedup) ───────────────────────────────────
+    // رفع المقالات أولاً مع dedup
     const passageCache = new Map<string, string>();
     for (const block of questionBlocks) {
       if (block.passageText && !passageCache.has(block.passageText)) {
@@ -277,7 +335,6 @@ function SmartImporter(props: {
       }
     }
 
-    // ─── بناء الأسئلة ─────────────────────────────────────────────────────
     const questions = questionBlocks.map((block) => {
       const blockLines = block.text.split(/\n(?=[=+!])/g);
       const question = blockLines[0].trim();
@@ -307,6 +364,9 @@ function SmartImporter(props: {
       };
     });
 
+    // 📌 LESSON 6: هذا هو "bulk mutation" — إدخال جماعي
+    // supabase.from(...).insert(array) يرسل كل الأسئلة في طلب واحد
+    // أفضل من for loop مع await لكل سؤال (أسرع وأقل أخطاء)
     const { error } = await supabase.from("questions").insert(questions);
     setLoading(false);
 
@@ -329,30 +389,62 @@ function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
-      <div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900 space-y-1 leading-relaxed" dir="rtl">
-        <p><span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ← تفعيل مقالة للأسئلة التالية</p>
-        <p><span class="font-mono font-bold text-slate-800 dark:text-slate-200">@@</span> ← إلغاء المقالة (أسئلة عادية بعدها)</p>
-        <p><span class="font-mono font-bold text-fuchsia-600">#</span> سؤال &nbsp;<span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;<span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;<span class="font-mono font-bold text-amber-500">!</span> شرح</p>
+      <div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900 space-y-1 leading-relaxed">
+        <p>
+          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة
+          ← تفعيل مقالة للأسئلة التالية
+        </p>
+        <p>
+          <span class="font-mono font-bold text-slate-800 dark:text-slate-200">
+            @@
+          </span>{" "}
+          ← إلغاء المقالة (أسئلة عادية بعدها)
+        </p>
+        <p>
+          <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
+          &nbsp;
+          <span class="font-mono font-bold text-green-600">+</span> صحيح
+          &nbsp;
+          <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
+          <span class="font-mono font-bold text-amber-500">!</span> شرح
+        </p>
       </div>
       <textarea
         value={rawText()}
         onInput={(e) => setRawText(e.currentTarget.value)}
-        placeholder={"@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."}
+        placeholder={
+          "@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."
+        }
         class="h-72 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
         dir="rtl"
       />
+
+      {/* ✅ عداد مرئي للأسئلة المكتشفة */}
+      <Show when={previewCount() > 0}>
+        <p class="text-center text-sm font-bold text-cyan-600">
+          🔍 تم اكتشاف {previewCount()} سؤال جاهز للرفع
+        </p>
+      </Show>
+
       <button
-        disabled={loading()}
+        disabled={loading() || previewCount() === 0}
         onClick={parseAndUpload}
         class="w-full rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 py-4 font-black text-white shadow-lg transition disabled:opacity-50"
       >
-        {loading() ? "جاري التحليل والرفع..." : "تحليل ورفع الكل دفعة واحدة 🚀"}
+        {loading()
+          ? "جاري التحليل والرفع..."
+          : `تحليل ورفع ${previewCount() > 0 ? previewCount() + " أسئلة" : "الكل"} دفعة واحدة 🚀`}
       </button>
     </div>
   );
 }
 
 // ─── ManualForm ───────────────────────────────────────────────────────────────
+
+// 📌 LESSON 7: لماذا نقرأ localStorage هنا وليس في مكان مركزي؟
+// هذا ضعف في الكود الأصلي — يُقرأ في كل save.
+// الأفضل: createSignal للمستخدم في مكان مشترك (context أو store)
+// لكن لعدم كسر الكود الحالي سنبقيه كما هو مع تحسين طفيف
 
 function ManualForm(props: {
   subjectId: string;
@@ -395,6 +487,10 @@ function ManualForm(props: {
   const [newPassageText, setNewPassageText] = createSignal("");
   const [showNewPassage, setShowNewPassage] = createSignal(false);
 
+  // ✅ معاينة المقالة المحددة حالياً
+  const selectedPassageContent = () =>
+    passages()?.find((p) => p.$id === passageId())?.content;
+
   const toggleCorrect = (idx: number) => setCorrectIndex(idx);
 
   const updateOption = (idx: number, val: string) => {
@@ -412,6 +508,12 @@ function ManualForm(props: {
       toast.error("أدخل نص السؤال");
       return;
     }
+    // ✅ تحقق من وجود خيارين على الأقل
+    const filledOptions = options().filter(Boolean);
+    if (filledOptions.length < 2) {
+      toast.error("أدخل خيارين على الأقل");
+      return;
+    }
 
     setSaving(true);
 
@@ -426,18 +528,30 @@ function ManualForm(props: {
       if (id) finalPassageId = id;
     }
 
+    // 📌 LESSON 8: قراءة localStorage بأمان
+    // JSON.parse قد تُفشل إذا كانت القيمة تالفة، لذا نُغلّفها بـ try/catch
+    let userId = "";
+    try {
+      userId = JSON.parse(localStorage.getItem("user") ?? "{}").id ?? "";
+    } catch {
+      userId = "";
+    }
+
     const data = {
       subject: props.subjectId,
       season_id: seasonId(),
       year_id: yearId(),
       question: question(),
       explanation: explanation(),
-      options: options().filter(Boolean),
+      options: filledOptions,
       correctIndex: correctIndex(),
-      user_id: JSON.parse(localStorage.getItem("user") ?? "{}").id ?? "",
+      user_id: userId,
       passage_id: finalPassageId ?? null,
     };
 
+    // 📌 LESSON 9: هذا هو pattern الـ "mutation" في SolidJS
+    // لا نحتاج useMutation — نستدعي الدالة مباشرة
+    // الدالة updateQuestion / insertQuestion ترجع error أو null
     if (isEdit() && props.editQuestion) {
       await updateQuestion(props.subjectId, props.editQuestion.$id, data);
     } else {
@@ -475,10 +589,12 @@ function ManualForm(props: {
         class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-amber-300 dark:bg-slate-900 dark:text-white"
       />
 
+      {/* ─── الخيارات ─── */}
       <div class="flex flex-col gap-2">
         <For each={options()}>
           {(opt, i) => (
             <div class="flex items-center gap-2">
+              {/* زر تحديد الإجابة الصحيحة */}
               <button
                 type="button"
                 onClick={() => toggleCorrect(i())}
@@ -487,16 +603,17 @@ function ManualForm(props: {
                     ? "border-green-400 bg-green-400 text-white"
                     : "border-slate-200 bg-white text-slate-400 dark:border-slate-600 dark:bg-slate-800"
                 }`}
+                title="اضغط لتعيين هذا الخيار كإجابة صحيحة"
               >
                 {correctIndex() == i() ? "✓" : i() + 1}
               </button>
               <input
                 value={opt}
                 onChange={(e) => updateOption(i(), e.currentTarget.value)}
-                placeholder={`الخيار ${i() + 1}`}
+                placeholder={`الخيار ${i() + 1}${i() < 2 ? " *" : ""}`}
                 required={i() < 2}
                 dir="rtl"
-                class="rounded-xl flex flex-1 min-w-0 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                class="flex flex-1 min-w-0 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
               />
               <Show when={i() >= 2}>
                 <button
@@ -505,6 +622,7 @@ function ManualForm(props: {
                     setOptions(options().filter((_, idx) => idx !== i()))
                   }
                   class="text-red-400 hover:text-red-600"
+                  title="حذف هذا الخيار"
                 >
                   ✕
                 </button>
@@ -516,16 +634,18 @@ function ManualForm(props: {
           <button
             type="button"
             onClick={() => setOptions([...options(), ""])}
-            class="text-main text-sm underline"
+            class="text-sm text-cyan-600 underline"
           >
             + إضافة خيار
           </button>
         </Show>
       </div>
 
-      {/* ─── ربط مقالة ─────────────────────────────────────────────────── */}
+      {/* ─── ربط مقالة ─── */}
       <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3 dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">🗒️ مقالة (اختياري)</p>
+        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+          🗒️ مقالة (اختياري)
+        </p>
 
         <Show when={!showNewPassage()}>
           <select
@@ -536,11 +656,22 @@ function ManualForm(props: {
             <For each={passages() ?? []}>
               {(p) => (
                 <option value={p.$id} selected={passageId() === p.$id}>
-                  {p.content.slice(0, 60)}...
+                  {/* ✅ عرض ID مختصر + معاينة أوضح */}
+                  [{p.$id.slice(0, 6)}] {p.content.slice(0, 50)}...
                 </option>
               )}
             </For>
           </select>
+
+          {/* ✅ معاينة المقالة المحددة */}
+          <Show when={selectedPassageContent()}>
+            <div class="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-700 dark:bg-amber-900/20 dark:text-amber-300" dir="rtl">
+              <p class="mb-1 font-bold">📖 المقالة المحددة:</p>
+              <p class="line-clamp-4 whitespace-pre-wrap">
+                {selectedPassageContent()}
+              </p>
+            </div>
+          </Show>
         </Show>
 
         <Show when={showNewPassage()}>
@@ -589,11 +720,15 @@ function ManualForm(props: {
 // ─── PassageManager ───────────────────────────────────────────────────────────
 
 function PassageManager(props: { subjectId: string }) {
+  // 📌 LESSON 10: createResource مع refetch
+  // createResource يجلب البيانات تلقائياً عند أول تحميل
+  // { refetch } تعيد الجلب يدوياً بعد أي تعديل
   const [passages, { refetch }] = createResource(() =>
     getPassages(props.subjectId),
   );
   const [editingId, setEditingId] = createSignal<string | null>(null);
   const [editText, setEditText] = createSignal("");
+  const [savingId, setSavingId] = createSignal<string | null>(null); // ✅ تتبع أي مقالة يجري حفظها
 
   const startEdit = (p: PassageUI) => {
     setEditingId(p.$id);
@@ -602,15 +737,23 @@ function PassageManager(props: { subjectId: string }) {
 
   const saveEdit = async () => {
     if (!editingId()) return;
+    setSavingId(editingId());
     await updatePassage(editingId()!, editText());
+    setSavingId(null);
     setEditingId(null);
+    toast.success("تم حفظ المقالة");
     refetch();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذه المقالة؟ سيتم إلغاء ربطها بجميع الأسئلة."))
+    if (
+      !confirm(
+        "هل أنت متأكد من حذف هذه المقالة؟ سيتم إلغاء ربطها بجميع الأسئلة.",
+      )
+    )
       return;
     await deletePassage(id);
+    toast.success("تم حذف المقالة");
     refetch();
   };
 
@@ -631,12 +774,13 @@ function PassageManager(props: { subjectId: string }) {
         <For each={passages()}>
           {(p) => (
             <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 space-y-3">
-              {/* معرّف مختصر */}
-              <span class="text-[10px] font-mono text-slate-400">
-                {p.$id.slice(0, 8)}
-              </span>
+              {/* ✅ عرض رقم ترتيبي + ID */}
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-400">
+                  {p.$id.slice(0, 8)}
+                </span>
+              </div>
 
-              {/* عرض أو تعديل */}
               <Show
                 when={editingId() === p.$id}
                 fallback={
@@ -650,11 +794,10 @@ function PassageManager(props: { subjectId: string }) {
                   onInput={(e) => setEditText(e.currentTarget.value)}
                   rows={6}
                   dir="rtl"
-                  class="w-full rounded-xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white whitespace-pre-wrap"
+                  class="w-full rounded-xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
                 />
               </Show>
 
-              {/* أزرار */}
               <div class="flex gap-2 justify-end">
                 <Show when={editingId() === p.$id}>
                   <button
@@ -665,9 +808,10 @@ function PassageManager(props: { subjectId: string }) {
                   </button>
                   <button
                     onClick={saveEdit}
-                    class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white"
+                    disabled={savingId() === p.$id}
+                    class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
                   >
-                    حفظ ✏️
+                    {savingId() === p.$id ? "جاري الحفظ..." : "حفظ ✏️"}
                   </button>
                 </Show>
                 <Show when={editingId() !== p.$id}>
@@ -698,59 +842,129 @@ function PassageManager(props: { subjectId: string }) {
 export default function DevMode() {
   const params = useParams();
   const location = useLocation();
+
+  // 📌 LESSON 11: useSearchParams — قراءة وكتابة query string
+  // مثال: /dev/math?season=3&year=7
+  // [searchParams, setSearchParams] = useSearchParams()
+  // searchParams.season  ← قراءة (string أو undefined)
+  // setSearchParams({ season: "3" })  ← تغيير يحدث URL تلقائياً
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const isInFavorite = () => location.pathname.includes("favorite");
 
   const [page, setPage] = createSignal(0);
   const [mode, setMode] = createSignal<"smart" | "manual">("smart");
   const [showAdd, setShowAdd] = createSignal(false);
   const [editTarget, setEditTarget] = createSignal<QuestionUI | null>(null);
-  const [mainTab, setMainTab] = createSignal<"questions" | "passages">("questions");
+  const [mainTab, setMainTab] = createSignal<"questions" | "passages">(
+    "questions",
+  );
+
+  // ✅ فلاتر الفصل والسنة من URL (قراءة فقط — الكتابة عبر setSearchParams)
+  const filterSeasonId = () =>
+    searchParams.season ? Number(searchParams.season) : null;
+  const filterYearId = () =>
+    searchParams.year ? Number(searchParams.year) : null;
 
   const [sections] = createResource(() => getSections(params.subject));
 
-  const [data, { refetch }] = createResource(page, async (p) => {
-    const {
-      data: rows,
-      count,
-      error,
-    } = await supabase
-      .from("questions")
-      .select(
-        `*, season:sections!season_id(id,name,value),
-             year:sections!year_id(id,name,value)`,
-        { count: "exact" },
-      )
-      .eq("subject_id", params.subject)
-      .range(p * PAGE_SIZE, p * PAGE_SIZE + PAGE_SIZE - 1)
-      .order("created_at", { ascending: false });
+  // 📌 LESSON 12: createResource مع source مركب
+  // عندما نمرر دالة كـ source، يُعاد الجلب تلقائياً كلما تغيرت قيمتها.
+  // هنا نجمع page + filterSeasonId + filterYearId في object واحد
+  // أي تغيير في أي منها → يُعيد الجلب فوراً
+  const [data, { refetch }] = createResource(
+    () => ({
+      p: page(),
+      seasonId: filterSeasonId(),
+      yearId: filterYearId(),
+    }),
+    async ({ p, seasonId, yearId }) => {
+      let query = supabase
+        .from("questions")
+        .select(
+          `*, season:sections!season_id(id,name,value),
+               year:sections!year_id(id,name,value)`,
+          { count: "exact" },
+        )
+        .eq("subject_id", params.subject);
 
-    if (error) {
-      toast.error(error.message);
-      return { questions: [], total: 0, namesMap: new Map<string, string>() };
-    }
+      // ✅ تطبيق الفلاتر فقط إن وُجدت
+      if (seasonId) query = query.eq("season_id", seasonId);
+      if (yearId) query = query.eq("year_id", yearId);
 
-    const questions: QuestionUI[] = (rows ?? []).map((row: any) => ({
-      $id: row.id,
-      subject_id: row.subject_id,
-      season_id: row.season_id,
-      year_id: row.year_id,
-      question: row.question,
-      explanation: row.explanation,
-      options: row.options ?? [],
-      correctIndex: row.correct_index,
-      user_id: row.created_by,
-      seasonName: row.season?.name,
-      seasonValue: row.season?.value,
-      yearName: row.year?.name,
-      yearValue: row.year?.value,
-    }));
+      const { data: rows, count, error } = await query
+        .range(p * PAGE_SIZE, p * PAGE_SIZE + PAGE_SIZE - 1)
+        .order("created_at", { ascending: false });
 
-    // طلب واحد لكل الأسماء بدل طلب لكل card
-    const userIds = questions.map((q) => q.user_id).filter(Boolean) as string[];
-    const namesMap = await fetchUserNames(userIds);
+      if (error) {
+        toast.error(error.message);
+        return {
+          questions: [],
+          total: 0,
+          namesMap: new Map<string, string>(),
+          passagesMap: new Map<string, string>(),
+        };
+      }
 
-    return { questions, total: count ?? 0, namesMap };
-  });
+      const questions: QuestionUI[] = (rows ?? []).map((row: any) => ({
+        $id: row.id,
+        subject_id: row.subject_id,
+        season_id: row.season_id,
+        year_id: row.year_id,
+        question: row.question,
+        explanation: row.explanation,
+        options: row.options ?? [],
+        correctIndex: row.correct_index,
+        user_id: row.created_by,
+        passage_id: row.passage_id,
+        seasonName: row.season?.name,
+        seasonValue: row.season?.value,
+        yearName: row.year?.name,
+        yearValue: row.year?.value,
+      }));
+
+      const userIds = questions
+        .map((q) => q.user_id)
+        .filter(Boolean) as string[];
+      const namesMap = await fetchUserNames(userIds);
+
+      // ✅ جلب المقالات المرتبطة وبناء map للعرض السريع في الكاردات
+      const passageIds = [
+        ...new Set(questions.map((q) => q.passage_id).filter(Boolean)),
+      ] as string[];
+
+      const passagesMap = new Map<string, string>();
+      if (passageIds.length > 0) {
+        const { data: passageRows } = await supabase
+          .from("passages")
+          .select("id, content")
+          .in("id", passageIds);
+        (passageRows ?? []).forEach((r: any) =>
+          passagesMap.set(r.id, r.content),
+        );
+      }
+
+      return { questions, total: count ?? 0, namesMap, passagesMap };
+    },
+  );
+
+  // 📌 LESSON 13: createEffect
+  // يعمل مثل useEffect في React لكن بدون dependency array
+  // يكتشف تلقائياً ماذا يقرأ ويُعيد التشغيل عند التغيير
+  // هنا: كلما تغير الفلتر → نرجع للصفحة الأولى
+  // (بدون هذا قد تبقى في صفحة 5 بعد تغيير الفصل وتجد لا توجد نتائج)
+  //
+  // ملاحظة: لا نستخدم createEffect هنا لأن setSearchParams يُغير URL
+  // وتغيير URL يُعيد تشغيل الـ resource تلقائياً
+  // لكن نحتاج إعادة ضبط الصفحة عند تغيير الفلتر
+  // نستخدم createEffect لمراقبة filterSeasonId و filterYearId
+  //
+  // (uncomment if needed)
+  // createEffect(() => {
+  //   filterSeasonId();
+  //   filterYearId();
+  //   setPage(0);
+  // });
 
   const openEdit = (q: QuestionUI) => {
     setEditTarget(q);
@@ -771,13 +985,15 @@ export default function DevMode() {
         class="min-h-screen bg-[#f8fafc] px-5 pt-22 pb-10 dark:bg-[#0f172a]"
         dir="rtl"
       >
-        {/* Header */}
+        {/* ─── Header ─── */}
         <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between rounded-[2.5rem] bg-white/80 p-6 shadow-sm backdrop-blur-md dark:bg-slate-800/80">
           <div>
             <h1 class="text-2xl font-black text-slate-800 dark:text-white">
               إدارة المحتوى
             </h1>
-            <p class="text-sm text-slate-400">أسئلة المادة: {params.subject}</p>
+            <p class="text-sm text-slate-400">
+              أسئلة المادة: {params.subject}
+            </p>
           </div>
           <button
             onClick={() => {
@@ -794,7 +1010,85 @@ export default function DevMode() {
           </button>
         </div>
 
-        {/* Main Tab Switcher */}
+        {/* ─── فلاتر الفصل والسنة (من URL) ─── */}
+        <Show when={sections()}>
+          <div class="mx-auto mb-6 max-w-4xl">
+            <div class="rounded-[2rem] bg-white p-4 shadow-sm dark:bg-slate-800">
+              <p class="mb-3 text-xs font-bold text-slate-400">
+                🔍 تصفية الأسئلة
+              </p>
+              <div class="grid grid-cols-2 gap-3">
+                {/* فلتر الفصل */}
+                <div class="flex flex-col gap-1">
+                  <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    الفصل
+                  </label>
+                  <select
+                    class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                    onChange={(e) => {
+                      setPage(0);
+                      setSearchParams({
+                        season: e.currentTarget.value || undefined,
+                      });
+                    }}
+                  >
+                    <option value="">الكل</option>
+                    <For
+                      each={sections()?.filter((s) => s.type === "season")}
+                    >
+                      {(s) => (
+                        <option
+                          value={s.id}
+                          selected={filterSeasonId() === s.id}
+                        >
+                          {s.name}
+                        </option>
+                      )}
+                    </For>
+                  </select>
+                </div>
+                {/* فلتر السنة */}
+                <div class="flex flex-col gap-1">
+                  <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    السنة
+                  </label>
+                  <select
+                    class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                    onChange={(e) => {
+                      setPage(0);
+                      setSearchParams({
+                        year: e.currentTarget.value || undefined,
+                      });
+                    }}
+                  >
+                    <option value="">الكل</option>
+                    <For each={sections()?.filter((s) => s.type === "year")}>
+                      {(y) => (
+                        <option value={y.id} selected={filterYearId() === y.id}>
+                          {y.name}
+                        </option>
+                      )}
+                    </For>
+                  </select>
+                </div>
+              </div>
+              {/* ✅ زر إعادة ضبط الفلاتر */}
+              <Show when={filterSeasonId() || filterYearId()}>
+                <button
+                  onClick={() => {
+                    setPage(0);
+                    setSearchParams({ season: undefined, year: undefined });
+                  }}
+                  class="mt-2 text-xs text-red-400 underline"
+                >
+                  ✕ إلغاء الفلترة
+                </button>
+              </Show>
+            </div>
+          </div>
+        </Show>
+
+        {/* ─── Main Tab Switcher ─── */}
         <div class="mx-auto mb-6 flex max-w-4xl w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
           <button
             onClick={() => setMainTab("questions")}
@@ -816,107 +1110,120 @@ export default function DevMode() {
           </Show>
 
           <Show when={mainTab() === "questions"}>
-          {/* Form panel */}
-          <Show when={showAdd()}>
-            <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
-              <Show when={!editTarget()}>
-                <div class="mx-auto mb-8 flex w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
-                  <button
-                    onClick={() => setMode("smart")}
-                    class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
-                  >
-                    🚀 ذكي
-                  </button>
-                  <button
-                    onClick={() => setMode("manual")}
-                    class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-white text-fuchsia-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
-                  >
-                    ✍️ يدوي
-                  </button>
-                </div>
-              </Show>
+            {/* ─── Form panel ─── */}
+            <Show when={showAdd()}>
+              <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+                <Show when={!editTarget()}>
+                  <div class="mx-auto mb-8 flex w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+                    <button
+                      onClick={() => setMode("smart")}
+                      class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                    >
+                      🚀 ذكي
+                    </button>
+                    <button
+                      onClick={() => setMode("manual")}
+                      class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-white text-fuchsia-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                    >
+                      ✍️ يدوي
+                    </button>
+                  </div>
+                </Show>
 
-              <Switch>
-                <Match when={mode() === "smart" && !editTarget()}>
-                  <SmartImporter
-                    subjectId={params.subject}
-                    sections={sections() ?? []}
-                    onComplete={onFormComplete}
-                  />
-                </Match>
-                <Match when={mode() === "manual" || editTarget()}>
-                  <ManualForm
-                    subjectId={params.subject}
-                    sections={sections() ?? []}
-                    editQuestion={editTarget()}
-                    onComplete={onFormComplete}
-                  />
-                </Match>
-              </Switch>
-            </div>
-          </Show>
-
-          {/* List */}
-          <Suspense
-            fallback={
-              <div class="animate-bounce p-20 text-center text-slate-400">
-                جاري تحميل الأسئلة... 🧬
+                <Switch>
+                  <Match when={mode() === "smart" && !editTarget()}>
+                    <SmartImporter
+                      subjectId={params.subject}
+                      sections={sections() ?? []}
+                      onComplete={onFormComplete}
+                    />
+                  </Match>
+                  <Match when={mode() === "manual" || editTarget()}>
+                    <ManualForm
+                      subjectId={params.subject}
+                      sections={sections() ?? []}
+                      editQuestion={editTarget()}
+                      onComplete={onFormComplete}
+                    />
+                  </Match>
+                </Switch>
               </div>
-            }
-          >
-            <Show
-              when={(data()?.total ?? 0) > 0}
+            </Show>
+
+            {/* ─── قائمة الأسئلة ─── */}
+            <Suspense
               fallback={
-                <p class="py-20 text-center text-slate-400">
-                  لا توجد أسئلة بعد 🎯
-                </p>
+                <div class="animate-pulse p-20 text-center text-slate-400">
+                  جاري تحميل الأسئلة... 🧬
+                </div>
               }
             >
-              <p class="mb-4 text-sm text-slate-400">
-                إجمالي:{" "}
-                <span class="font-bold text-slate-600 dark:text-slate-300">
-                  {data()?.total}
-                </span>
-              </p>
+              <Show
+                when={(data()?.total ?? 0) > 0}
+                fallback={
+                  <p class="py-20 text-center text-slate-400">
+                    {filterSeasonId() || filterYearId()
+                      ? "لا توجد أسئلة لهذا الفلتر 🔍"
+                      : "لا توجد أسئلة بعد 🎯"}
+                  </p>
+                }
+              >
+                <p class="mb-4 text-sm text-slate-400">
+                  إجمالي:{" "}
+                  <span class="font-bold text-slate-600 dark:text-slate-300">
+                    {data()?.total}
+                  </span>
+                  <Show when={filterSeasonId() || filterYearId()}>
+                    <span class="mr-2 text-cyan-500">(مُفلترة)</span>
+                  </Show>
+                </p>
 
-              <div class="grid gap-4">
-                <For each={data()?.questions}>
-                  {(q) => (
-                    <QuestionCard
-                      question={q}
-                      subjectId={params.subject}
-                      namesMap={data()?.namesMap ?? new Map()}
-                      onRefetch={refetch}
-                      onEdit={openEdit}
-                    />
-                  )}
-                </For>
-              </div>
-
-              <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
-                <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
-                  <For
-                    each={Array.from({
-                      length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
-                    })}
-                  >
-                    {(_, i) => (
-                      <button
-                        onClick={() => setPage(i())}
-                        class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
-                          page() === i()
-                            ? "scale-110 bg-cyan-500 text-white"
-                            : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"
-                        }`}
-                      >
-                        {i() + 1}
-                      </button>
+                <div class="grid gap-4">
+                  <For each={data()?.questions}>
+                    {/* 📌 LESSON 14: i() في For هو الـ index (يبدأ من 0)
+                        نضيف page() * PAGE_SIZE لعرض الرقم الصحيح عبر الصفحات */}
+                    {(q, i) => (
+                      <QuestionCard
+                        question={q}
+                        index={page() * PAGE_SIZE + i() + 1}
+                        subjectId={params.subject}
+                        namesMap={data()?.namesMap ?? new Map()}
+                        passagesMap={data()?.passagesMap ?? new Map()}
+                        onRefetch={refetch}
+                        onEdit={openEdit}
+                      />
                     )}
                   </For>
                 </div>
+
+                {/* ─── Pagination ─── */}
+                <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
+                  <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
+                    <For
+                      each={Array.from({
+                        length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
+                      })}
+                    >
+                      {(_, i) => (
+                        <button
+                          onClick={() => {
+                            setPage(i());
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
+                            page() === i()
+                              ? "scale-110 bg-cyan-500 text-white"
+                              : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"
+                          }`}
+                        >
+                          {i() + 1}
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </Show>
               </Show>
-            </Show>
-          </Suspense>
+            </Suspense>
           </Show>
         </div>
       </div>
