@@ -11,6 +11,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@csstools/postcss-oklab-function": "^5.0.4",
     "@fontsource/cairo": "^5.2.6",
     "@fontsource/poppins": "^5.2.6",
     "@solid-primitives/media": "^2.3.3",

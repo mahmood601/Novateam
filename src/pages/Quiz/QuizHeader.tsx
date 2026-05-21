@@ -79,7 +79,7 @@ export default function QuizHeader(props: {
           userAnswer={props.userAnswer?.answerContent} /* ← optional chaining */
         />
 
-        <div class="text-secondary flex items-center gap-2 rounded-full bg-secondary/5 px-3 py-2">
+        <div class="text-secondary flex items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-2">
           <span>{formatTime()}</span>
           <button onClick={() => setIsPaused(!isPaused())}>
             <Show
