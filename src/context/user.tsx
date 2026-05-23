@@ -158,17 +158,19 @@ export function UserProvider(props: any) {
   };
 
   onMount(() => {
-    fetchUser();
+  fetchUser();
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        fetchUser();
-      } else {
-        setUser(null);
-        localStorage.removeItem("user");
-      }
-    });
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'TOKEN_REFRESHED') return;
+
+    if (session?.user) {
+      fetchUser();
+    } else {
+      setUser(null);
+      localStorage.removeItem("user");
+    }
   });
+});
 
   return (
     <UserContext.Provider
