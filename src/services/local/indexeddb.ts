@@ -385,13 +385,11 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
     let query = supabase
       .from("questions")
       .select(SELECT)
-      .select("*")
       .eq("subject_id", subject)
       .order("updated_at")
-      .limit(lastSync ? 500 : 200); // ✅ حد مؤقت للأول تشغيل
 
     if (lastSync) {
-      // query = query.gt("updated_at", lastSync);
+      query = query.gt("updated_at", lastSync);
     }
 
     const { data, error } = await query;

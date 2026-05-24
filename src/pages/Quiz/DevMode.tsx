@@ -39,6 +39,10 @@ function QuestionCard(props: {
   passagesMap: Map<string, string>; // ✅ إضافة: map للمقالات لعرض معاينتها
   onRefetch: () => void;
   onEdit: (q: QuestionUI) => void;
+  // ✅ ميزة التحديد المتعدد
+  isSelected: boolean;
+  onToggleSelect: (id: string) => void;
+  selectionMode: boolean;
 }) {
   // 📌 LESSON 3: createSignal داخل component
   // كل نسخة من QuestionCard لها signal خاص بها — لا تتداخل مع باقي الكاردات
@@ -74,17 +78,42 @@ function QuestionCard(props: {
 
   return (
     <div
-      onClick={() => setOpen(!open())}
-      class="cursor-pointer rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
+      onClick={() => {
+        if (props.selectionMode) {
+          props.onToggleSelect(props.question.$id);
+        } else {
+          setOpen(!open());
+        }
+      }}
+      class={`cursor-pointer rounded-[2rem] border p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-700 ${
+        props.isSelected
+          ? "border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20"
+          : "border-slate-100 bg-white dark:bg-slate-800"
+      }`}
     >
       {/* ─── Meta row ─── */}
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
 
-        {/* ✅ رقم السؤال + ID */}
+        {/* ✅ رقم السؤال + ID + checkbox في وضع التحديد */}
         <div class="flex items-center gap-2">
-          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-black text-white shadow">
-            {props.index}
-          </span>
+          <Show
+            when={props.selectionMode}
+            fallback={
+              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500 text-[10px] font-black text-white shadow">
+                {props.index}
+              </span>
+            }
+          >
+            <span
+              class={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-black transition-all ${
+                props.isSelected
+                  ? "border-cyan-500 bg-cyan-500 text-white"
+                  : "border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700"
+              }`}
+            >
+              {props.isSelected ? "✓" : props.index}
+            </span>
+          </Show>
           <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500 dark:bg-slate-700">
             {props.question.$id.slice(0, 8)}
           </span>
@@ -335,7 +364,7 @@ function SmartImporter(props: {
       }
     }
 
-    const questions = questionBlocks.map((block) => {
+    const questions = questionBlocks.map((block, blockIndex) => {
       const blockLines = block.text.split(/\n(?=[=+!])/g);
       const question = blockLines[0].trim();
       const optionLines = blockLines.filter(
@@ -361,23 +390,37 @@ function SmartImporter(props: {
         options,
         correct_index,
         passage_id,
+        // ✅ إصلاح: حفظ الترتيب الأصلي — Supabase bulk insert لا يضمن الترتيب
+        sort_order: blockIndex,
       };
     });
 
-    // 📌 LESSON 6: هذا هو "bulk mutation" — إدخال جماعي
-    // supabase.from(...).insert(array) يرسل كل الأسئلة في طلب واحد
-    // أفضل من for loop مع await لكل سؤال (أسرع وأقل أخطاء)
-    const { error } = await supabase.from("questions").insert(questions);
-    setLoading(false);
+    // ✅ إصلاح الترتيب: إدخال تسلسلي بدلاً من bulk
+    // supabase.insert(array) لا يضمن ترتيب الصفوف في قاعدة البيانات
+    // الإدخال التسلسلي أبطأ لكن يضمن أن created_at يعكس الترتيب الحقيقي
+    let successCount = 0;
+    let failCount = 0;
 
-    if (error) {
-      toast.error("خطأ في الرفع: " + error.message);
-      return;
+    for (const q of questions) {
+      const { error: qErr } = await supabase.from("questions").insert(q);
+      if (qErr) {
+        failCount++;
+        console.error("فشل رفع سؤال:", qErr.message);
+      } else {
+        successCount++;
+      }
     }
 
-    toast.success(`تم رفع ${questions.length} سؤال 🎉`);
-    setRawText("");
-    props.onComplete();
+    setLoading(false);
+
+    if (failCount > 0) {
+      toast.error(`فشل رفع ${failCount} سؤال من أصل ${questions.length}`);
+    }
+    if (successCount > 0) {
+      toast.success(`تم رفع ${successCount} سؤال بالترتيب 🎉`);
+      setRawText("");
+      props.onComplete();
+    }
   };
 
   return (
@@ -837,6 +880,150 @@ function PassageManager(props: { subjectId: string }) {
   );
 }
 
+// ─── BulkActionBar ────────────────────────────────────────────────────────────
+
+function BulkActionBar(props: {
+  selectedIds: Set<string>;
+  sections: Section[];
+  subjectId: string;
+  onClear: () => void;
+  onComplete: () => void;
+}) {
+  const [moving, setMoving] = createSignal(false);
+  const [targetSeasonId, setTargetSeasonId] = createSignal<number | null>(null);
+  const [targetYearId, setTargetYearId] = createSignal<number | null>(null);
+  const [showPanel, setShowPanel] = createSignal(false);
+
+  const count = () => props.selectedIds.size;
+
+  const handleMove = async () => {
+    if (!targetSeasonId() && !targetYearId()) {
+      toast.error("اختر فصلاً أو سنة للنقل إليها");
+      return;
+    }
+
+    setMoving(true);
+    const ids = [...props.selectedIds];
+    const updates: any = {};
+    if (targetSeasonId()) updates.season_id = targetSeasonId();
+    if (targetYearId()) updates.year_id = targetYearId();
+
+    // نقل الأسئلة المحددة
+    const { error } = await supabase
+      .from("questions")
+      .update(updates)
+      .in("id", ids);
+
+    setMoving(false);
+
+    if (error) {
+      toast.error("فشل النقل: " + error.message);
+      return;
+    }
+
+    toast.success(`تم نقل ${count()} سؤال ✅`);
+    props.onClear();
+    props.onComplete();
+    setShowPanel(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`هل تريد حذف ${count()} سؤال محدد؟ لا يمكن التراجع!`)) return;
+
+    setMoving(true);
+    const ids = [...props.selectedIds];
+    const { error } = await supabase
+      .from("questions")
+      .delete()
+      .in("id", ids);
+
+    setMoving(false);
+
+    if (error) {
+      toast.error("فشل الحذف: " + error.message);
+      return;
+    }
+
+    toast.success(`تم حذف ${count()} سؤال 🗑️`);
+    props.onClear();
+    props.onComplete();
+  };
+
+  return (
+    <div class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg" dir="rtl">
+      {/* ─── شريط الإجراءات ─── */}
+      <div class="rounded-[2rem] bg-slate-900 p-4 shadow-2xl text-white flex items-center gap-3">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-sm font-black">
+          {count()}
+        </span>
+        <span class="flex-1 text-sm font-bold">سؤال محدد</span>
+
+        <button
+          onClick={() => setShowPanel(!showPanel())}
+          class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold hover:bg-cyan-400 transition"
+        >
+          نقل 📦
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={moving()}
+          class="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold hover:bg-red-400 transition disabled:opacity-50"
+        >
+          حذف 🗑️
+        </button>
+        <button
+          onClick={props.onClear}
+          class="rounded-xl bg-slate-700 px-3 py-2 text-sm font-bold hover:bg-slate-600 transition"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* ─── لوحة النقل ─── */}
+      <Show when={showPanel()}>
+        <div class="mt-2 rounded-[2rem] bg-white p-5 shadow-2xl dark:bg-slate-800">
+          <p class="mb-3 text-sm font-bold text-slate-600 dark:text-slate-300">
+            نقل {count()} سؤال إلى:
+          </p>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-bold text-slate-500">الفصل</label>
+              <select
+                class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                onChange={(e) => setTargetSeasonId(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+              >
+                <option value="">بدون تغيير</option>
+                <For each={props.sections.filter((s) => s.type === "season")}>
+                  {(s) => <option value={s.id}>{s.name}</option>}
+                </For>
+              </select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-bold text-slate-500">السنة</label>
+              <select
+                class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                onChange={(e) => setTargetYearId(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+              >
+                <option value="">بدون تغيير</option>
+                <For each={props.sections.filter((s) => s.type === "year")}>
+                  {(y) => <option value={y.id}>{y.name}</option>}
+                </For>
+              </select>
+            </div>
+          </div>
+          <button
+            onClick={handleMove}
+            disabled={moving() || (!targetSeasonId() && !targetYearId())}
+            class="w-full rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 py-3 font-black text-white shadow-lg transition disabled:opacity-50"
+          >
+            {moving() ? "جاري النقل..." : `نقل ${count()} سؤال ✅`}
+          </button>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
 // ─── DevMode — main ───────────────────────────────────────────────────────────
 
 export default function DevMode() {
@@ -859,6 +1046,45 @@ export default function DevMode() {
   const [mainTab, setMainTab] = createSignal<"questions" | "passages">(
     "questions",
   );
+
+  // ✅ ميزة التحديد المتعدد — Set يحتفظ بالـ IDs المحددة عبر الصفحات
+  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = createSignal(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      // إذا أصبح الـ Set فارغاً اخرج من وضع التحديد
+      if (next.size === 0) setSelectionMode(false);
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  };
+
+  // تحديد/إلغاء تحديد كل أسئلة الصفحة الحالية
+  const toggleSelectAll = () => {
+    const currentIds = data()?.questions.map((q) => q.$id) ?? [];
+    const allSelected = currentIds.every((id) => selectedIds().has(id));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        currentIds.forEach((id) => next.delete(id));
+        if (next.size === 0) setSelectionMode(false);
+      } else {
+        currentIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
 
   // ✅ فلاتر الفصل والسنة من URL (قراءة فقط — الكتابة عبر setSearchParams)
   const filterSeasonId = () =>
@@ -995,19 +1221,39 @@ export default function DevMode() {
               أسئلة المادة: {params.subject}
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditTarget(null);
-              setShowAdd(!showAdd());
-            }}
-            class={`flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-lg transition-all ${
-              showAdd()
-                ? "rotate-45 bg-slate-800"
-                : "bg-gradient-to-tr from-cyan-400 to-fuchsia-500"
-            }`}
-          >
-            +
-          </button>
+          <div class="flex items-center gap-2">
+            {/* ✅ زر وضع التحديد المتعدد */}
+            <button
+              onClick={() => {
+                if (selectionMode()) {
+                  clearSelection();
+                } else {
+                  setSelectionMode(true);
+                }
+              }}
+              class={`flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all ${
+                selectionMode()
+                  ? "bg-cyan-500 text-white shadow-lg"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
+              }`}
+              title={selectionMode() ? "إلغاء وضع التحديد" : "تحديد متعدد"}
+            >
+              {selectionMode() ? "✕" : "☑"}
+            </button>
+            <button
+              onClick={() => {
+                setEditTarget(null);
+                setShowAdd(!showAdd());
+              }}
+              class={`flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-lg transition-all ${
+                showAdd()
+                  ? "rotate-45 bg-slate-800"
+                  : "bg-gradient-to-tr from-cyan-400 to-fuchsia-500"
+              }`}
+            >
+              +
+            </button>
+          </div>
         </div>
 
         {/* ─── فلاتر الفصل والسنة (من URL) ─── */}
@@ -1176,6 +1422,22 @@ export default function DevMode() {
                   <Show when={filterSeasonId() || filterYearId()}>
                     <span class="mr-2 text-cyan-500">(مُفلترة)</span>
                   </Show>
+                  {/* ✅ زر تحديد كل الصفحة في وضع التحديد */}
+                  <Show when={selectionMode()}>
+                    <button
+                      onClick={toggleSelectAll}
+                      class="mr-3 text-xs text-cyan-600 underline font-bold"
+                    >
+                      {(data()?.questions ?? []).every((q) => selectedIds().has(q.$id))
+                        ? "إلغاء تحديد الصفحة"
+                        : `تحديد الصفحة (${data()?.questions.length})`}
+                    </button>
+                    <Show when={selectedIds().size > 0}>
+                      <span class="mr-1 text-xs font-bold text-cyan-700">
+                        — {selectedIds().size} محدد إجمالاً
+                      </span>
+                    </Show>
+                  </Show>
                 </p>
 
                 <div class="grid gap-4">
@@ -1191,6 +1453,9 @@ export default function DevMode() {
                         passagesMap={data()?.passagesMap ?? new Map()}
                         onRefetch={refetch}
                         onEdit={openEdit}
+                        isSelected={selectedIds().has(q.$id)}
+                        onToggleSelect={toggleSelect}
+                        selectionMode={selectionMode()}
                       />
                     )}
                   </For>
@@ -1227,6 +1492,20 @@ export default function DevMode() {
           </Show>
         </div>
       </div>
+
+      {/* ✅ شريط الإجراءات الجماعية — يظهر فقط عند تحديد أسئلة */}
+      <Show when={selectedIds().size > 0}>
+        <BulkActionBar
+          selectedIds={selectedIds()}
+          sections={sections() ?? []}
+          subjectId={params.subject}
+          onClear={clearSelection}
+          onComplete={() => {
+            clearSelection();
+            refetch();
+          }}
+        />
+      </Show>
     </Show>
   );
 }

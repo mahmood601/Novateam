@@ -11,6 +11,7 @@ import {
   ensureUserExists,
   updateUserProfile,
 } from "../services/user";
+import { json } from "@solidjs/router";
 
 type User = {
   id: string;
@@ -39,8 +40,9 @@ export function useUser() {
 }
 
 export function UserProvider(props: any) {
-  const [user, setUser] = createSignal<User | null>(null);
-  const [isLoading, setIsLoading] = createSignal(true);
+  const cached = localStorage.getItem("user")
+  const [user, setUser] = createSignal<User | null>(cached? JSON.parse(cached) : null);
+  const [isLoading, setIsLoading] = createSignal(false);
 
   const updateProfile = async (updates: {
     name?: string;

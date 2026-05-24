@@ -6,22 +6,16 @@ import NormalMode from "./NormalMode";
 import Loading from "../../components/loading";
 
 export default function Quiz() {
-const {user, isLoading } = useUser();
+  const { user } = useUser();
   return (
     <Suspense>
       <Switch>
-        <Match when={isLoading()}>
-          <Loading/>
-        </Match>
-        <Match when={!isLoading() && account.devMode && user()?.role === "admin"  }>
+        <Match when={account.devMode && user()?.role === "admin"}>
           <DevMode />
         </Match>
-        <Match when={!isLoading() && !account.devMode}>
+        <Match when={true}>
           <NormalMode />
-          </Match>
-          <Match when={!isLoading() && user()?.role == "admin" && !account.devMode}>
-          <NormalMode />
-          </Match>
+        </Match>
       </Switch>
     </Suspense>
   );

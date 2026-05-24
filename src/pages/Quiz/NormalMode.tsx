@@ -19,6 +19,7 @@ import {
 import { useAudio } from "../../hooks/useAudio";
 import { unwrap } from "solid-js/store";
 import { quizType } from "../../stores/quizType";
+// unwrap مستخدم في useBeforeLeave أدناه
 import QuizHeader from "./QuizHeader";
 import { quizState, resetQuizState, setQuizState } from "./quizStore";
 import QuizBox from "./QuizBox";
@@ -46,26 +47,34 @@ export default function NormalMode() {
   const SESSION_KEY = `quiz_index_${subject}_${sectionType}_${sectionId}`;
 
   onMount(() => {
-    resetQuizState();
-    // استعادة الموضع عند إعادة التحميل
+    // ✅ إصلاح: نستعيد الموضع المحفوظ أولاً قبل reset
+    // resetQuizState كانت تمسح index=0 ثم تُعاد الكتابة صح، لكن
+    // المشكلة أن createResource يبدأ بـ loading وعندما ينتهي يُعيد الـ render
+    // فتبدو كأن الصفحة أعادت التحميل. الحل: نحفظ الـ saved ونُطبقه بعد reset.
     const saved = parseInt(sessionStorage.getItem(SESSION_KEY) ?? "0");
+    
+    resetQuizState();
+    
+    // استعادة الموضع المحفوظ (يتجاوز index=0 الذي يضعه resetQuizState)
     if (saved > 0) setQuizState("index", saved);
    
-    const answers = getQuestionsOrAnswersWithFilter(
-      subject,
-      "answers",
-      sectionType,
-      sectionId,
-    );
-    answers.then((ans) => {
-      if (quizType() === "continue" && ans.length > 0) {
-        const lastAnswer = ans[ans.length - 1];
-        const lastIndex = unwrap(quizState).index;
-        const nextIndex = lastIndex + 1;
-        setQuizState("index", nextIndex);
-      }
+    // في وضع "continue" فقط: نقفز للسؤال غير المجاب
+    if (quizType() === "continue") {
+      getQuestionsOrAnswersWithFilter(
+        subject,
+        "answers",
+        sectionType,
+        sectionId,
+      ).then((ans) => {
+        // نتجاهل إذا كان المستخدم قد استأنف يدوياً من sessionStorage
+        if (saved > 0) return;
+        if (ans.length > 0) {
+          const nextIndex = ans.length; // أول سؤال لم يُجب عنه
+          setQuizState("index", nextIndex);
+        }
+      });
+    }
   });
-})
 
   // حفظ الموضع عند كل تغيير
   createEffect(() => {
