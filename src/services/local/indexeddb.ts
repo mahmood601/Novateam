@@ -382,24 +382,70 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
       year:sections!year_id(id,name,value)
     `;
 
-    let query = supabase
+    // ─── Incremental sync (أسرع) ─────────────────────────────────────────
+    // إذا كان هناك lastSync نجلب فقط ما تغيّر + نتحقق من المحذوفات
+    if (lastSync) {
+      // 1. جلب المُعدَّلة/الجديدة منذ آخر sync
+      const { data: updated, error: updErr } = await supabase
+        .from("questions")
+        .select(SELECT)
+        .eq("subject_id", subject)
+        .gt("updated_at", lastSync)
+        .order("updated_at");
+
+      if (!updErr && updated && updated.length > 0) {
+        const mapped = updated.map((row: any) => toQuestion(row, subject));
+        await db.questions.bulkPut(mapped);
+      }
+
+      // 2. جلب كل IDs الموجودة في Supabase لهذه المادة
+      const { data: remoteIds, error: idsErr } = await supabase
+        .from("questions")
+        .select("id")
+        .eq("subject_id", subject);
+
+      if (!idsErr && remoteIds) {
+        const remoteSet = new Set(remoteIds.map((r: any) => r.id));
+
+        // 3. جلب IDs المحفوظة محلياً لنفس المادة
+        const localQuestions = await db.questions
+          .where("subject")
+          .equals(subject)
+          .toArray();
+
+        // 4. حذف أي سؤال موجود محلياً لكن غير موجود في Supabase
+        const toDelete = localQuestions
+          .filter((q) => !remoteSet.has(q.$id))
+          .map((q) => q.$id);
+
+        if (toDelete.length > 0) {
+          await db.questions.bulkDelete(toDelete);
+          console.log(`🗑️ حُذف ${toDelete.length} سؤال من IndexedDB (غير موجود في Supabase)`);
+        }
+      }
+
+      saveLastSync(subject);
+      return true;
+    }
+
+    // ─── Full sync (أول تشغيل) ───────────────────────────────────────────
+    const { data, error } = await supabase
       .from("questions")
       .select(SELECT)
       .eq("subject_id", subject)
-      .order("updated_at")
+      .order("updated_at");
 
-    if (lastSync) {
-      query = query.gt("updated_at", lastSync);
-    }
-
-    const { data, error } = await query;
-
-    if (error || !data || data.length === 0) return false;
+    if (error || !data) return false;
 
     const questions = data.map((row: any) => toQuestion(row, subject));
-    await db.questions.bulkPut(questions);
-    saveLastSync(subject);
 
+    // استبدال كامل: نحذف القديم ونُدخل الجديد دفعة واحدة
+    await db.questions.where("subject").equals(subject).delete();
+    if (questions.length > 0) {
+      await db.questions.bulkPut(questions);
+    }
+
+    saveLastSync(subject);
     return true;
   } catch {
     return false;
