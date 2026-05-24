@@ -33,7 +33,7 @@ const PAGE_SIZE = 10;
 
 function QuestionCard(props: {
   question: QuestionUI;
-  index: number;                    // ✅ إضافة: رقم السؤال في القائمة
+  index: number; // ✅ إضافة: رقم السؤال في القائمة
   subjectId: string;
   namesMap: Map<string, string>;
   passagesMap: Map<string, string>; // ✅ إضافة: map للمقالات لعرض معاينتها
@@ -93,7 +93,6 @@ function QuestionCard(props: {
     >
       {/* ─── Meta row ─── */}
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-
         {/* ✅ رقم السؤال + ID + checkbox في وضع التحديد */}
         <div class="flex items-center gap-2">
           <Show
@@ -345,13 +344,15 @@ function SmartImporter(props: {
     }
     flushQuestion();
 
+    
     if (questionBlocks.length === 0) {
       toast.error("لم يتم العثور على أسئلة في النص");
       setLoading(false);
+      console.log("[SmartImporter] No questions found");
       return;
     }
 
-    // رفع المقالات أولاً مع dedup
+    // رفع المقالات أولاً
     const passageCache = new Map<string, string>();
     for (const block of questionBlocks) {
       if (block.passageText && !passageCache.has(block.passageText)) {
@@ -381,7 +382,7 @@ function SmartImporter(props: {
         ? (passageCache.get(block.passageText) ?? null)
         : null;
 
-      return {
+      const qObj = {
         subject_id: props.subjectId,
         season_id: seasonId(),
         year_id: yearId(),
@@ -390,14 +391,98 @@ function SmartImporter(props: {
         options,
         correct_index,
         passage_id,
-        // ✅ إصلاح: حفظ الترتيب الأصلي — Supabase bulk insert لا يضمن الترتيب
-        sort_order: blockIndex,
       };
+      return qObj;
     });
 
-    // ✅ إصلاح الترتيب: إدخال تسلسلي بدلاً من bulk
-    // supabase.insert(array) لا يضمن ترتيب الصفوف في قاعدة البيانات
-    // الإدخال التسلسلي أبطأ لكن يضمن أن created_at يعكس الترتيب الحقيقي
+    // ─── Progress Toast ───────────────────────────────────────────────────────
+    // نُنشئ الـ signals خارج JSX حتى نتحكم بها من داخل الـ loop
+    const [current, setCurrent] = createSignal(0);
+    const [failed, setFailed] = createSignal(0);
+    const total = questions.length;
+
+    const toastId = toast.custom(
+      () => {
+        const pct = () => Math.round((current() / total) * 100);
+        const isDone = () => current() + failed() >= total;
+
+        return (
+          <div
+            dir="rtl"
+            style={{
+              background: "white",
+              border: "1px solid #e2e8f0",
+              "border-radius": "1.5rem",
+              padding: "1rem 1.25rem",
+              "min-width": "260px",
+              "box-shadow": "0 4px 24px rgba(0,0,0,0.10)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                "justify-content": "space-between",
+                "margin-bottom": "0.5rem",
+              }}
+            >
+              <span
+                style={{
+                  "font-size": "0.85rem",
+                  "font-weight": "bold",
+                  color: "#1e293b",
+                }}
+              >
+                رفع الأسئلة 🚀
+              </span>
+              <span style={{ "font-size": "0.85rem", color: "#64748b" }}>
+                {current()}/{total}
+              </span>
+            </div>
+            <div
+              style={{
+                height: "8px",
+                background: "#e2e8f0",
+                "border-radius": "999px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${pct()}%`,
+                  background: isDone()
+                    ? failed() > 0
+                      ? "#f97316"
+                      : "#22c55e"
+                    : "linear-gradient(90deg, #06b6d4, #8b5cf6)",
+                  "border-radius": "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+
+            <p
+              style={{
+                "margin-top": "0.4rem",
+                "font-size": "0.75rem",
+                color: "#94a3b8",
+                "text-align": "right",
+              }}
+            >
+              {isDone()
+                ? failed() > 0
+                  ? ` ✅ ${current()} نجح · ❌ ${failed()} فشل`
+                  : "✅ اكتمل بنجاح!"
+                : "⏳ جاري الرفع..."}
+            </p>
+          </div>
+        );
+      },
+      { duration: Infinity, unmountDelay: 0 },
+    );
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // رفع تسلسلي مع تحديث البروجرس بعد كل سؤال
     let successCount = 0;
     let failCount = 0;
 
@@ -405,19 +490,19 @@ function SmartImporter(props: {
       const { error: qErr } = await supabase.from("questions").insert(q);
       if (qErr) {
         failCount++;
-        console.error("فشل رفع سؤال:", qErr.message);
+        setFailed(failCount);
       } else {
         successCount++;
+        setCurrent(successCount);
       }
     }
 
+    // أغلق الـ toast بعد ثانيتين من الاكتمال
+    setTimeout(() => toast.dismiss(toastId), 2000);
+
     setLoading(false);
 
-    if (failCount > 0) {
-      toast.error(`فشل رفع ${failCount} سؤال من أصل ${questions.length}`);
-    }
     if (successCount > 0) {
-      toast.success(`تم رفع ${successCount} سؤال بالترتيب 🎉`);
       setRawText("");
       props.onComplete();
     }
@@ -432,10 +517,10 @@ function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
-      <div class="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500 dark:bg-slate-900 space-y-1 leading-relaxed">
+      <div class="space-y-1 rounded-2xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-500 dark:bg-slate-900">
         <p>
-          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة
-          ← تفعيل مقالة للأسئلة التالية
+          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ←
+          تفعيل مقالة للأسئلة التالية
         </p>
         <p>
           <span class="font-mono font-bold text-slate-800 dark:text-slate-200">
@@ -446,8 +531,7 @@ function SmartImporter(props: {
         <p>
           <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
           &nbsp;
-          <span class="font-mono font-bold text-green-600">+</span> صحيح
-          &nbsp;
+          <span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;
           <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
           <span class="font-mono font-bold text-amber-500">!</span> شرح
         </p>
@@ -656,7 +740,7 @@ function ManualForm(props: {
                 placeholder={`الخيار ${i() + 1}${i() < 2 ? " *" : ""}`}
                 required={i() < 2}
                 dir="rtl"
-                class="flex flex-1 min-w-0 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                class="flex min-w-0 flex-1 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
               />
               <Show when={i() >= 2}>
                 <button
@@ -685,7 +769,7 @@ function ManualForm(props: {
       </div>
 
       {/* ─── ربط مقالة ─── */}
-      <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3 dark:border-slate-700 dark:bg-slate-900">
+      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
         <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
           🗒️ مقالة (اختياري)
         </p>
@@ -699,8 +783,8 @@ function ManualForm(props: {
             <For each={passages() ?? []}>
               {(p) => (
                 <option value={p.$id} selected={passageId() === p.$id}>
-                  {/* ✅ عرض ID مختصر + معاينة أوضح */}
-                  [{p.$id.slice(0, 6)}] {p.content.slice(0, 50)}...
+                  {/* ✅ عرض ID مختصر + معاينة أوضح */}[{p.$id.slice(0, 6)}]{" "}
+                  {p.content.slice(0, 50)}...
                 </option>
               )}
             </For>
@@ -708,7 +792,10 @@ function ManualForm(props: {
 
           {/* ✅ معاينة المقالة المحددة */}
           <Show when={selectedPassageContent()}>
-            <div class="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-700 dark:bg-amber-900/20 dark:text-amber-300" dir="rtl">
+            <div
+              class="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+              dir="rtl"
+            >
               <p class="mb-1 font-bold">📖 المقالة المحددة:</p>
               <p class="line-clamp-4 whitespace-pre-wrap">
                 {selectedPassageContent()}
@@ -816,10 +903,10 @@ function PassageManager(props: { subjectId: string }) {
         </p>
         <For each={passages()}>
           {(p) => (
-            <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 space-y-3">
+            <div class="space-y-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
               {/* ✅ عرض رقم ترتيبي + ID */}
               <div class="flex items-center gap-2">
-                <span class="text-[10px] font-mono text-slate-400">
+                <span class="font-mono text-[10px] text-slate-400">
                   {p.$id.slice(0, 8)}
                 </span>
               </div>
@@ -827,7 +914,7 @@ function PassageManager(props: { subjectId: string }) {
               <Show
                 when={editingId() === p.$id}
                 fallback={
-                  <p class="whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                  <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-200">
                     {p.content}
                   </p>
                 }
@@ -841,7 +928,7 @@ function PassageManager(props: { subjectId: string }) {
                 />
               </Show>
 
-              <div class="flex gap-2 justify-end">
+              <div class="flex justify-end gap-2">
                 <Show when={editingId() === p.$id}>
                   <button
                     onClick={() => setEditingId(null)}
@@ -932,10 +1019,7 @@ function BulkActionBar(props: {
 
     setMoving(true);
     const ids = [...props.selectedIds];
-    const { error } = await supabase
-      .from("questions")
-      .delete()
-      .in("id", ids);
+    const { error } = await supabase.from("questions").delete().in("id", ids);
 
     setMoving(false);
 
@@ -950,9 +1034,12 @@ function BulkActionBar(props: {
   };
 
   return (
-    <div class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg" dir="rtl">
+    <div
+      class="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2"
+      dir="rtl"
+    >
       {/* ─── شريط الإجراءات ─── */}
-      <div class="rounded-[2rem] bg-slate-900 p-4 shadow-2xl text-white flex items-center gap-3">
+      <div class="flex items-center gap-3 rounded-[2rem] bg-slate-900 p-4 text-white shadow-2xl">
         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-sm font-black">
           {count()}
         </span>
@@ -960,20 +1047,20 @@ function BulkActionBar(props: {
 
         <button
           onClick={() => setShowPanel(!showPanel())}
-          class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold hover:bg-cyan-400 transition"
+          class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold transition hover:bg-cyan-400"
         >
           نقل 📦
         </button>
         <button
           onClick={handleDelete}
           disabled={moving()}
-          class="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold hover:bg-red-400 transition disabled:opacity-50"
+          class="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold transition hover:bg-red-400 disabled:opacity-50"
         >
           حذف 🗑️
         </button>
         <button
           onClick={props.onClear}
-          class="rounded-xl bg-slate-700 px-3 py-2 text-sm font-bold hover:bg-slate-600 transition"
+          class="rounded-xl bg-slate-700 px-3 py-2 text-sm font-bold transition hover:bg-slate-600"
         >
           ✕
         </button>
@@ -985,12 +1072,18 @@ function BulkActionBar(props: {
           <p class="mb-3 text-sm font-bold text-slate-600 dark:text-slate-300">
             نقل {count()} سؤال إلى:
           </p>
-          <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="mb-4 grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
               <label class="text-xs font-bold text-slate-500">الفصل</label>
               <select
                 class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
-                onChange={(e) => setTargetSeasonId(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+                onChange={(e) =>
+                  setTargetSeasonId(
+                    e.currentTarget.value
+                      ? Number(e.currentTarget.value)
+                      : null,
+                  )
+                }
               >
                 <option value="">بدون تغيير</option>
                 <For each={props.sections.filter((s) => s.type === "season")}>
@@ -1002,7 +1095,13 @@ function BulkActionBar(props: {
               <label class="text-xs font-bold text-slate-500">السنة</label>
               <select
                 class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
-                onChange={(e) => setTargetYearId(e.currentTarget.value ? Number(e.currentTarget.value) : null)}
+                onChange={(e) =>
+                  setTargetYearId(
+                    e.currentTarget.value
+                      ? Number(e.currentTarget.value)
+                      : null,
+                  )
+                }
               >
                 <option value="">بدون تغيير</option>
                 <For each={props.sections.filter((s) => s.type === "year")}>
@@ -1048,7 +1147,7 @@ export default function DevMode() {
   );
 
   // ✅ ميزة التحديد المتعدد — Set يحتفظ بالـ IDs المحددة عبر الصفحات
-  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(new Set<string>());
   const [selectionMode, setSelectionMode] = createSignal(false);
 
   const toggleSelect = (id: string) => {
@@ -1066,7 +1165,7 @@ export default function DevMode() {
   };
 
   const clearSelection = () => {
-    setSelectedIds(new Set());
+    setSelectedIds(new Set<string>());
     setSelectionMode(false);
   };
 
@@ -1118,7 +1217,11 @@ export default function DevMode() {
       if (seasonId) query = query.eq("season_id", seasonId);
       if (yearId) query = query.eq("year_id", yearId);
 
-      const { data: rows, count, error } = await query
+      const {
+        data: rows,
+        count,
+        error,
+      } = await query
         .range(p * PAGE_SIZE, p * PAGE_SIZE + PAGE_SIZE - 1)
         .order("created_at", { ascending: false });
 
@@ -1217,9 +1320,7 @@ export default function DevMode() {
             <h1 class="text-2xl font-black text-slate-800 dark:text-white">
               إدارة المحتوى
             </h1>
-            <p class="text-sm text-slate-400">
-              أسئلة المادة: {params.subject}
-            </p>
+            <p class="text-sm text-slate-400">أسئلة المادة: {params.subject}</p>
           </div>
           <div class="flex items-center gap-2">
             {/* ✅ زر وضع التحديد المتعدد */}
@@ -1279,9 +1380,7 @@ export default function DevMode() {
                     }}
                   >
                     <option value="">الكل</option>
-                    <For
-                      each={sections()?.filter((s) => s.type === "season")}
-                    >
+                    <For each={sections()?.filter((s) => s.type === "season")}>
                       {(s) => (
                         <option
                           value={s.id}
@@ -1335,16 +1434,16 @@ export default function DevMode() {
         </Show>
 
         {/* ─── Main Tab Switcher ─── */}
-        <div class="mx-auto mb-6 flex max-w-4xl w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+        <div class="mx-auto mb-6 flex w-fit max-w-4xl rounded-full bg-slate-100 p-1 dark:bg-slate-900">
           <button
             onClick={() => setMainTab("questions")}
-            class={`rounded-full px-6 py-2 font-bold transition-all text-sm ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+            class={`rounded-full px-6 py-2 text-sm font-bold transition-all ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
           >
             📋 الأسئلة
           </button>
           <button
             onClick={() => setMainTab("passages")}
-            class={`rounded-full px-6 py-2 font-bold transition-all text-sm ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+            class={`rounded-full px-6 py-2 text-sm font-bold transition-all ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
           >
             🗒️ المقالات
           </button>
@@ -1426,9 +1525,11 @@ export default function DevMode() {
                   <Show when={selectionMode()}>
                     <button
                       onClick={toggleSelectAll}
-                      class="mr-3 text-xs text-cyan-600 underline font-bold"
+                      class="mr-3 text-xs font-bold text-cyan-600 underline"
                     >
-                      {(data()?.questions ?? []).every((q) => selectedIds().has(q.$id))
+                      {(data()?.questions ?? []).every((q) =>
+                        selectedIds().has(q.$id),
+                      )
                         ? "إلغاء تحديد الصفحة"
                         : `تحديد الصفحة (${data()?.questions.length})`}
                     </button>
@@ -1463,7 +1564,7 @@ export default function DevMode() {
 
                 {/* ─── Pagination ─── */}
                 <Show when={(data()?.total ?? 0) > PAGE_SIZE}>
-                  <div class="mt-12 flex justify-center gap-2 pb-12 flex-wrap">
+                  <div class="mt-12 flex flex-wrap justify-center gap-2 pb-12">
                     <For
                       each={Array.from({
                         length: Math.ceil((data()?.total ?? 0) / PAGE_SIZE),
@@ -1475,7 +1576,7 @@ export default function DevMode() {
                             setPage(i());
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          class={`p-1 text-sm h-8 w-8 rounded-full font-bold transition-all ${
+                          class={`h-8 w-8 rounded-full p-1 text-sm font-bold transition-all ${
                             page() === i()
                               ? "scale-110 bg-cyan-500 text-white"
                               : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"
