@@ -73,7 +73,7 @@ export default function SubjectsPage() {
       }
     >
       <div
-        class="relative flex flex-wrap items-center justify-center gap-5 py-22"
+        class="dark:bg-main-dark bg-main-light relative flex flex-wrap items-center justify-center gap-5 py-22"
         dir="rtl"
       >
         <Show
