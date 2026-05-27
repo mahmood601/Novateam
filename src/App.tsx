@@ -6,7 +6,7 @@ import "@fontsource/cairo";
 import "@fontsource/poppins";
 import { UserProvider } from "./context/user.tsx";
 import { Toaster } from "solid-toast";
-import "solid-devtools";
+// import "solid-devtools";
 
 import AppRoutes from "./components/AppRoutes.tsx";
 import PWAProvider from "./components/PWAProvider.tsx";

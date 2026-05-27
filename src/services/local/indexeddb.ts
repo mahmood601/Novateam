@@ -368,7 +368,13 @@ export async function addQuestionsToFirstDB(
 }
 
 export async function getQuestions(subject: string): Promise<Question[]> {
-  return db.questions.where("subject").equals(subject).toArray();
+  return db.questions.where("subject").equals(subject).toArray().then((questions) => {
+    return questions.sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return aTime - bTime;
+    });
+  });
 }
 
 // ✅ إصلاح: ترجع boolean + حد أولي للطلب الأول
@@ -391,7 +397,7 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
         .select(SELECT)
         .eq("subject_id", subject)
         .gt("updated_at", lastSync)
-        .order("updated_at");
+        .order("updated_at", { ascending: true });
 
       if (!updErr && updated && updated.length > 0) {
         const mapped = updated.map((row: any) => toQuestion(row, subject));
@@ -420,7 +426,9 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
 
         if (toDelete.length > 0) {
           await db.questions.bulkDelete(toDelete);
-          console.log(`🗑️ حُذف ${toDelete.length} سؤال من IndexedDB (غير موجود في Supabase)`);
+          console.log(
+            `🗑️ حُذف ${toDelete.length} سؤال من IndexedDB (غير موجود في Supabase)`,
+          );
         }
       }
 
@@ -433,7 +441,7 @@ async function syncQuestionsInBackground(subject: string): Promise<boolean> {
       .from("questions")
       .select(SELECT)
       .eq("subject_id", subject)
-      .order("updated_at");
+      .order("updated_at", { ascending: true });
 
     if (error || !data) return false;
 
@@ -610,7 +618,13 @@ export async function getQuestionsOrAnswersWithFilter(
   return db[type]
     .where(`[subject+${sectionType}]`)
     .equals([subject, sectionId])
-    .toArray();
+    .toArray().then((questions) => {
+    return questions.sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return aTime - bTime;
+    });
+  });;
 }
 
 export async function getAnswers(subject: string): Promise<Answer[]> {
