@@ -194,7 +194,7 @@ export async function checkAndMigrateIfNeeded(): Promise<void> {
 }
 
 // ✅ spread-safe: أي حقل جديد في Supabase يُحفظ تلقائياً (image_url مثلاً)
-function toQuestion(row: any, subject: string): Question {
+export function toQuestion(row: any, subject: string): Question {
   return {
     ...row,
     $id: row.id,
@@ -378,7 +378,7 @@ export async function getQuestions(subject: string): Promise<Question[]> {
 }
 
 // ✅ إصلاح: ترجع boolean + حد أولي للطلب الأول
-async function syncQuestionsInBackground(subject: string): Promise<boolean> {
+export async function syncQuestionsInBackground(subject: string): Promise<boolean> {
   if (!navigator.onLine) return false;
   try {
     const lastSync = getLastSync(subject);

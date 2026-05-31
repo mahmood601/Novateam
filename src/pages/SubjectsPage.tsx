@@ -2,7 +2,8 @@ import { getSubjectsOfflineFirst } from "../services/local/indexeddb";
 import Box from "../components/Box";
 import "../index.css";
 import { inject } from "@vercel/analytics";
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createEffect, createResource, createSignal, For, Show } from "solid-js";
+import { checkSubjectForUpdates } from "../services/questionUpdates";
 
 export default function SubjectsPage() {
   inject();
@@ -38,6 +39,16 @@ export default function SubjectsPage() {
       return getSubjectsOfflineFirst(year);
     },
   );
+  
+createEffect(() => {
+  // ينتظر حتى يكتمل الـ resource ويكون فيه بيانات
+  if (!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0) {
+    for (const sub of yearSubjects()!) {
+      checkSubjectForUpdates(sub.id, sub.name);
+    }
+  }
+});
+ 
 
   return (
     <Show
