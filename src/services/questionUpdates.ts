@@ -7,7 +7,11 @@
 
 import { supabase } from "./supabase";
 import { db, toQuestion } from "./local/indexeddb";
-import { setUpdateStore, updateStore, type QuestionChange } from "../stores/updateStore";
+import {
+  setUpdateStore,
+  updateStore,
+  type QuestionChange,
+} from "../stores/updateStore";
 
 // ─── Version helpers ───────────────────────────────────────────────────────────
 
@@ -63,25 +67,25 @@ export async function checkSubjectForUpdates(
     const changes = await diffSubject(subject, lastSync);
     if (changes.length === 0) return;
 
-    const alreadyPending = updateStore.pending.some(p => p.subject === subject);
-    
+    const alreadyPending = updateStore.pending.some(
+      (p) => p.subject === subject,
+    );
+
     if (!alreadyPending) {
-      setUpdateStore("pending", prev => [ 
+      setUpdateStore("pending", (prev) => [
         ...prev,
         { subject, subjectName, remoteModified, changes },
       ]);
     }
-
   } catch (e) {
     console.error("checkSubjectForUpdates error:", e);
   }
 }
 
 async function diffSubject(
-  subject: string, 
-  lastSync: string
+  subject: string,
+  lastSync: string,
 ): Promise<QuestionChange[]> {
-  
   // جلب المعدّلة/المضافة بعد lastSync مباشرة — بدون طلب ثانٍ
   const { data: changed, error } = await supabase
     .from("questions")
@@ -93,8 +97,9 @@ async function diffSubject(
 
   // تحديد added vs modified
   const localIds = new Set(
-    (await db.questions.where("subject").equals(subject).toArray())
-      .map(q => q.$id)
+    (await db.questions.where("subject").equals(subject).toArray()).map(
+      (q) => q.$id,
+    ),
   );
 
   const changes: QuestionChange[] = changed.map((row: any) => ({
@@ -105,19 +110,25 @@ async function diffSubject(
   }));
 
   // كشف المحذوفات عبر المقارنة العددية
-  const { count: remoteCount } = await supabase
+  const { data: remoteIds } = await supabase
     .from("questions")
-    .select("*", { count: "exact", head: true })
+    .select("id")
     .eq("subject_id", subject);
 
-  const localCount = await db.questions
-    .where("subject").equals(subject).count();
+  const remoteIdSet = new Set(remoteIds?.map((r: any) => r.id) ?? []);
 
-  if (remoteCount !== null && localCount > remoteCount) {
+  const localQuestions = await db.questions
+    .where("subject")
+    .equals(subject)
+    .toArray();
+
+  const deleted = localQuestions.filter((q) => !remoteIdSet.has(q.$id));
+
+  for (const q of deleted) {
     changes.push({
-      id: "deleted-batch",
+      id: q.$id,
       type: "deleted",
-      question: `${localCount - remoteCount} سؤال تم حذفه`,
+      question: truncate(q.question),
       subject,
     });
   }
@@ -125,11 +136,13 @@ async function diffSubject(
   return changes;
 }
 
-
 // ─── Apply: طبّق التحديث لمادة واحدة ─────────────────────────────────────────
 
-export async function applyUpdate(subject: string): Promise<boolean> {
-  const pending = updateStore.pending.find((p) => p.subject === subject)?.remoteModified;
+export async function applyUpdate(
+  subject: string,
+  onDone?: () => void,
+): Promise<boolean> {
+  const pending = updateStore.pending.find((p) => p.subject === subject);
   if (!pending) return false;
 
   try {
@@ -178,12 +191,17 @@ export async function applyUpdate(subject: string): Promise<boolean> {
     }
 
     // حفّظ الإصدار والـ sync time
-    saveLocalVersion(subject, pending.remoteModified);
-    localStorage.setItem(`sync_${subject}`, new Date().toISOString());
+    localStorage.setItem(
+      `sync_${subject}`,
+      `${pending.remoteModified ?? new Date().toISOString()}`,
+    );
 
     // أزل من الـ store
-    setUpdateStore("pending", (prev) => prev.filter((p) => p.subject !== subject));
+    setUpdateStore("pending", (prev) =>
+      prev.filter((p) => p.subject !== subject),
+    );
 
+    onDone?.();
     return true;
   } catch (e) {
     console.error("applyUpdate error:", e);

@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import Download from "./Icons/Download";
-import { createResource, createSignal } from "solid-js";
+import { createEffect, createResource, createSignal, on } from "solid-js";
 import { Transition } from "solid-transition-group";
 import {
   addQuestionsToFirstDB,
@@ -8,6 +8,7 @@ import {
   getQuestions,
 } from "../services/local/indexeddb";
 import toast from "solid-toast";
+import { updateStore } from "../stores/updateStore";
 
 export default function Box(props: {
   subject?: string;
@@ -18,24 +19,30 @@ export default function Box(props: {
   const [downloadStatus, setDownloadStatus] = createSignal<"pending" | "">("");
 
   const [stats, { refetch }] = createResource(async () => {
-if (!props.subject) {
-  return { qLen: 0, aLen: 0 };
-}
-const q = await getQuestions(props.subject);
-const a = await getAnswers(props.subject);
+    if (!props.subject) {
+      return { qLen: 0, aLen: 0 };
+    }
+    const q = await getQuestions(props.subject);
+    const a = await getAnswers(props.subject);
 
-return {
-  qLen: q?.length || 0,
-  aLen: Array.isArray(a) ? a.filter((i) => i.answer).length : 0,
-};
+    return {
+      qLen: q?.length || 0,
+      aLen: Array.isArray(a) ? a.filter((i) => i.answer).length : 0,
+    };
   });
   const percentage = () =>
     stats()?.qLen ? Math.round((stats()?.aLen / stats()?.qLen) * 100) : 0;
 
+  createEffect(on(
+    () => updateStore.pending.length,
+    () => refetch(),
+    { defer: true },
+  ));
+
   return (
     <A
       href={props.link}
-      class="dark:bg-gray-800 hover:border-main relative flex h-55 w-80 justify-between rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      class="hover:border-main relative flex h-55 w-80 justify-between rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
     >
       {/* المعلومات */}
       <div class="flex flex-1 flex-col items-center justify-center gap-2">
@@ -98,7 +105,7 @@ return {
               },
             );
           }}
-          class="border-border hover:bg-main p-1 flex size-9 items-center justify-center rounded-full border transition-all duration-300 hover:text-white disabled:opacity-50"
+          class="border-border hover:bg-main flex size-9 items-center justify-center rounded-full border p-1 transition-all duration-300 hover:text-white disabled:opacity-50"
         >
           <Download />
         </button>
