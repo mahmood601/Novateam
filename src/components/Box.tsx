@@ -33,11 +33,13 @@ export default function Box(props: {
   const percentage = () =>
     stats()?.qLen ? Math.round((stats()?.aLen / stats()?.qLen) * 100) : 0;
 
-  createEffect(on(
-    () => updateStore.pending.length,
-    () => refetch(),
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      () => updateStore.pending.length,
+      () => refetch(),
+      { defer: true },
+    ),
+  );
 
   return (
     <A
@@ -95,17 +97,44 @@ export default function Box(props: {
               {
                 loading: () => {
                   setDownloadStatus("pending");
-                  return <span>Downloading...</span>;
+                  return <span>جار التحميل ...</span>;
                 },
                 success: () => {
                   setDownloadStatus("");
-                  return <span>Downloaded</span>;
+                  return <span>تم التحميل</span>;
                 },
                 error: (e) => <span>{e}</span>,
               },
+              {
+                className: "special-box", 
+                position: "top-right",
+                style: {
+                  border: "2px solid var(--color-darker-light-2)",
+                  "border-radius": "12px",
+                  direction: "rtl",
+                },
+                // لون أيقونة الـ loading
+                iconTheme: {
+                  primary: "var(--color-main)",
+                  secondary: "var(--color-darker-light-1)",
+                },
+                // تخصيص كل حالة على حدة
+                success: {
+                  iconTheme: {
+                    primary: "var(--color-true)", // أخضر عند النجاح
+                    secondary: "var(--color-darker-light-1)",
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: "var(--color-warn)", // أحمر عند الخطأ
+                    secondary: "var(--color-darker-light-1)",
+                  },
+                },
+              },
             );
           }}
-          class={`border-border hover:bg-main flex items-center justify-center rounded-[6px] border p-1 transition-all duration-300 hover:text-white disabled:opacity-50 ${downloadStatus() === "pending" ? "cursor-not-allowed" : "" }`}
+          class={`border-border hover:bg-main flex items-center justify-center rounded-[6px] border p-1 transition-all duration-300 hover:text-white disabled:opacity-50 ${downloadStatus() === "pending" ? "cursor-not-allowed" : ""}`}
         >
           تحميل الاسئلة
         </button>
