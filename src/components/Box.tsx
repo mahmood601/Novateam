@@ -105,9 +105,9 @@ export default function Box(props: {
               },
             );
           }}
-          class="border-border hover:bg-main flex size-9 items-center justify-center rounded-full border p-1 transition-all duration-300 hover:text-white disabled:opacity-50"
+          class={`border-border hover:bg-main flex items-center justify-center rounded-[6px] border p-1 transition-all duration-300 hover:text-white disabled:opacity-50 ${downloadStatus() === "pending" ? "cursor-not-allowed" : "" }`}
         >
-          <Download />
+          تحميل الاسئلة
         </button>
       </div>
     </A>
