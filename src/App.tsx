@@ -14,6 +14,7 @@ import { useTheme } from "./hooks/useTheme.tsx";
 import { on, onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
 import UpdatePanel from "./components/updates/UpdatePanel.tsx";
+import MaintenanceGate from "./components/MaintenanceGate.tsx";
 
 export default function App() {
   const { applyTheme } = useTheme();
@@ -39,11 +40,13 @@ export default function App() {
   });
   return (
     <UserProvider>
-      <Toaster />
-      <UpdatePanel/>
-      <Router root={Layout as any}>
-        <AppRoutes />
-      </Router>
+      <MaintenanceGate>
+        <Toaster />
+        <UpdatePanel />
+        <Router root={Layout as any}>
+          <AppRoutes />
+        </Router>
+      </MaintenanceGate>
       <PWAProvider />
     </UserProvider>
   );
