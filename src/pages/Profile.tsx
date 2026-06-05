@@ -27,18 +27,7 @@ export default function Profile() {
   );
   const [saving, setSaving] = createSignal(false);
 
-  // ─── Gemini API Key ───────────────────────────────────────────────
-  const [geminiKey, setGeminiKey] = createSignal(
-    localStorage.getItem("gemini_api_key") ?? "",
-  );
-  const [showKey, setShowKey] = createSignal(false);
-  const [keySaved, setKeySaved] = createSignal(false);
-
-  const saveGeminiKey = () => {
-    localStorage.setItem("gemini_api_key", geminiKey());
-    setKeySaved(true);
-    setTimeout(() => setKeySaved(false), 2000);
-  };
+  
 
   const saveYear = async () => {
     const previousYear = localStorage.getItem("year");
@@ -59,16 +48,18 @@ export default function Profile() {
   };
 
   return (
-    <div class="dark:bg-header flex min-h-screen w-screen items-center flex-col bg-gray-50">
+    <div
+      class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5"
+     >
       <div class="flex w-full items-center justify-center dark:text-white">
-        <h1 class="flex-1 p-5  text-right text-2xl font-bold tracking-wide">
+        <h1 class="flex-1  text-right text-2xl font-bold tracking-wide">
           الملف الشخصي
         </h1>
       </div>
       <Show
         when={user()}
         fallback={
-          <div class="flex w-3/4 flex-col items-center justify-center gap-5 pt-5 dark:text-white">
+          <div class="flex w-full flex-col items-center justify-center gap-5 pt-5 dark:text-white">
             <Li
               Icon={CalendarSvg()}
               type="السنة"
@@ -129,59 +120,6 @@ export default function Profile() {
           email={user()?.email}
           isAdmin={user()?.role === "admin"}
         />
-
-        {/* ─── Gemini API Key ─── */}
-        <div class="w-3/4 rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-sm mb-6" dir="rtl">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-xl">✨</span>
-            <h3 class="font-bold">مفتاح Gemini AI</h3>
-          </div>
-          <p class="text-xs text-slate-400 mb-3">
-            احصل على مفتاحك المجاني من{" "}
-            <a
-              href="https://aistudio.google.com/apikey"
-              target="_blank"
-              class="text-main underline"
-            >
-              Google AI Studio
-            </a>
-          </p>
-          <div class="flex gap-2">
-            <input
-              type={showKey() ? "text" : "password"}
-              value={geminiKey()}
-              onInput={(e) => setGeminiKey(e.currentTarget.value)}
-              placeholder="AIza..."
-              class="flex-1 rounded-xl bg-slate-100 dark:bg-slate-700 px-3 py-2 text-sm outline-none"
-              dir="ltr"
-            />
-            <button
-              onClick={() => setShowKey((v) => !v)}
-              class="rounded-xl bg-slate-100 dark:bg-slate-700 px-3 py-2 text-sm"
-            >
-              {showKey() ? "🙈" : "👁️"}
-            </button>
-          </div>
-          <div class="flex gap-2 mt-3">
-            <button
-              onClick={saveGeminiKey}
-              class="bg-main rounded-full px-4 py-2 text-sm text-white"
-            >
-              {keySaved() ? "تم الحفظ ✓" : "حفظ"}
-            </button>
-            <Show when={geminiKey()}>
-              <button
-                onClick={() => {
-                  setGeminiKey("");
-                  localStorage.removeItem("gemini_api_key");
-                }}
-                class="rounded-full bg-red-50 dark:bg-red-900/20 px-4 py-2 text-sm text-red-500"
-              >
-                حذف
-              </button>
-            </Show>
-          </div>
-        </div>
       </Show>
     </div>
   );

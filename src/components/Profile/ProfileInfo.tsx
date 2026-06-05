@@ -55,7 +55,7 @@ export default function ProfileInfo(props: {
   };
 
   return (
-    <ul class="flex w-3/4 flex-col items-center justify-center gap-5 self-center pt-5 dark:text-white">
+    <ul class="flex w-full flex-col items-center justify-center gap-5 self-center pt-5 dark:text-white">
       {/* الاسم */}
       <Li
         Icon={NameSvg()}
