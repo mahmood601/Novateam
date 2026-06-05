@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { useTheme } from "../hooks/useTheme";
 
 const colors = {

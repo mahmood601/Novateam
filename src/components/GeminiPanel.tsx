@@ -136,7 +136,7 @@ export default function GeminiPanel(props: {
                     <button
                       onClick={() => {
                         props.onClose();
-                        navigate("/profile");
+                        navigate("/settings");
                       }}
                       class="bg-main rounded-full px-4 py-2 text-sm text-white"
                     >
