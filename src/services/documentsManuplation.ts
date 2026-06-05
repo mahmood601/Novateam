@@ -170,7 +170,7 @@ export async function listQuestions(
   let query = supabase
     .from("questions")
     .select(
-      `*, season:sections!season_id(id,name,value),
+      `*, image_url, season:sections!season_id(id,name,value),
            year:sections!year_id(id,name,value)`,
       { count: "exact" },
     )

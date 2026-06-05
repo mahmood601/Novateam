@@ -24,10 +24,7 @@ import {
 } from "../../services/documentsManuplation";
 import { fetchUserNames } from "../../services/user";
 import toast from "solid-toast";
-import {
-  uploadQuestionImage,
-  deleteQuestionImage,
-} from "../../services/imageUpload";
+import { uploadQuestionImage, deleteQuestionImage } from "../../services/imageUpload";
 import ImageLightbox from "./ImageLightbox";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
@@ -53,6 +50,9 @@ function QuestionCard(props: {
   // كل نسخة من QuestionCard لها signal خاص بها — لا تتداخل مع باقي الكاردات
   const [open, setOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
+  const [localImageUrl, setLocalImageUrl] = createSignal<string | null>(
+    props.question.image_url ?? null,
+  );
 
   const inserterName = () =>
     props.question.user_id
@@ -186,11 +186,10 @@ function QuestionCard(props: {
       </Show>
 
       {/* ─── صورة السؤال ─── */}
-      <Show when={props.question.image_url}>
+      <Show when={localImageUrl()}>
         {(url) => {
           const [lightbox, setLightbox] = createSignal(false);
           const [deleting, setDeletingImg] = createSignal(false);
-          const [uploading, setUploadingImg] = createSignal(false);
 
           return (
             <>
@@ -201,12 +200,11 @@ function QuestionCard(props: {
                 <img
                   src={url()}
                   alt="صورة السؤال"
-                  class="max-h-48 w-full cursor-zoom-in bg-slate-100 object-contain dark:bg-slate-900"
+                  class="max-h-48 w-full cursor-zoom-in object-contain bg-slate-100 dark:bg-slate-900"
                   onClick={() => setLightbox(true)}
                 />
-                {/* زر حذف الصورة */}
                 <button
-                  class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow disabled:opacity-50"
+                  class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow disabled:opacity-50"
                   disabled={deleting()}
                   onClick={async (e) => {
                     e.stopPropagation();
@@ -217,16 +215,14 @@ function QuestionCard(props: {
                       .from("questions")
                       .update({ image_url: null })
                       .eq("id", props.question.$id);
+                    setLocalImageUrl(null);
                     toast.success("تم حذف الصورة");
-                    props.onRefetch();
                     setDeletingImg(false);
                   }}
                 >
                   {deleting() ? "…" : "✕"}
                 </button>
               </div>
-
-              {/* Lightbox */}
               <Show when={lightbox()}>
                 <ImageLightbox src={url()} onClose={() => setLightbox(false)} />
               </Show>
@@ -235,8 +231,8 @@ function QuestionCard(props: {
         }}
       </Show>
 
-      {/* ─── زر رفع صورة (إن لم تكن موجودة، يظهر عند فتح الكارد) ─── */}
-      <Show when={open() && !props.question.image_url}>
+      {/* ─── رفع صورة جديدة ─── */}
+      <Show when={open() && !localImageUrl()}>
         {() => {
           const [uploading, setUploadingImg] = createSignal(false);
           return (
@@ -259,8 +255,8 @@ function QuestionCard(props: {
                       .from("questions")
                       .update({ image_url: uploadedUrl })
                       .eq("id", props.question.$id);
+                    setLocalImageUrl(uploadedUrl);
                     toast.success("تم رفع الصورة ✓");
-                    props.onRefetch();
                   } catch {
                     toast.error("فشل رفع الصورة");
                   } finally {
@@ -437,6 +433,7 @@ function SmartImporter(props: {
     }
     flushQuestion();
 
+    
     if (questionBlocks.length === 0) {
       toast.error("لم يتم العثور على أسئلة في النص");
       setLoading(false);
@@ -824,25 +821,48 @@ function ManualForm(props: {
             <img
               src={imageUrl()!}
               alt="صورة السؤال"
-              class="max-h-48 w-full rounded-xl bg-slate-100 object-contain"
+              class="max-h-48 w-full rounded-xl object-contain bg-slate-100"
             />
+            {/* زر حذف */}
             <button
               type="button"
               onClick={async () => {
                 await deleteQuestionImage(imageUrl()!);
                 setImageUrl(null);
               }}
-              class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow"
+              class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow"
             >
               ✕
             </button>
+            {/* زر تغيير الصورة */}
+            <label class="absolute top-2 left-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-blue-500 text-white text-xs shadow">
+              🔄
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                onChange={async (e) => {
+                  const file = e.currentTarget.files?.[0];
+                  if (!file) return;
+                  setImageUploading(true);
+                  try {
+                    await deleteQuestionImage(imageUrl()!);
+                    const url = await uploadQuestionImage(file);
+                    setImageUrl(url);
+                    toast.success("تم تغيير الصورة ✓");
+                  } catch {
+                    toast.error("فشل تغيير الصورة");
+                  } finally {
+                    setImageUploading(false);
+                  }
+                }}
+              />
+            </label>
           </div>
         </Show>
 
         <Show when={!imageUrl()}>
-          <label
-            class={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition hover:border-cyan-300 dark:border-slate-600 ${imageUploading() ? "pointer-events-none opacity-50" : ""}`}
-          >
+          <label class={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition hover:border-cyan-300 dark:border-slate-600 ${imageUploading() ? "opacity-50 pointer-events-none" : ""}`}>
             <span class="text-2xl">{imageUploading() ? "⏳" : "📷"}</span>
             <span class="text-xs text-slate-400">
               {imageUploading() ? "جاري الرفع..." : "اضغط لرفع صورة"}
@@ -1301,9 +1321,7 @@ export default function DevMode() {
   );
 
   // ✅ ميزة التحديد المتعدد — Set يحتفظ بالـ IDs المحددة عبر الصفحات
-  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(
-    new Set<string>(),
-  );
+  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(new Set<string>());
   const [selectionMode, setSelectionMode] = createSignal(false);
 
   const toggleSelect = (id: string) => {
@@ -1363,7 +1381,7 @@ export default function DevMode() {
       let query = supabase
         .from("questions")
         .select(
-          `*, season:sections!season_id(id,name,value),
+          `*, image_url, season:sections!season_id(id,name,value),
                year:sections!year_id(id,name,value)`,
           { count: "exact" },
         )
@@ -1406,6 +1424,7 @@ export default function DevMode() {
         seasonValue: row.season?.value,
         yearName: row.year?.name,
         yearValue: row.year?.value,
+        image_url: row.image_url,
       }));
 
       const userIds = questions
