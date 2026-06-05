@@ -29,7 +29,7 @@ export default function GeminiPanel(props: {
   const hasUserKey = () => !!localStorage.getItem("gemini_api_key");
 
   const systemContext = () =>
-    `أنت مساعد طبي تعليمي متخصص. المستخدم يدرس هذا السؤال:
+    `أنت Nova AI مساعد طبي تعليمي متخصص. المستخدم يدرس هذا السؤال:
 
 السؤال: ${props.question?.question ?? ""}
 الخيارات: ${props.question?.options?.join(" | ") ?? ""}
