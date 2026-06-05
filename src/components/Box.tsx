@@ -54,7 +54,7 @@ export default function Box(props: {
           class="from-main/30 to-main/10 size-16 rounded-lg bg-gradient-to-br"
         />
 
-        <p class="text-lg font-bold">{props.info}</p>
+        <p class="text-lg font-bold text-center">{props.info}</p>
 
         <p class="text-muted-foreground text-sm">
           عدد الأسئلة: {stats()?.qLen}

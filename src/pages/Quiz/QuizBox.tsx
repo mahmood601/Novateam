@@ -1,5 +1,6 @@
-import { createResource, For, Show } from "solid-js";
+import { createResource, createSignal, For, Show } from "solid-js";
 import { getSeasonName, getYearName } from "../../services/local/indexeddb";
+import ImageLightbox from "./ImageLightbox";
 
 export default function QuizBox(props: any) {
   const [yearName] = createResource(
@@ -11,6 +12,8 @@ export default function QuizBox(props: any) {
     () => props.currentQuestion?.season_id,
     (seasonId) => getSeasonName(props.subject, seasonId ?? null),
   );
+
+  const [lightboxOpen, setLightboxOpen] = createSignal(false);
 
 
   return (
@@ -56,6 +59,31 @@ export default function QuizBox(props: any) {
         </pre>
         <p dir="auto">{props.currentQuestion?.question}</p>
       </div>
+
+      {/* صورة السؤال */}
+      <Show when={props.currentQuestion?.image_url}>
+        <button
+          onClick={() => setLightboxOpen(true)}
+          class="mt-3 w-full overflow-hidden rounded-2xl border-2 border-transparent transition hover:border-main"
+        >
+          <img
+            src={props.currentQuestion.image_url}
+            alt="صورة السؤال"
+            class="max-h-52 w-full object-contain bg-slate-50 dark:bg-slate-900"
+          />
+          <p class="py-1 text-center text-[10px] text-slate-400">
+            اضغط للتكبير
+          </p>
+        </button>
+      </Show>
+
+      {/* Lightbox */}
+      <Show when={lightboxOpen()}>
+        <ImageLightbox
+          src={props.currentQuestion.image_url}
+          onClose={() => setLightboxOpen(false)}
+        />
+      </Show>
 
       {/* الخيارات — options[] مصفوفة */}
       <ul

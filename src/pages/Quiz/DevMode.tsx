@@ -24,6 +24,11 @@ import {
 } from "../../services/documentsManuplation";
 import { fetchUserNames } from "../../services/user";
 import toast from "solid-toast";
+import {
+  uploadQuestionImage,
+  deleteQuestionImage,
+} from "../../services/imageUpload";
+import ImageLightbox from "./ImageLightbox";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
 
@@ -178,6 +183,94 @@ function QuestionCard(props: {
         >
           💡 {props.question.explanation}
         </p>
+      </Show>
+
+      {/* ─── صورة السؤال ─── */}
+      <Show when={props.question.image_url}>
+        {(url) => {
+          const [lightbox, setLightbox] = createSignal(false);
+          const [deleting, setDeletingImg] = createSignal(false);
+          const [uploading, setUploadingImg] = createSignal(false);
+
+          return (
+            <>
+              <div
+                class="relative mt-3 overflow-hidden rounded-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={url()}
+                  alt="صورة السؤال"
+                  class="max-h-48 w-full cursor-zoom-in bg-slate-100 object-contain dark:bg-slate-900"
+                  onClick={() => setLightbox(true)}
+                />
+                {/* زر حذف الصورة */}
+                <button
+                  class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow disabled:opacity-50"
+                  disabled={deleting()}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!confirm("حذف الصورة؟")) return;
+                    setDeletingImg(true);
+                    await deleteQuestionImage(url());
+                    await supabase
+                      .from("questions")
+                      .update({ image_url: null })
+                      .eq("id", props.question.$id);
+                    toast.success("تم حذف الصورة");
+                    props.onRefetch();
+                    setDeletingImg(false);
+                  }}
+                >
+                  {deleting() ? "…" : "✕"}
+                </button>
+              </div>
+
+              {/* Lightbox */}
+              <Show when={lightbox()}>
+                <ImageLightbox src={url()} onClose={() => setLightbox(false)} />
+              </Show>
+            </>
+          );
+        }}
+      </Show>
+
+      {/* ─── زر رفع صورة (إن لم تكن موجودة، يظهر عند فتح الكارد) ─── */}
+      <Show when={open() && !props.question.image_url}>
+        {() => {
+          const [uploading, setUploadingImg] = createSignal(false);
+          return (
+            <label
+              class={`mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-3 text-xs text-slate-400 transition hover:border-cyan-300 dark:border-slate-600 ${uploading() ? "pointer-events-none opacity-50" : ""}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>{uploading() ? "⏳ جاري الرفع..." : "📷 إضافة صورة"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                onChange={async (e) => {
+                  const file = e.currentTarget.files?.[0];
+                  if (!file) return;
+                  setUploadingImg(true);
+                  try {
+                    const uploadedUrl = await uploadQuestionImage(file);
+                    await supabase
+                      .from("questions")
+                      .update({ image_url: uploadedUrl })
+                      .eq("id", props.question.$id);
+                    toast.success("تم رفع الصورة ✓");
+                    props.onRefetch();
+                  } catch {
+                    toast.error("فشل رفع الصورة");
+                  } finally {
+                    setUploadingImg(false);
+                  }
+                }}
+              />
+            </label>
+          );
+        }}
       </Show>
 
       {/* ─── معاينة المقالة الكاملة عند الفتح ─── */}
@@ -344,7 +437,6 @@ function SmartImporter(props: {
     }
     flushQuestion();
 
-    
     if (questionBlocks.length === 0) {
       toast.error("لم يتم العثور على أسئلة في النص");
       setLoading(false);
@@ -605,6 +697,10 @@ function ManualForm(props: {
     props.editQuestion?.correctIndex ?? 0,
   );
   const [saving, setSaving] = createSignal(false);
+  const [imageUrl, setImageUrl] = createSignal<string | null>(
+    props.editQuestion?.image_url ?? null,
+  );
+  const [imageUploading, setImageUploading] = createSignal(false);
 
   // ─── Passage state ────────────────────────────────────────────────────────
   const [passages] = createResource(() => getPassages(props.subjectId));
@@ -674,6 +770,7 @@ function ManualForm(props: {
       correctIndex: correctIndex(),
       user_id: userId,
       passage_id: finalPassageId ?? null,
+      image_url: imageUrl() ?? null,
     };
 
     // 📌 LESSON 9: هذا هو pattern الـ "mutation" في SolidJS
@@ -715,6 +812,63 @@ function ManualForm(props: {
         dir="rtl"
         class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-amber-300 dark:bg-slate-900 dark:text-white"
       />
+
+      {/* ─── صورة السؤال ─── */}
+      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+          🖼️ صورة (اختياري)
+        </p>
+
+        <Show when={imageUrl()}>
+          <div class="relative">
+            <img
+              src={imageUrl()!}
+              alt="صورة السؤال"
+              class="max-h-48 w-full rounded-xl bg-slate-100 object-contain"
+            />
+            <button
+              type="button"
+              onClick={async () => {
+                await deleteQuestionImage(imageUrl()!);
+                setImageUrl(null);
+              }}
+              class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-xs text-white shadow"
+            >
+              ✕
+            </button>
+          </div>
+        </Show>
+
+        <Show when={!imageUrl()}>
+          <label
+            class={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition hover:border-cyan-300 dark:border-slate-600 ${imageUploading() ? "pointer-events-none opacity-50" : ""}`}
+          >
+            <span class="text-2xl">{imageUploading() ? "⏳" : "📷"}</span>
+            <span class="text-xs text-slate-400">
+              {imageUploading() ? "جاري الرفع..." : "اضغط لرفع صورة"}
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              class="hidden"
+              onChange={async (e) => {
+                const file = e.currentTarget.files?.[0];
+                if (!file) return;
+                setImageUploading(true);
+                try {
+                  const url = await uploadQuestionImage(file);
+                  setImageUrl(url);
+                  toast.success("تم رفع الصورة ✓");
+                } catch {
+                  toast.error("فشل رفع الصورة");
+                } finally {
+                  setImageUploading(false);
+                }
+              }}
+            />
+          </label>
+        </Show>
+      </div>
 
       {/* ─── الخيارات ─── */}
       <div class="flex flex-col gap-2">
@@ -1147,7 +1301,9 @@ export default function DevMode() {
   );
 
   // ✅ ميزة التحديد المتعدد — Set يحتفظ بالـ IDs المحددة عبر الصفحات
-  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(new Set<string>());
+  const [selectedIds, setSelectedIds] = createSignal<Set<string>>(
+    new Set<string>(),
+  );
   const [selectionMode, setSelectionMode] = createSignal(false);
 
   const toggleSelect = (id: string) => {
@@ -1356,6 +1512,48 @@ export default function DevMode() {
             </button>
           </div>
         </div>
+        
+        <Show when={mainTab() === "questions"}>
+          {/* ─── Form panel ─── */}
+          <Show when={showAdd()}>
+            <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+              <Show when={!editTarget()}>
+                <div class="mx-auto mb-8 flex w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+                  <button
+                    onClick={() => setMode("smart")}
+                    class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                  >
+                    🚀 ذكي
+                  </button>
+                  <button
+                    onClick={() => setMode("manual")}
+                    class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-white text-fuchsia-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                  >
+                    ✍️ يدوي
+                  </button>
+                </div>
+              </Show>
+
+              <Switch>
+                <Match when={mode() === "smart" && !editTarget()}>
+                  <SmartImporter
+                    subjectId={params.subject}
+                    sections={sections() ?? []}
+                    onComplete={onFormComplete}
+                  />
+                </Match>
+                <Match when={mode() === "manual" || editTarget()}>
+                  <ManualForm
+                    subjectId={params.subject}
+                    sections={sections() ?? []}
+                    editQuestion={editTarget()}
+                    onComplete={onFormComplete}
+                  />
+                </Match>
+              </Switch>
+            </div>
+          </Show>
+        </Show>
 
         {/* ─── فلاتر الفصل والسنة (من URL) ─── */}
         <Show when={sections()}>
@@ -1455,46 +1653,6 @@ export default function DevMode() {
           </Show>
 
           <Show when={mainTab() === "questions"}>
-            {/* ─── Form panel ─── */}
-            <Show when={showAdd()}>
-              <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
-                <Show when={!editTarget()}>
-                  <div class="mx-auto mb-8 flex w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
-                    <button
-                      onClick={() => setMode("smart")}
-                      class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
-                    >
-                      🚀 ذكي
-                    </button>
-                    <button
-                      onClick={() => setMode("manual")}
-                      class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-white text-fuchsia-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
-                    >
-                      ✍️ يدوي
-                    </button>
-                  </div>
-                </Show>
-
-                <Switch>
-                  <Match when={mode() === "smart" && !editTarget()}>
-                    <SmartImporter
-                      subjectId={params.subject}
-                      sections={sections() ?? []}
-                      onComplete={onFormComplete}
-                    />
-                  </Match>
-                  <Match when={mode() === "manual" || editTarget()}>
-                    <ManualForm
-                      subjectId={params.subject}
-                      sections={sections() ?? []}
-                      editQuestion={editTarget()}
-                      onComplete={onFormComplete}
-                    />
-                  </Match>
-                </Switch>
-              </div>
-            </Show>
-
             {/* ─── قائمة الأسئلة ─── */}
             <Suspense
               fallback={

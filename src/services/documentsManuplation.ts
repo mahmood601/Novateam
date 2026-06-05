@@ -28,6 +28,7 @@ export type QuestionUI = {
   yearName?: string;
   yearValue?: string;
   passage_id?: string | null;
+  image_url?: string | null;
 };
 
 export type PassageUI = {
