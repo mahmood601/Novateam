@@ -9,7 +9,7 @@ import FavoritesPage from "../pages/Favorites";
 import StatsPage from "../pages/Stats";
 import SearchPage from "../pages/Search";
 import AuthCallback from "./auth/AuthCallback";
-
+import WeakQuestionsPage from "../pages/WeakQuestions";
 
 export default function AppRoutes() {
   return (
@@ -22,8 +22,9 @@ export default function AppRoutes() {
       <Route path="/stats" component={StatsPage} />
       <Route path="/settings" component={Settings} />
       <Route path="/:subject" component={SelectMenu} />
-      <Route path="/:subject/:section" component={Quiz} />
+      <Route path="/:subject/weak" component={WeakQuestionsPage} />
       <Route path="/:subject/favorite" component={FavoritesPage} />
+      <Route path="/:subject/:section" component={Quiz} />
     </>
   );
 }

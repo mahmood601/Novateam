@@ -189,7 +189,7 @@ export default function NormalMode() {
   const handleOptionSelect = (q: Question, optIdx: number, content: string) => {
     const isCorrect = q.correctIndex == optIdx;
 
-    recordActivityToday(); // ← تسجيل نشاط اليوم
+    recordActivityToday();
 
     if (quizState.audioEnabled) playSound(isCorrect);
 
@@ -206,6 +206,8 @@ export default function NormalMode() {
           state: true,
           answer: isCorrect,
           answerContent: content,
+          answeredAt: Date.now(),
+          attempts: 1,
         },
       ],
     });

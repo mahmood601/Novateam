@@ -33,6 +33,9 @@ export type Answer = {
   subject: string;
   season_id: number | null;
   year_id: number | null;
+  answer: boolean;
+  answeredAt: number; // timestamp
+  attempts: number;   // عدد المحاولات
   [key: string]: any;
 };
 
@@ -145,6 +148,19 @@ class AppDB extends Dexie {
         year_id,
         [subject_id+season_id],
         [subject_id+year_id]
+      `,
+    });
+
+    // v5: أضفنا answeredAt على answers لتتبع الأداء
+    this.version(5).stores({
+      answers: `
+        $id,
+        subject,
+        season_id,
+        year_id,
+        answeredAt,
+        [subject+season_id],
+        [subject+year_id]
       `,
     });
   }
@@ -467,7 +483,83 @@ export function resetSync(subject: string) {
 // ─── Answers ──────────────────────────────────────────────────────────────────
 
 export async function addAnswersToProgress(answers: Answer[]) {
-  await db.answers.bulkPut(answers);
+  const now = Date.now();
+  // جلب المحاولات السابقة لزيادة العداد
+  const existing = await db.answers
+    .where("$id")
+    .anyOf(answers.map((a) => a.$id))
+    .toArray();
+  const existingMap = new Map(existing.map((e) => [e.$id, e]));
+
+  const enriched = answers.map((a) => ({
+    ...a,
+    answeredAt: now,
+    attempts: (existingMap.get(a.$id)?.attempts ?? 0) + 1,
+  }));
+
+  await db.answers.bulkPut(enriched);
+}
+
+// ─── Performance Analytics ────────────────────────────────────────────────────
+
+/** إحصائيات مادة كاملة */
+export async function getSubjectStats(subject: string) {
+  const answers = await db.answers.where("subject").equals(subject).toArray();
+  const total = answers.length;
+  const correct = answers.filter((a) => a.answer).length;
+  const wrong = total - correct;
+  const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+  return { total, correct, wrong, rate };
+}
+
+/** الأسئلة التي أخطأ فيها المستخدم أكثر من مرة */
+export async function getWeakQuestions(
+  subject: string,
+  limit = 20,
+): Promise<Question[]> {
+  // جلب الإجابات الخاطئة مرتبة حسب عدد المحاولات
+  const wrongAnswers = (
+    await db.answers.where("subject").equals(subject).toArray()
+  )
+    .filter((a) => !a.answer)
+    .sort((a, b) => (b.attempts ?? 0) - (a.attempts ?? 0))
+    .slice(0, limit);
+
+  if (wrongAnswers.length === 0) return [];
+
+  const ids = wrongAnswers.map((a) => a.$id);
+  const questions = await db.questions.where("$id").anyOf(ids).toArray();
+
+  // رتب الأسئلة بنفس ترتيب الأخطاء
+  const attemptsMap = new Map(wrongAnswers.map((a) => [a.$id, a.attempts ?? 1]));
+  return questions.sort(
+    (a, b) => (attemptsMap.get(b.$id) ?? 0) - (attemptsMap.get(a.$id) ?? 0),
+  );
+}
+
+/** إحصائيات آخر 7 أيام */
+export async function getWeeklyStats(subject: string) {
+  const now = Date.now();
+  const week = 7 * 24 * 60 * 60 * 1000;
+
+  const recent = await db.answers
+    .where("subject")
+    .equals(subject)
+    .and((a) => (a.answeredAt ?? 0) > now - week)
+    .toArray();
+
+  // مجموعة حسب اليوم
+  const byDay: Record<string, { correct: number; total: number }> = {};
+  for (const a of recent) {
+    const day = new Date(a.answeredAt).toLocaleDateString("ar-SA", {
+      weekday: "short",
+    });
+    if (!byDay[day]) byDay[day] = { correct: 0, total: 0 };
+    byDay[day].total++;
+    if (a.answer) byDay[day].correct++;
+  }
+
+  return byDay;
 }
 
 // ✅ إصلاح: كل دوال clear تُرجع boolean مع error handling

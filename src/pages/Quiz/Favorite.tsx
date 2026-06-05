@@ -93,7 +93,7 @@ export default function FavoriteButton(props: any) {
         fallback={
           <button
             on:click={handleAdd}
-            class="text-main-dark dark:text-main-light relative mr-3"
+            class="flex items-center justify-center rounded-full bg-gray-100 p-2 transition hover:scale-105 dark:bg-gray-800"
             aria-label="Save question to favorites"
           >
             <svg
@@ -125,7 +125,7 @@ export default function FavoriteButton(props: any) {
         <div class="flex w-fit items-center gap-2">
           <button
             on:click={handleRemove}
-            class="hover:bg-card text-main relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full outline-none active:scale-95"
+            class="text-main flex items-center justify-center rounded-full bg-gray-100 p-2 transition hover:scale-105 dark:bg-gray-800"
             aria-label="Remove from favorites"
           >
             <svg
@@ -143,7 +143,7 @@ export default function FavoriteButton(props: any) {
           <button
             on:click={handleEditNote}
             title={note() ? "تعديل الملاحظة" : "إضافة ملاحظة"}
-            class="dark:text-main-light ml-3 text-gray-500 hover:text-gray-700"
+            class="dark:text-main-light text-gray-500 hover:text-gray-700"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
