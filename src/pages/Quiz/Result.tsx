@@ -1,6 +1,7 @@
 import { createMemo, createResource, For, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { getSubjectStats, getWeakQuestions } from "../../services/local/indexeddb";
+import { resetQuizState } from "./quizStore";
 
 export default function Result(props: { subject: string; answers: any[] }) {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ export default function Result(props: { subject: string; answers: any[] }) {
         {/* ─── الأزرار ─── */}
         <div class="space-y-2 pb-6">
           <button
-            onClick={() => location.reload()}
+            onClick={() => resetQuizState()}
             class="bg-main w-full rounded-full py-3 text-sm font-bold text-white"
           >
             إعادة الاختبار

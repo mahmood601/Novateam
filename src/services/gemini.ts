@@ -15,7 +15,12 @@ const NOVA_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 
 export type GeminiResult =
   | { ok: true; text: string }
-  | { ok: false; reason: "no_key" | "nova_depleted" | "error"; message: string };
+  | {
+      ok: false;
+      reason: "no_key" | "nova_depleted" | "error";
+      message: string;
+      userLimit?: boolean;
+    };
 
 // ─── استدعاء Gemini API ───────────────────────────────────────────────────────
 
@@ -42,20 +47,42 @@ async function callGemini(
   if (!res.ok) throw new Error(data?.error?.message ?? "Gemini error");
 
   return (
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "لم أفهم السؤال، حاول مجدداً"
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+    "لم أفهم السؤال، حاول مجدداً"
   );
 }
 
 // ─── تحقق من الاستخدام اليومي لنوفا وزد العداد ──────────────────────────────
-
-async function checkAndIncrementNovaUsage(): Promise<boolean> {
+async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
   try {
-    const { data, error } = await supabase.rpc("increment_ai_usage");
-    if (error) return false;
-    // الدالة ترجع العدد بعد الزيادة — إن كان > الحد فقد تجاوزنا
-    return data <= NOVA_DAILY_LIMIT;
+    // انتظر حتى يكتمل الـ session
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      // انتظر ثانية وحاول مجدداً
+      await new Promise(r => setTimeout(r, 1000));
+      const { data: { user: retryUser } } = await supabase.auth.getUser();
+      if (!retryUser) return { ok: false, reason: "nova_depleted", message: "غير مسجل", userLimit: false };
+    }
+
+    const { data, error } = await supabase.rpc("increment_ai_usage", {
+      p_user_id: user!.id,
+    });
+
+    if (error) return { ok: false, reason: "error", message: "خطأ في الاتصال", userLimit: false };
+
+    if (!data.allowed) {
+      return {
+        ok: false,
+        reason: "nova_depleted",
+        message: data.reason,
+        userLimit: data.reason === "user_limit",
+      };
+    }
+
+    return null;
   } catch {
-    return false;
+    return { ok: false, reason: "error", message: "حدث خطأ، حاول مجدداً", userLimit: false };
   }
 }
 
@@ -80,15 +107,8 @@ export async function sendToGemini(
 
   // 2. مفتاح نوفا — تحقق من الحد اليومي
   if (NOVA_KEY) {
-    const allowed = await checkAndIncrementNovaUsage();
-
-    if (!allowed) {
-      return {
-        ok: false,
-        reason: "nova_depleted",
-        message: "نفد رصيد نوفا المجاني لهذا اليوم",
-      };
-    }
+    const check = await checkAndIncrementNovaUsage();
+    if (check !== null) return check;
 
     try {
       const text = await callGemini(NOVA_KEY, systemContext, history, userText);

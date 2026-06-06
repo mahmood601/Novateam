@@ -56,10 +56,14 @@ export default function GeminiPanel(props: {
     if (result.ok) {
       setMessages((prev) => [...prev, { role: "model", text: result.text }]);
     } else if (result.reason === "nova_depleted") {
-      setDepleted(true);
+      // تحقق من السبب
+      const msg = result.userLimit
+        ? "وصلت لحدك اليومي (10 طلب) — أضف مفتاحك الخاص للاستمرار"
+        : "نفد رصيد نوفا اليومي — أضف مفتاحك الخاص للاستمرار";
+
       setMessages((prev) => [
         ...prev,
-        { role: "model", text: result.message, depleted: true },
+        { role: "model", text: msg, depleted: true },
       ]);
     } else {
       setMessages((prev) => [
@@ -81,17 +85,17 @@ export default function GeminiPanel(props: {
 
       {/* Panel */}
       <div
-        class="fixed bottom-0 left-0 right-0 z-[301] flex flex-col rounded-t-3xl bg-white dark:bg-slate-900 shadow-2xl"
+        class="fixed right-0 bottom-0 left-0 z-[301] flex flex-col rounded-t-3xl bg-white shadow-2xl dark:bg-slate-900"
         style={{ "max-height": "75dvh" }}
         dir="rtl"
       >
         {/* Header */}
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-5 py-4">
+        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-700">
           <div class="flex items-center gap-2">
             <span class="text-xl">✨</span>
-            <h3 class="font-bold">مساعد AI</h3>
+            <h3 class="font-bold">مساعد Nova AI</h3>
             <Show when={hasUserKey()}>
-              <span class="rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] text-green-600 dark:text-green-400">
+              <span class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] text-green-600 dark:bg-green-900/30 dark:text-green-400">
                 مفتاحك الخاص
               </span>
             </Show>
@@ -105,23 +109,25 @@ export default function GeminiPanel(props: {
         </div>
 
         {/* Chat */}
-        <div class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="flex-1 space-y-3 overflow-y-auto p-4">
           <Show when={messages().length === 0}>
-            <div class="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-500 text-center">
+            <div class="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-500 dark:bg-slate-800">
               اسأل عن هذا السؤال أو اطلب شرحاً للإجابة
             </div>
           </Show>
 
           <For each={messages()}>
             {(msg) => (
-              <div class={`flex flex-col gap-2 ${msg.role === "user" ? "items-start" : "items-end"}`}>
+              <div
+                class={`flex flex-col gap-2 ${msg.role === "user" ? "items-start" : "items-end"}`}
+              >
                 <div
                   class={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-main text-white rounded-br-sm"
+                      ? "bg-main rounded-br-sm text-white"
                       : msg.depleted
-                        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-bl-sm"
-                        : "bg-slate-100 dark:bg-slate-800 rounded-bl-sm"
+                        ? "rounded-bl-sm bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
+                        : "rounded-bl-sm bg-slate-100 dark:bg-slate-800"
                   }`}
                 >
                   <Markdown text={msg.text} />
@@ -129,9 +135,10 @@ export default function GeminiPanel(props: {
 
                 {/* زر التحويل عند نفاد الرصيد */}
                 <Show when={msg.depleted}>
-                  <div class="flex flex-col items-end gap-2 max-w-[85%]">
-                    <p class="text-xs text-slate-400 text-center">
-                      احصل على مفتاحك المجاني من Google AI Studio واستمر بدون قيود
+                  <div class="flex max-w-[85%] flex-col items-end gap-2">
+                    <p class="text-center text-xs text-slate-400">
+                      احصل على مفتاحك المجاني من Google AI Studio واستمر بدون
+                      قيود
                     </p>
                     <button
                       onClick={() => {
@@ -150,9 +157,11 @@ export default function GeminiPanel(props: {
 
           <Show when={loading()}>
             <div class="flex justify-end">
-              <div class="rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3">
+              <div class="rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
                 <span class="gemini-dots">
-                  <span /><span /><span />
+                  <span />
+                  <span />
+                  <span />
                 </span>
               </div>
             </div>
@@ -160,11 +169,11 @@ export default function GeminiPanel(props: {
         </div>
 
         {/* Input */}
-        <div class="border-t border-slate-100 dark:border-slate-700 p-3 flex gap-2">
+        <div class="flex gap-2 border-t border-slate-100 p-3 dark:border-slate-700">
           <Show
             when={!depleted()}
             fallback={
-              <p class="flex-1 text-center text-xs text-slate-400 py-2">
+              <p class="flex-1 py-2 text-center text-xs text-slate-400">
                 أضف مفتاحك للاستمرار
               </p>
             }
@@ -181,7 +190,7 @@ export default function GeminiPanel(props: {
               onInput={(e) => setInput(e.currentTarget.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="اكتب سؤالك..."
-              class="flex-1 rounded-full bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm outline-none"
+              class="flex-1 rounded-full bg-slate-100 px-4 py-2 text-sm outline-none dark:bg-slate-800"
               dir="rtl"
             />
           </Show>
