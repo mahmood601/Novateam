@@ -5,21 +5,20 @@ import process from "node:process";
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
-import legacy from "@vitejs/plugin-legacy";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",
   base: "/",
   includeAssets: ["favicon.svg"],
   workbox: {
-    globPatterns: ["**/*.{js,css,html,mp3,woff2,svg}"],
+    globPatterns: ["**/*.{js,css,html,mp3,woff2,svg,webp,png,ico}"],
   },
   manifest: {
     name: "Nova App 2029",
     short_name: "Nova App",
     id: "NovaApp",
     description:
-      "تطبيق فريق نوڤا لطلاب الطب البشري السنة الثانية في جامعة طرطوس ✨❤️",
+      "تطبيق فريق نوڤا لطلاب الطب البشري في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
     icons: [
       {
@@ -88,14 +87,11 @@ if (claims) pwaOptions.registerType = "autoUpdate";
 
 if (selfDestroying) pwaOptions.selfDestroying = selfDestroying;
 
-function replace(arg0: {
-  __DATE__: string;
-  __RELOAD_SW__: string;
-}): import("vite").PluginOption {
-  throw new Error("Function not implemented.");
-}
-
 export default defineConfig({
+   define: {
+    __RELOAD_SW__: JSON.stringify(process.env.RELOAD_SW === "true" ? "true" : "false"),
+    __DATE__: JSON.stringify(new Date().toISOString()),
+  },
   build: {
     sourcemap: process.env.SOURCE_MAP === "true",
     target: "esnext",
@@ -109,10 +105,6 @@ export default defineConfig({
       /* features options - all disabled by default */
       autoname: true, // e.g. enable autoname
     }),
-    // replace({
-    //   __DATE__: new Date().toISOString(),
-    //   __RELOAD_SW__: process.env.RELOAD_SW === "true" ? "true" : "false",
-    // }),
     VitePWA(pwaOptions),
   ],
 });

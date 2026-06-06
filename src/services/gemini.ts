@@ -6,7 +6,6 @@
 
 import { supabase } from "./supabase";
 
-const NOVA_DAILY_LIMIT = 1000;
 // 1. تصحيح اسم النموذج إلى الإصدار الفعلي المتاح
 const GEMINI_MODEL = "gemini-3.1-flash-lite"; 
 const NOVA_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";

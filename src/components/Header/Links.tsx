@@ -1,6 +1,7 @@
 import { A, useNavigate } from "@solidjs/router";
 import { For, on, onCleanup, onMount, Show } from "solid-js";
 import ThemeBtn from "./ThemeBtn";
+import { useUser } from "../../context/user";
 
 const links = [
   { name: "وضع الإضاءة", image: "mode", route: null },
@@ -8,25 +9,28 @@ const links = [
   { name: "الإعدادات", image: "settings", route: "settings" },
   { name: "الاحصائيات", image: "stats", route: "stats" },
   { name: "البحث", image: "search", route: "search" },
+  { name: "لوحة التحكم", image: "dashboard", route: "dashboard" },
 ];
 
 export function Links() {
+const { user } = useUser();
+
   const navigate = useNavigate();
-const hadelPopState = (e: PopStateEvent) => {
+  const hadelPopState = (e: PopStateEvent) => {
     navigate("/", { replace: true });
-  }
+  };
 
   onMount(() => {
     window.addEventListener("popstate", hadelPopState);
   });
 
-onCleanup(() => {
+  onCleanup(() => {
     window.removeEventListener("popstate", hadelPopState);
   });
 
   return (
     <nav class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
-      <ul class="dark:bg-main-dark bg-main-light flex gap-5 rounded-2xl border px-6 py-3 shadow-sm transition-all hover:shadow-md">
+      <ul class="dark:bg-main-dark bg-main-light flex gap-2 rounded-2xl border px-6 py-3 shadow-sm transition-all hover:shadow-md">
         <For each={links}>
           {(link, index) => (
             <li class="group relative flex items-center justify-center">

@@ -41,9 +41,6 @@ importers:
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0
-      appwrite:
-        specifier: ^19.0.0
-        version: 19.0.0
       dexie:
         specifier: ^4.2.0
         version: 4.2.0
@@ -1541,9 +1538,6 @@ packages:
 
   appdata-path@1.0.0:
     resolution: {integrity: sha512-ZbH3ezXfnT/YE3NdqduIt4lBV+H0ybvA2Qx3K76gIjQvh8gROpDFdDLpx6B1QJtW7zxisCbpTlCLhKqoR8cDBw==}
-
-  appwrite@19.0.0:
-    resolution: {integrity: sha512-guamzST6Fvn/lvuBMLJGzJGL+N+o313j53qyfKM1ZHfcDd1ADnSONgm9DZihRFYBaWtU7s1bwkphkBJWSUwurQ==}
 
   array-buffer-byte-length@1.0.2:
     resolution: {integrity: sha512-LHE+8BuR7RYGDKvnrmcuSq3tDcKv9OFEXQt/HpbZhY7V6h0zlUXutnAD82GiFx9rdieCMjkvtcsPqBwgUl1Iiw==}
@@ -4822,8 +4816,6 @@ snapshots:
   ansi-styles@6.2.1: {}
 
   appdata-path@1.0.0: {}
-
-  appwrite@19.0.0: {}
 
   array-buffer-byte-length@1.0.2:
     dependencies:
