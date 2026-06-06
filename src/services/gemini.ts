@@ -1,16 +1,14 @@
 /**
  * gemini.ts
  * ─────────
- * يدير إرسال الطلبات لـ Gemini مع نظام fallback:
- * 1. مفتاح المستخدم الخاص (أولوية)
- * 2. مفتاح نوفا (إن لم يتجاوز الحد اليومي 1000)
- * 3. رسالة "نفد الرصيد" مع زر التحويل للـ Profile
+ * يدير إرسال الطلبات لـ Gemini مع نظام fallback
  */
 
 import { supabase } from "./supabase";
 
 const NOVA_DAILY_LIMIT = 1000;
-const GEMINI_MODEL = "gemini-3.5-flash";
+// 1. تصحيح اسم النموذج إلى الإصدار الفعلي المتاح
+const GEMINI_MODEL = "gemini-3.5-flash"; 
 const NOVA_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 
 export type GeminiResult =
@@ -44,32 +42,42 @@ async function callGemini(
 
   const data = await res.json();
 
-  if (!res.ok) throw new Error(data?.error?.message ?? "Gemini error");
+  if (!res.ok) {
+    // 2. طباعة الخطأ الفعلي القادم من جوجل في الكونسول لمعرفة السبب الجذري
+    console.error("❌ Gemini API Error Details:", data); 
+    throw new Error(data?.error?.message ?? "حدث خطأ غير معروف من خوادم Gemini");
+  }
 
   return (
     data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-    "لم أفهم السؤال، حاول مجدداً"
+    "عذراً، لم أتمكن من معالجة الإجابة، حاول مجدداً."
   );
 }
 
 // ─── تحقق من الاستخدام اليومي لنوفا وزد العداد ──────────────────────────────
 async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
   try {
-    // انتظر حتى يكتمل الـ session
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
+    if (authError) {
+      console.error("❌ Supabase Auth Error:", authError);
+    }
+
     if (!user) {
-      // انتظر ثانية وحاول مجدداً
+      // محاولة الإعادة بعد ثانية
       await new Promise(r => setTimeout(r, 1000));
       const { data: { user: retryUser } } = await supabase.auth.getUser();
-      if (!retryUser) return { ok: false, reason: "nova_depleted", message: "غير مسجل", userLimit: false };
+      if (!retryUser) return { ok: false, reason: "nova_depleted", message: "يجب تسجيل الدخول أولاً", userLimit: false };
     }
 
     const { data, error } = await supabase.rpc("increment_ai_usage", {
       p_user_id: user!.id,
     });
 
-    if (error) return { ok: false, reason: "error", message: "خطأ في الاتصال", userLimit: false };
+    if (error) {
+      console.error("❌ Supabase RPC Error:", error);
+      return { ok: false, reason: "error", message: "خطأ في الاتصال بقاعدة البيانات", userLimit: false };
+    }
 
     if (!data.allowed) {
       return {
@@ -81,8 +89,9 @@ async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
     }
 
     return null;
-  } catch {
-    return { ok: false, reason: "error", message: "حدث خطأ، حاول مجدداً", userLimit: false };
+  } catch (err) {
+    console.error("❌ Unknown Usage Check Error:", err);
+    return { ok: false, reason: "error", message: "حدث خطأ أثناء التحقق من الرصيد", userLimit: false };
   }
 }
 
@@ -93,7 +102,9 @@ export async function sendToGemini(
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<GeminiResult> {
-  const userKey = localStorage.getItem("gemini_api_key");
+  
+  // 3. التحقق من بيئة التشغيل لتجنب انهيار SSR (Server-Side Rendering)
+  const userKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") : null;
 
   // 1. مفتاح المستخدم الخاص — أولوية قصوى
   if (userKey) {
@@ -101,7 +112,8 @@ export async function sendToGemini(
       const text = await callGemini(userKey, systemContext, history, userText);
       return { ok: true, text };
     } catch (e: any) {
-      return { ok: false, reason: "error", message: e.message };
+      console.error("❌ User Key Failure:", e);
+      return { ok: false, reason: "error", message: `خطأ (مفتاحك): ${e.message}` };
     }
   }
 
@@ -114,7 +126,8 @@ export async function sendToGemini(
       const text = await callGemini(NOVA_KEY, systemContext, history, userText);
       return { ok: true, text };
     } catch (e: any) {
-      return { ok: false, reason: "error", message: e.message };
+      console.error("❌ Nova Key Failure:", e);
+      return { ok: false, reason: "error", message: `خطأ (النظام): ${e.message}` };
     }
   }
 
@@ -122,6 +135,6 @@ export async function sendToGemini(
   return {
     ok: false,
     reason: "no_key",
-    message: "لا يوجد مفتاح API متاح",
+    message: "لا يوجد مفتاح API متاح حالياً",
   };
 }

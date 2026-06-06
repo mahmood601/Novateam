@@ -108,8 +108,6 @@ export default function NormalMode() {
   // ─── Passages ─────────────────────────────────────────────────────────────
   const [passages] = createResource(async () => {
     await syncPassagesOfflineFirst(subject);
-    console.log((await getPassagesForSubject(subject)));
-    
     return (await getPassagesForSubject(subject)).reverse();
   });
 
