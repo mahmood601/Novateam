@@ -1,5 +1,5 @@
 import { A, useNavigate } from "@solidjs/router";
-import { For, on, onCleanup, onMount, Show } from "solid-js";
+import { For, Match, on, onCleanup, onMount, Show, Switch } from "solid-js";
 import ThemeBtn from "./ThemeBtn";
 import { useUser } from "../../context/user";
 
@@ -13,7 +13,7 @@ const links = [
 ];
 
 export function Links() {
-const { user } = useUser();
+  const { user } = useUser();
 
   const navigate = useNavigate();
   const hadelPopState = (e: PopStateEvent) => {
@@ -32,14 +32,25 @@ const { user } = useUser();
     <nav class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
       <ul class="dark:bg-main-dark bg-main-light flex gap-2 rounded-2xl border px-6 py-3 shadow-sm transition-all hover:shadow-md">
         <For each={links}>
-          {(link, index) => (
-            <li class="group relative flex items-center justify-center">
-              <Show
-                when={index() === 0}
-                fallback={
+          {(link) => (
+            <li class="group relative flex h-9 w-9 items-center justify-center">
+              <Switch>
+                <Match when={link.image == "mode"}>
+                  <ThemeBtn />
+                </Match>
+                <Match
+                  when={
+                    user() &&
+                    user()?.role !== "admin" &&
+                    link.route == "dashboard"
+                  }
+                >
+                  {" "}
+                </Match>
+                <Match when={true}>
                   <A
                     href={link.route ? `/${link.route}` : "#"}
-                    class="hover:bg-main/10 flex size-9 items-center justify-center rounded-lg transition-all"
+                    class="hover:bg-main/10 flex size-9 items-center justify-center rounded-lg transition-all duration-200"
                   >
                     <img
                       class="size-6 dark:invert"
@@ -47,18 +58,20 @@ const { user } = useUser();
                       alt={link.name}
                     />
                   </A>
-                }
-              >
-                <ThemeBtn />
-              </Show>
+                </Match>
+              </Switch>
 
-              {/* tooltip */}
-              <div class="pointer-events-none absolute top-0 left-0 ml-3 -translate-x-1/2 -translate-y-12 opacity-0 transition-all duration-300 group-hover:-translate-y-13 group-hover:opacity-100">
-                <div class="flex flex-col items-center justify-center">
-                  <p class="bg-main-dark dark:bg-main-light text-main-light dark:text-main-dark rounded-full px-3 py-1 text-sm font-bold whitespace-nowrap">
-                    {link.name}
-                  </p>
-                  <span class="border-t-main-dark dark:border-t-main-light border-[8px] border-y-transparent border-r-transparent border-l-transparent"></span>
+              {/* Tooltip */}
+              <div class="tooltip-lens pointer-events-none absolute -translate-y-16 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                <div class="balloon relative flex items-center justify-center rounded-md bg-gray-200 shadow-lg dark:bg-zinc-700">
+                  <div class="wrapper-content flex w-[90%] items-center justify-center opacity-0">
+                    <p class="invisible rounded px-2 py-1 text-center text-[13px] leading-[18px] font-bold text-gray-800 group-hover:visible dark:text-gray-100">
+                      {link.name}
+                    </p>
+                  </div>
+
+                  {/* Arrow */}
+                  <span class="balloon-arrow absolute -bottom-[9px] left-1/2 -translate-x-1/2 border-x-[8px] border-t-[9px] border-x-transparent border-t-gray-200 dark:border-t-zinc-700" />
                 </div>
               </div>
             </li>

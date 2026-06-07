@@ -1332,12 +1332,12 @@ function SubjectPicker(props: { onSelect: (subjectId: string) => void }) {
 
         <div class="mb-4 rounded-[2rem] bg-white p-4 shadow-sm dark:bg-slate-800">
           <p class="mb-3 text-xs font-bold text-slate-400">📅 السنة الدراسية</p>
-          <div class="flex flex-wrap justify-around">
+          <div class="flex flex-wrap gap-2 justify-around">
             <For each={YEARS}>
               {(y) => (
                 <button
                   onClick={() => setYearKey(y.id)}
-                  class={`rounded-2xl px-5 py-2 text-sm font-bold transition-all ${
+                  class={`rounded-2xl p-2 w-17 text-sm font-bold transition-all ${
                     yearKey() === y.id
                       ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
@@ -1609,21 +1609,21 @@ export default function Dashboard() {
             <h1 class="text-2xl font-black text-slate-800 dark:text-white">
               إدارة المحتوى
             </h1>
-            <div class="flex items-center mt-3 gap-2">
+            <div class="flex items-center mt-3 gap-1">
               <p class="text-sm text-slate-400">المادة: <span class="font-bold text-slate-600 dark:text-slate-300">{subjectId()}</span></p>
               <button
                 onClick={() => {
                   setPickedSubject(null);
                   navigate("/dashboard", { replace: true });
                 }}
-                class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-500 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
+                class="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-500 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
                 title="تغيير المادة"
               >
                 تغيير ↩
               </button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-col-reverse lg:flex-row items-center gap-2">
             {/* ✅ زر وضع التحديد المتعدد */}
             <button
               onClick={() => {
@@ -1633,7 +1633,7 @@ export default function Dashboard() {
                   setSelectionMode(true);
                 }
               }}
-              class={`flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all ${
+              class={`flex h-7 w-7 items-center justify-center rounded-full text-lg transition-all ${
                 selectionMode()
                   ? "bg-cyan-500 text-white shadow-lg"
                   : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
