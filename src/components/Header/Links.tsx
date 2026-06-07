@@ -63,15 +63,15 @@ export function Links() {
 
               {/* Tooltip */}
               <div class="tooltip-lens pointer-events-none absolute -translate-y-16 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                <div class="balloon relative flex items-center justify-center rounded-md bg-gray-200 shadow-lg dark:bg-zinc-700">
+                <div class="balloon relative flex items-center justify-center rounded-md bg-main-dark text-main-light dark:text-main-dark shadow-lg dark:bg-main-light">
                   <div class="wrapper-content flex w-[90%] items-center justify-center opacity-0">
-                    <p class="invisible rounded px-2 py-1 text-center text-[13px] leading-[18px] font-bold text-gray-800 group-hover:visible dark:text-gray-100">
+                    <p class="invisible rounded px-2 py-1 text-center text-[13px] leading-[18px] font-bold group-hover:visible ">
                       {link.name}
                     </p>
                   </div>
 
                   {/* Arrow */}
-                  <span class="balloon-arrow absolute -bottom-[9px] left-1/2 -translate-x-1/2 border-x-[8px] border-t-[9px] border-x-transparent border-t-gray-200 dark:border-t-zinc-700" />
+                  <span class="balloon-arrow absolute -bottom-[9px] left-1/2 -translate-x-1/2 border-x-[8px] border-t-[9px] border-x-transparent border-t-main-dark dark:border-t-main-light" />
                 </div>
               </div>
             </li>
