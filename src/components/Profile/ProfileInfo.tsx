@@ -1,6 +1,5 @@
 import { createSignal, For, JSX, Show, Suspense } from "solid-js";
 import { useUser } from "../../context/user";
-import { account, setAccount } from "../../stores/account";
 import years from "../../services/local/years";
 import {
   clearDBAfterChangeYear,
@@ -11,7 +10,6 @@ import toast from "solid-toast";
 export default function ProfileInfo(props: {
   name: string;
   email: string;
-  isAdmin: boolean;
 }) {
   const { user, updateProfile } = useUser();
 
@@ -164,52 +162,6 @@ export default function ProfileInfo(props: {
         }
       />
 
-      <Show when={props.isAdmin}>
-        <Li
-          Icon={TeamSvg()}
-          type="الفريق"
-          value={
-            <div
-              dir="rtl"
-              class="text-md text-main-dark dark:text-main-light flex w-full flex-col justify-center pl-2 text-right font-normal"
-            >
-              <p>
-                <span class="rainbow-graident text-center text-sm">
-                  انت عضو من الفريق
-                </span>
-                😎🔥
-              </p>
-              <div class="flex w-fit items-center justify-between">
-                <p class="ml-2 text-right text-sm text-wrap">
-                  هل تريد تفعيل وضع ادخال الاسئلة؟ 👀
-                </p>
-                <button
-                  on:click={() => {
-                    const newValue = !account.devMode;
-                    localStorage.setItem("dev", String(newValue));
-                    setAccount("devMode", newValue);
-                  }}
-                  classList={{
-                    "bg-main dark:bg-main": account.devMode,
-                    "bg-darker-light-2 dark:bg-lighter-dark-2":
-                      !account.devMode,
-                    "relative h-5 block w-10 rounded-full shrink-0": true,
-                  }}
-                >
-                  <span
-                    classList={{
-                      "bg-main-light dark:bg-main-dark -translate-x-5":
-                        account.devMode,
-                      "bg-main-light dark:bg-main-dark": !account.devMode,
-                      "transition-colors transition-transform duration-200 absolute top-1/2 -translate-y-1/2 right-0 -translate-x-1 h-4 w-4 rounded-full": true,
-                    }}
-                  />
-                </button>
-              </div>
-            </div>
-          }
-        />
-      </Show>
       <Show when={user()?.id}>
         <Logout Icon={LogoutSvg()} type="تسجيل الخروج" />
       </Show>

@@ -27,8 +27,6 @@ export default function Profile() {
   );
   const [saving, setSaving] = createSignal(false);
 
-  
-
   const saveYear = async () => {
     const previousYear = localStorage.getItem("year");
     const newYear = yearValue();
@@ -48,11 +46,9 @@ export default function Profile() {
   };
 
   return (
-    <div
-      class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5"
-     >
+    <div class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5">
       <div class="flex w-full items-center justify-center dark:text-white">
-        <h1 class="flex-1  text-right text-2xl font-bold tracking-wide">
+        <h1 class="flex-1 text-right text-2xl font-bold tracking-wide">
           الملف الشخصي
         </h1>
       </div>
@@ -115,11 +111,7 @@ export default function Profile() {
           </div>
         }
       >
-        <ProfileInfo
-          name={user()?.name}
-          email={user()?.email}
-          isAdmin={user()?.role === "admin"}
-        />
+        <ProfileInfo name={user()?.name} email={user()?.email} />
       </Show>
     </div>
   );

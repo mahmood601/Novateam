@@ -25,7 +25,6 @@ import { quizState, resetQuizState, setQuizState } from "./quizStore";
 import QuizBox from "./QuizBox";
 import QuizFooter from "./QuizFooter";
 import Result from "./Result";
-import { account } from "../../stores/account";
 import { recordActivityToday } from "../../services/local/streak";
 
 export default function NormalMode() {
@@ -173,7 +172,6 @@ export default function NormalMode() {
   useBeforeLeave((e) => {
     if (
       !quizState.showResult &&
-      !account.devMode &&
       !confirm("هل تريد مغادرة الاختبار؟ سيتم حفظ تقدمك.")
     ) {
       e.preventDefault();

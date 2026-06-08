@@ -362,6 +362,7 @@ async function syncSectionsInBackground(
 
     if (error || !data) return;
 
+    await db.sections.where("subject_id").equals(subjectId).delete();
     await db.sections.bulkPut(data);
     onUpdate?.(data as CachedSection[]);
   } catch {
