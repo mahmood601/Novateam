@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import { getSeasonName, getYearName } from "../../services/local/indexeddb";
 import ImageLightbox from "./ImageLightbox";
+import SuggestSection from "./SuggestSection";
 
 export default function QuizBox(props: any) {
   const [yearName] = createResource(
@@ -15,22 +16,30 @@ export default function QuizBox(props: any) {
 
   const [lightboxOpen, setLightboxOpen] = createSignal(false);
 
-
   return (
     <div class="bg-main-light dark:bg-main-dark">
-      {/* شارة الفصل والسنة */}
+      {/* شارة الفصل والسنة + زر الاقتراح */}
       <Show when={props.currentQuestion}>
-        <div class="text-xs border-secondary mb-2 ml-auto flex w-fit items-center rounded-full border-2 font-bold">
-          <Show when={seasonName()}>
-            <p dir="rtl" class="text-secondary flex-1 px-2">
-              {seasonName()}
-            </p>
-          </Show>
-          <Show when={yearName()}>
-            <p class="bg-secondary text-main-light rounded-full px-2 py-1">
-              {yearName()}
-            </p>
-          </Show>
+        <div class="mb-2 flex items-center flex-row-reverse">
+          <div class="text-xs border-secondary flex w-fit items-center rounded-full border-2 font-bold ml-2">
+            <Show when={seasonName()}>
+              <p dir="rtl" class="text-secondary flex-1 px-2">
+                {seasonName()}
+              </p>
+            </Show>
+            <Show when={yearName()}>
+              <p class="bg-secondary text-main-light rounded-full px-2 py-1">
+                {yearName()}
+              </p>
+            </Show>
+          </div>
+
+          {/* زر اقتراح الفصل */}
+          <SuggestSection
+            questionId={props.currentQuestion.$id}
+            subject={props.subject}
+            currentSeasonId={props.currentQuestion.season_id}
+          />
         </div>
       </Show>
 

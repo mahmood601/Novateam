@@ -28,7 +28,7 @@ import toast from "solid-toast";
 import { uploadQuestionImage, deleteQuestionImage } from "../services/imageUpload";
 import ImageLightbox from "./Quiz/ImageLightbox";
 import { useUser } from "../context/user";
-import { getSubjectsOfflineFirst, type CachedSubject } from "../services/local/indexeddb";
+import { getSubjectsOfflineFirst} from "../services/local/indexeddb";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
 
@@ -1416,7 +1416,7 @@ export default function Dashboard() {
   const [mode, setMode] = createSignal<"smart" | "manual">("smart");
   const [showAdd, setShowAdd] = createSignal(false);
   const [editTarget, setEditTarget] = createSignal<QuestionUI | null>(null);
-  const [mainTab, setMainTab] = createSignal<"questions" | "passages">(
+  const [mainTab, setMainTab] = createSignal<"questions" | "passages" | "suggestions">(
     "questions",
   );
 
@@ -1780,21 +1780,31 @@ export default function Dashboard() {
         <div class="mx-auto mb-6 flex w-fit max-w-4xl rounded-full bg-slate-100 p-1 dark:bg-slate-900">
           <button
             onClick={() => setMainTab("questions")}
-            class={`rounded-full px-6 py-2 text-sm font-bold transition-all ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
           >
             📋 الأسئلة
           </button>
           <button
             onClick={() => setMainTab("passages")}
-            class={`rounded-full px-6 py-2 text-sm font-bold transition-all ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
           >
             🗒️ المقالات
+          </button>
+          <button
+            onClick={() => setMainTab("suggestions")}
+            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "suggestions" ? "bg-white text-green-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+          >
+            💡 المقترحات
           </button>
         </div>
 
         <div class="mx-auto max-w-4xl pb-12">
           <Show when={mainTab() === "passages"}>
             <PassageManager subjectId={subjectId() ?? ""} />
+          </Show>
+
+          <Show when={mainTab() === "suggestions"}>
+            <SuggestionsManager subjectId={subjectId() ?? ""} sections={sections() ?? []} onApplied={refetch} />
           </Show>
 
           <Show when={mainTab() === "questions"}>
@@ -1911,5 +1921,166 @@ export default function Dashboard() {
         />
       </Show>
     </Show>
+  );
+}
+// ─── SuggestionsManager ───────────────────────────────────────────────────────
+
+function SuggestionsManager(props: {
+  subjectId: string;
+  sections: Section[];
+  onApplied: () => void;
+}) {
+  const [filter, setFilter] = createSignal<"pending" | "approved" | "rejected">("pending");
+
+const [suggestions, { refetch }] = createResource(
+  () => ({ subjectId: props.subjectId, status: filter() }),
+  async ({ subjectId, status }) => {
+    if (!subjectId || !status) return [];
+
+    const { data, error } = await supabase
+      .from("question_suggestions")
+      .select(`
+        *,
+        question:questions(id, question, season_id),
+        suggested_by_user:users(name) 
+      `) // سيعمل هذا الربط الآن بنجاح لأن قاعدة البيانات أصبحت تعرف العلاقة
+      .eq("subject_id", subjectId)
+      .eq("status", status)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Supabase Query Error:", error.message);
+      return [];
+    }
+    
+    return data ?? [];
+  },
+  { initialValue: [] } // لتجنب ظهور مشاكل undefined أثناء التحميل الأول
+);
+
+  const seasons = () => props.sections.filter((s) => s.type === "season");
+
+  const getSeasonName = (id: number | null) =>
+    seasons().find((s) => s.id === id)?.name ?? "غير محدد";
+
+  const handleApprove = async (suggestion: any) => {
+    // 1. عدّل الفصل في جدول questions
+    const { error } = await supabase
+      .from("questions")
+      .update({ season_id: suggestion.suggested_season_id })
+      .eq("id", suggestion.question_id);
+
+    if (error) { toast.error("فشل التطبيق"); return; }
+
+    // 2. عدّل حالة الاقتراح
+    await supabase
+      .from("question_suggestions")
+      .update({ status: "approved", reviewed_at: new Date().toISOString() })
+      .eq("id", suggestion.id);
+
+    toast.success("تم تطبيق الاقتراح ✓");
+    refetch();
+    props.onApplied();
+  };
+
+  const handleReject = async (id: string) => {
+    await supabase
+      .from("question_suggestions")
+      .update({ status: "rejected", reviewed_at: new Date().toISOString() })
+      .eq("id", id);
+
+    toast.success("تم رفض الاقتراح");
+    refetch();
+  };
+
+  return (
+    <div class="space-y-4" dir="rtl">
+      {/* فلتر الحالة */}
+      <div class="flex gap-2 rounded-2xl bg-white dark:bg-slate-800 p-3 shadow-sm">
+        <For each={[
+          { key: "pending", label: "⏳ قيد المراجعة", color: "text-amber-600" },
+          { key: "approved", label: "✅ مقبولة", color: "text-green-600" },
+          { key: "rejected", label: "❌ مرفوضة", color: "text-red-500" },
+        ] as const}>
+          {(item) => (
+            <button
+              onClick={() => setFilter(item.key)}
+              class={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
+                filter() === item.key
+                  ? `bg-slate-100 dark:bg-slate-700 ${item.color}`
+                  : "text-slate-400"
+              }`}
+            >
+              {item.label}
+            </button>
+          )}
+        </For>
+      </div>
+
+      {/* قائمة المقترحات */}
+      <Show when={suggestions.loading}>
+        <p class="text-center text-sm text-slate-400 py-10">جاري التحميل...</p>
+      </Show>
+
+      <Show when={!suggestions.loading && (suggestions()?.length ?? 0) === 0}>
+        <div class="rounded-2xl bg-white dark:bg-slate-800 p-10 text-center shadow-sm">
+          <p class="text-3xl mb-2">🎉</p>
+          <p class="text-slate-400 text-sm">لا توجد مقترحات {filter() === "pending" ? "قيد المراجعة" : ""}</p>
+        </div>
+      </Show>
+
+      <For each={suggestions()}>
+        {(s) => (
+          <div class="rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-sm space-y-3">
+            {/* السؤال */}
+            <p class="text-sm font-bold leading-relaxed line-clamp-2">
+              {s.question?.question}
+            </p>
+
+            {/* التغيير المقترح */}
+            <div class="flex items-center gap-2 text-xs">
+              <span class="rounded-full bg-red-50 dark:bg-red-900/20 px-3 py-1 text-red-500 line-through">
+                {getSeasonName(s.current_season_id)}
+              </span>
+              <span class="text-slate-400">←</span>
+              <span class="rounded-full bg-green-50 dark:bg-green-900/20 px-3 py-1 text-green-600 font-bold">
+                {getSeasonName(s.suggested_season_id)}
+              </span>
+            </div>
+
+            {/* ملاحظة */}
+            <Show when={s.note}>
+              <p class="text-xs text-slate-400 bg-slate-50 dark:bg-slate-700 rounded-xl px-3 py-2">
+                💬 {s.note}
+              </p>
+            </Show>
+
+            {/* معلومات المقترح والتاريخ */}
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>👤 {s.suggested_by_user?.name ?? "مجهول"}</span>
+              <span>{new Date(s.created_at).toLocaleDateString("ar-SA")}</span>
+            </div>
+
+            {/* أزرار المراجعة */}
+            <Show when={filter() === "pending"}>
+              <div class="flex gap-2 pt-1">
+                <button
+                  onClick={() => handleApprove(s)}
+                  class="flex-1 rounded-full bg-green-500 py-2 text-xs font-bold text-white"
+                >
+                  ✓ قبول وتطبيق
+                </button>
+                <button
+                  onClick={() => handleReject(s.id)}
+                  class="flex-1 rounded-full border border-red-200 py-2 text-xs font-bold text-red-500"
+                >
+                  ✕ رفض
+                </button>
+              </div>
+            </Show>
+          </div>
+        )}
+      </For>
+    </div>
   );
 }
