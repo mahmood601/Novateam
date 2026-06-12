@@ -51,12 +51,12 @@ export default function NormalMode() {
     // المشكلة أن createResource يبدأ بـ loading وعندما ينتهي يُعيد الـ render
     // فتبدو كأن الصفحة أعادت التحميل. الحل: نحفظ الـ saved ونُطبقه بعد reset.
     const saved = parseInt(sessionStorage.getItem(SESSION_KEY) ?? "0");
-    
+
     resetQuizState();
-    
+
     // استعادة الموضع المحفوظ (يتجاوز index=0 الذي يضعه resetQuizState)
     if (saved > 0) setQuizState("index", saved);
-   
+
     // في وضع "continue" فقط: نقفز للسؤال غير المجاب
     if (quizType() === "continue") {
       getQuestionsOrAnswersWithFilter(
@@ -242,6 +242,7 @@ export default function NormalMode() {
               question={orderedQs()[quizState.index]}
               index={quizState.index}
               subject={subject}
+              subjectName={subjectInfo()?.name ?? subject}
               selectedOption={quizState.selectedOption}
               isDisabled={quizState.isOptionDisabled}
               onSelect={handleOptionSelect}

@@ -38,7 +38,9 @@ export default function QuizBox(props: any) {
           <SuggestSection
             questionId={props.currentQuestion.$id}
             subject={props.subject}
+            subjectName={props.subjectName}
             currentSeasonId={props.currentQuestion.season_id}
+            questionText={props.currentQuestion.question}
           />
         </div>
       </Show>

@@ -1065,7 +1065,7 @@ function PassageManager(props: { subjectId: string }) {
   };
 
   return (
-    <div class="space-y-4" dir="rtl">
+    <div class="space-y-4 pb-16" dir="rtl">
       <Show
         when={(passages() ?? []).length > 0}
         fallback={
@@ -1994,7 +1994,7 @@ const [suggestions, { refetch }] = createResource(
   };
 
   return (
-    <div class="space-y-4" dir="rtl">
+    <div class="space-y-4 pb-16" dir="rtl">
       {/* فلتر الحالة */}
       <div class="flex gap-2 rounded-2xl bg-white dark:bg-slate-800 p-3 shadow-sm">
         <For each={[
