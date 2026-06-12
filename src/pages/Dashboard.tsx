@@ -1318,8 +1318,8 @@ function SubjectPicker(props: { onSelect: (subjectId: string) => void }) {
   );
 
   return (
-    <div class="min-h-screen bg-[#f8fafc] px-5 pt-22 pb-10 dark:bg-[#0f172a]" dir="rtl">
-      <div class="mx-auto max-w-lg">
+    <div class="h-screen bg-[#f8fafc] px-5 pt-22 dark:bg-[#0f172a]" dir="rtl">
+      <div class="mx-auto max-w-lg pb-22">
         <div class="mb-8 text-center">
           <div class="mb-3 flex justify-center">
             <span class="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-cyan-400 to-fuchsia-500 text-3xl shadow-lg">
