@@ -34,6 +34,11 @@ async function checkAccess() {
 export default function MaintenanceGate(props: { children: any }) {
   const [access] = createResource(checkAccess);
 
+  // صفحة /status عامة — لا تخضع لوضع الصيانة
+  if (location.pathname.startsWith("/status")) {
+    return props.children;
+  }
+
   return (
     <Show
       when={access() === "open"}

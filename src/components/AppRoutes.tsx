@@ -11,6 +11,7 @@ import SearchPage from "../pages/Search";
 import AuthCallback from "./auth/AuthCallback";
 import WeakQuestionsPage from "../pages/WeakQuestions";
 import Dashboard from "../pages/Dashboard";
+import StatusPage from "../pages/Status";
 
 export default function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ export default function AppRoutes() {
       <Route path="/search" component={SearchPage} />
       <Route path="/stats" component={StatsPage} />
       <Route path="/settings" component={Settings} />
+      <Route path="/status" component={StatusPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/dashboard/:subject" component={Dashboard} />
       <Route path="/:subject" component={SelectMenu} />
