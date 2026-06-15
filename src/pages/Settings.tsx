@@ -1,7 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { useTheme } from "../hooks/useTheme";
 
-const colors = {
+export const colors = {
   Ola: {
     main: "#b118d7",
     secondary: "#ffae58",

@@ -18,6 +18,8 @@ export default function QuizHeader(props: {
   currentQuestion: any;
   userAnswer: any;
   isDisabled: boolean;
+  onTimeUp?: () => void;
+  onTimeWarning?: () => void;
 }) {
   const [timeLeft, setTimeLeft] = createSignal(0);
   const [isPaused, setIsPaused] = createSignal(false);
@@ -31,7 +33,16 @@ export default function QuizHeader(props: {
 
   onMount(() => {
     const timer = setInterval(() => {
-      if (!isPaused() && timeLeft() > 0) setTimeLeft((t) => t - 1);
+      if (isPaused()) return;
+      if (timeLeft() <= 0) return;
+      if (timeLeft() === 60) {
+        // تنبيه آخر دقيقة
+        props.onTimeWarning?.();
+      }
+      setTimeLeft((t) => t - 1);
+      if (timeLeft() - 1 <= 0) {
+        props.onTimeUp?.();
+      }
     }, 1000);
     onCleanup(() => clearInterval(timer));
   });
@@ -78,7 +89,7 @@ export default function QuizHeader(props: {
         </button>
       </div>
 
-      <div class="mt-4 flex items-center justify-between flex-wrap gap-1">
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-1">
         <span>
           {props.index + 1} / {props.total}
         </span>

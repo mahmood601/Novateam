@@ -26,6 +26,7 @@ import QuizBox from "./QuizBox";
 import QuizFooter from "./QuizFooter";
 import Result from "./Result";
 import { recordActivityToday } from "../../services/local/streak";
+import { toast } from "solid-toast";
 
 export default function NormalMode() {
   const subject = useParams().subject;
@@ -235,6 +236,12 @@ export default function NormalMode() {
             total={orderedQs().length}
             currentQuestion={orderedQs()[quizState.index]}
             userAnswer={quizState.userAnswers[quizState.index]}
+            onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
+            onTimeUp={() => {
+              // تسليم تلقائي
+              addAnswersToProgress(unwrap(quizState.userAnswers));
+              setQuizState("showResult", true);
+            }}
           />
 
           <main class="flex-1 overflow-y-auto px-5">

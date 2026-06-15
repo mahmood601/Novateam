@@ -21,7 +21,7 @@ export default function App() {
   const { applyTheme } = useTheme();
 
   onMount(async () => {
-    applyTheme((localStorage.getItem("theme") as any) || "Ola");
+    applyTheme((localStorage.getItem("theme-color") as any) || "Ola");
     await checkAndMigrateIfNeeded();
 
     const handleVisbilityChange = () => {

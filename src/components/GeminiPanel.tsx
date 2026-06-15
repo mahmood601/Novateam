@@ -4,7 +4,7 @@
  * نافذة محادثة مع Gemini مع نظام fallback (مفتاح المستخدم → مفتاح نوفا → رسالة نفاد)
  */
 
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, on, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { sendToGemini } from "../services/gemini";
 import Markdown from "./Markdown";
@@ -38,47 +38,59 @@ export default function GeminiPanel(props: {
 
 أجب بالعربية بشكل مختصر وواضح.`.trim();
 
-const send = async () => {
-  const text = input().trim();
-  if (!text || loading() || depleted()) return;
+  const send = async () => {
+    const text = input().trim();
+    if (!text || loading() || depleted()) return;
 
-  // 1. استخراج السجل *قبل* إضافة الرسالة الجديدة للواجهة
-  const history = messages().map((m) => ({
-    role: m.role,
-    parts: [{ text: m.text }],
-  }));
+    // 1. استخراج السجل *قبل* إضافة الرسالة الجديدة للواجهة
+    const history = messages().map((m) => ({
+      role: m.role,
+      parts: [{ text: m.text }],
+    }));
 
-  // 2. تحديث الواجهة (UI) وإفراغ حقل الإدخال
-  setMessages((prev) => [...prev, { role: "user", text }]);
-  setInput("");
-  setLoading(true);
+    // 2. تحديث الواجهة (UI) وإفراغ حقل الإدخال
+    setMessages((prev) => [...prev, { role: "user", text }]);
+    setInput("");
+    setLoading(true);
 
-  // 3. إرسال الطلب (الآن history لا يحتوي على الرسالة الحالية المكررة)
-  const result = await sendToGemini(systemContext(), history, text);
+    // 3. إرسال الطلب (الآن history لا يحتوي على الرسالة الحالية المكررة)
+    const result = await sendToGemini(systemContext(), history, text);
 
-  if (result.ok) {
-    setMessages((prev) => [...prev, { role: "model", text: result.text }]);
-  } else if (result.reason === "nova_depleted") {
-    // تحقق من السبب
-    const msg = result.userLimit
-      ? "وصلت لحدك اليومي (10 طلب) — أضف مفتاحك الخاص للاستمرار"
-      : "نفد رصيد نوفا اليومي — أضف مفتاحك الخاص للاستمرار";
+    if (result.ok) {
+      setMessages((prev) => [...prev, { role: "model", text: result.text }]);
+    } else if (result.reason === "nova_depleted") {
+      // تحقق من السبب
+      const msg = result.userLimit
+        ? "وصلت لحدك اليومي (10 طلب) — أضف مفتاحك الخاص للاستمرار"
+        : "نفد رصيد نوفا اليومي — أضف مفتاحك الخاص للاستمرار";
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "model", text: msg, depleted: true },
-    ]);
-  } else {
-    // عرض رسالة الخطأ القادمة من الدالة بدلاً من رسالة عامة لتسهيل تتبع المشاكل مستقبلاً
-    setMessages((prev) => [
-      ...prev,
-      { role: "model", text: result.message || "حدث خطأ، حاول مجدداً" },
-    ]);
-  }
+      setMessages((prev) => [
+        ...prev,
+        { role: "model", text: msg, depleted: true },
+      ]);
+    } else {
+      // عرض رسالة الخطأ القادمة من الدالة بدلاً من رسالة عامة لتسهيل تتبع المشاكل مستقبلاً
+      setMessages((prev) => [
+        ...prev,
+        { role: "model", text: result.message || "حدث خطأ، حاول مجدداً" },
+      ]);
+    }
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
+  createEffect(
+    on(
+      () => props.question?.$id,
+      () => {
+        setMessages([]);
+        setInput("");
+        setDepleted(false);
+      },
+      { defer: true },
+    ),
+  );
+  
   return (
     <Show when={props.open}>
       {/* Overlay */}

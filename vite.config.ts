@@ -14,7 +14,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
     globPatterns: ["**/*.{js,css,html,mp3,woff2,svg,webp,png,ico}"],
   },
   manifest: {
-    name: "Nova App 2029",
+    name: "Nova App",
     short_name: "Nova App",
     id: "NovaApp",
     description:
