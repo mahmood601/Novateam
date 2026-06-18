@@ -21,7 +21,7 @@ export type Question = {
   question: string;
   explanation: string | null;
   options: string[];
-  correctIndex: number;
+  correctIndex: number ;
   user_id: string | null;
   image_url?: string | null; // ← جاهز للصور مستقبلاً
   passage_id?: string | null; // ← مقالة مرتبطة (اختياري)

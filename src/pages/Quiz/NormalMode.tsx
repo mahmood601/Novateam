@@ -226,7 +226,7 @@ export default function NormalMode() {
     <Suspense fallback={<LoadingSpinner />}>
       <Show
         when={!quizState.showResult}
-        fallback={<Result subject={subject} answers={quizState.userAnswers} />}
+        fallback={<Result subject={subject} section={useParams().section} answers={quizState.userAnswers} />}
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <QuizHeader

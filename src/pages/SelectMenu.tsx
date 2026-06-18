@@ -22,13 +22,14 @@ export default function SelectMenu() {
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
   return (
-    <div class="bg-main-light dark:bg-main-dark flex h-screen w-screen flex-col flex-wrap items-center justify-center gap-5 py-22">
+    <div class="bg-main-light dark:bg-main-dark flex min-h-screen w-screen flex-col items-center justify-center gap-5">
       {/* السنوات */}
       <SectionBox
         text="السنوات"
         index={0}
         activeIndex={activeIndex}
         setActiveIndex={setActiveIndex}
+        dropdown={true}
       >
         <For each={years()}>
           {(y) => (
@@ -49,6 +50,7 @@ export default function SelectMenu() {
         index={1}
         activeIndex={activeIndex}
         setActiveIndex={setActiveIndex}
+        dropdown={true}
       >
         <For each={seasons()}>
           {(s) => (
@@ -69,6 +71,7 @@ export default function SelectMenu() {
         index={2}
         activeIndex={activeIndex}
         setActiveIndex={setActiveIndex}
+        dropdown={true}
       >
         <Show
           when={(favorites() ?? []).length > 0}
@@ -89,6 +92,16 @@ export default function SelectMenu() {
           </div>
         </Show>
       </SectionBox>
+
+      {/* الاسئلة الصعبة */}
+      <SectionBox
+        text="الاسئلة الصعبة"
+        index={3}
+        activeIndex={activeIndex}
+        setActiveIndex={setActiveIndex}
+        dropdown={false}
+        link="weak"
+      ></SectionBox>
     </div>
   );
 }
@@ -100,31 +113,51 @@ function SectionBox(props: {
   index: number;
   activeIndex: () => number | null;
   setActiveIndex: (i: number | null) => void;
-  children: any;
+  dropdown: boolean;
+  link?: string;
+  children?: any;
 }) {
   const isActive = () => props.activeIndex() === props.index;
 
   return (
     <div class="dark:bg-lighter-dark-1 hover:border-main relative w-10/12 flex-row-reverse justify-between rounded-2xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <button
-        type="button"
-        onClick={() => props.setActiveIndex(isActive() ? null : props.index)}
-        class="dark:text-main-light w-full"
-        aria-expanded={isActive()}
+      <Show
+        fallback={
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                props.setActiveIndex(isActive() ? null : props.index)
+              }
+              class="dark:text-main-light w-full"
+              aria-expanded={isActive()}
+            >
+              <p class="text-center text-lg font-bold">{props.text}</p>
+            </button>
+            <div
+              class="overflow-hidden transition-all duration-200"
+              style={{ "max-height": isActive() ? "220px" : "0px" }}
+            >
+              <div class="bg-darker-light-2 dark:bg-lighter-dark-2 mt-5 flex max-h-30 flex-col items-center overflow-y-auto rounded-2xl">
+                <Show when={isActive()}>
+                  <TransitionGroup name="dropdown">
+                    {props.children}
+                  </TransitionGroup>
+                </Show>
+              </div>
+            </div>
+          </>
+        }
+        when={!props.dropdown}
       >
-        <p class="text-center text-lg font-bold">{props.text}</p>
-      </button>
-
-      <div
-        class="overflow-hidden transition-all duration-200"
-        style={{ "max-height": isActive() ? "220px" : "0px" }}
-      >
-        <div class="bg-darker-light-2 dark:bg-lighter-dark-2 mt-5 flex max-h-30 flex-col items-center overflow-y-auto rounded-2xl">
-          <Show when={isActive()}>
-            <TransitionGroup name="dropdown">{props.children}</TransitionGroup>
-          </Show>
-        </div>
-      </div>
+        <A
+          onClick={() => props.setActiveIndex(isActive() ? null : props.index)}
+          class="dark:text-main-light w-full"
+          href={props.link!}
+        >
+          <p class="text-center text-lg font-bold">{props.text}</p>
+        </A>
+      </Show>
     </div>
   );
 }
