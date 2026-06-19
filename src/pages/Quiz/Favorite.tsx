@@ -93,11 +93,11 @@ export default function FavoriteButton(props: any) {
         fallback={
           <button
             on:click={handleAdd}
-            class="flex items-center justify-center rounded-full bg-gray-100 p-2 transition hover:scale-105 dark:bg-gray-800"
+            class="flex items-center relative justify-center rounded-full bg-gray-100 p-2 transition hover:scale-105 dark:bg-gray-800"
             aria-label="Save question to favorites"
           >
             <svg
-              class="absolute overflow-visible"
+              class="absolute w-full overflow-visible"
               viewBox="0 0 24 24"
               fill="none"
             >

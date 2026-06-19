@@ -21,14 +21,14 @@ export default function QuizBox(props: any) {
       {/* شارة الفصل والسنة + زر الاقتراح */}
       <Show when={props.currentQuestion}>
         <div class="mb-2 flex items-center flex-row-reverse">
-          <div class="text-xs border-secondary flex w-fit items-center rounded-full border-2 font-bold ml-2">
+          <div class="text-xs border-secondary flex w-fit rounded-full h-fit border-2 font-bold ml-2">
             <Show when={seasonName()}>
-              <p dir="rtl" class="text-secondary flex-1 px-2">
+              <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-2">
                 {seasonName()}
               </p>
             </Show>
             <Show when={yearName()}>
-              <p class="bg-secondary text-main-light rounded-full px-2 py-1">
+                <p dir="rtl" class="bg-secondary text-main-light rounded-full px-2 py-1 flex items-center text-xs font-bold">
                 {yearName()}
               </p>
             </Show>
