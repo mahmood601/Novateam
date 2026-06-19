@@ -41,13 +41,13 @@ export default function MaintenanceGate(props: { children: any }) {
 
   return (
     <Show
-      when={access() === "open"}
+      when={import.meta.env.DEV || access() === "open"}
       fallback={
-        <Show when={access.loading} fallback={<MaintenanceScreen />}>
-          <div class="fixed inset-0 flex items-center justify-center">
-            <span>...</span>
-          </div>
-        </Show>
+      <Show when={access.loading} fallback={<MaintenanceScreen />}>
+        <div class="fixed inset-0 flex items-center justify-center">
+        <span>...</span>
+        </div>
+      </Show>
       }
     >
       {props.children}
