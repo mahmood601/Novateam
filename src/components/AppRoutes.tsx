@@ -15,6 +15,7 @@ const SelectMenu = lazy(() => import("../pages/SelectMenu"));
 const Quiz = lazy(() => import("../pages/Quiz/Quiz"));
 const FavoritesPage = lazy(() => import("../pages/Favorites"));
 const WeakQuestionsPage = lazy(() => import("../pages/WeakQuestions"));
+const Privacy = lazy(() => import("../pages/Privacy"));
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <Route path="/stats" component={() => <Suspense><StatsPage /></Suspense>} />
       <Route path="/settings" component={() => <Suspense><Settings /></Suspense>} />
       <Route path="/status" component={() => <Suspense><StatusPage /></Suspense>} />
+      <Route path="/privacy" component={() => <Suspense><Privacy /></Suspense>} />
       <Route path="/dashboard" component={() => <Suspense><Dashboard /></Suspense>} />
       <Route path="/dashboard/:subject" component={() => <Suspense><Dashboard /></Suspense>} />
       <Route path="/:subject" component={() => <Suspense><SelectMenu /></Suspense>} />
