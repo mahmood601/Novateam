@@ -61,10 +61,6 @@ export default function SubjectsPage() {
       fallback={
         <div class="bg-rainbow-graident fixed z-[100] flex h-screen w-screen items-center justify-center">
           <div class="bg-main-light items-center flex h-fit w-11/12 flex-col rounded-md p-10 text-center">
-            <p dir="rtl" class="text-main-dark mb-3 text-2xl font-bold">
-                Nova App هو تطبيق اختبارات متقدم لطلاب الطب في جامعة
-              طرطوس مدعم بميزات تسهل الدراسة{" "}
-            </p>
             <div class=" p-2 flex w-fit flex-row-reverse items-center justify-center gap-2 rounded-md bg-darker-light-1">
               <label dir="rtl" class="text-main-dark font-bold" for="year">
                 اختر السنة:
