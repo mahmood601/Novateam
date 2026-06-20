@@ -1,9 +1,8 @@
 import { A, useNavigate } from "@solidjs/router";
 import {
-  createEffect,
+  createMemo,
   For,
   Match,
-  on,
   onCleanup,
   onMount,
   Show,
@@ -20,13 +19,20 @@ export function Links() {
   const hadelPopState = (e: PopStateEvent) => {
     navigate("/", { replace: true });
   };
-  const [links, setLinks] = createStore([
+  const baseLinks = [
     { name: "وضع الإضاءة", image: "mode", route: null },
     { name: "الحساب", image: "account", route: "profile" },
     { name: "الإعدادات", image: "settings", route: "settings" },
     { name: "الاحصائيات", image: "stats", route: "stats" },
     { name: "البحث", image: "search", route: "search" },
-  ]);
+  ]
+
+  const links = createMemo(() => {
+    if (user() && user()?.role == "admin") {
+      return [...baseLinks, { name: "لوحة التحكم", image: "dashboard", route: "dashboard" }];
+    }
+    return baseLinks;
+  });
 
   onMount(() => {
     window.addEventListener("popstate", hadelPopState);
@@ -36,19 +42,11 @@ export function Links() {
     window.removeEventListener("popstate", hadelPopState);
   });
 
-  createEffect(() => {
-    if (user() && user()?.role == "admin") {
-      setLinks((prev) => [
-        ...prev,
-        { name: "لوحة التحكم", image: "dashboard", route: "dashboard" },
-      ]);
-    }
-  });
 
   return (
     <nav class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">
       <ul class="dark:bg-main-dark bg-main-light flex gap-2 rounded-2xl border px-6 py-3 shadow-sm transition-all hover:shadow-md">
-        <For each={links}>
+        <For each={links()}>
           {(link) => (
             <li class="group relative flex h-9 w-9 items-center justify-center">
               <Switch>
