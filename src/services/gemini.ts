@@ -1,14 +1,11 @@
 /**
  * gemini.ts
  * ─────────
- * يدير إرسال الطلبات لـ Gemini مع نظام fallback
+ * يدير إرسال الطلبات لـ Gemini عبر Supabase Edge Function آمنة
+ * ❌ لا يوجد أي API Key هنا — كل المفاتيح على الـ Server
  */
 
 import { supabase } from "./supabase";
-
-// 1. تصحيح اسم النموذج إلى الإصدار الفعلي المتاح
-const GEMINI_MODEL = "gemini-3.1-flash-lite"; 
-const NOVA_KEY = import.meta.env.VITE_GEMINI_API_KEY ?? "";
 
 export type GeminiResult =
   | { ok: true; text: string }
@@ -19,14 +16,42 @@ export type GeminiResult =
       userLimit?: boolean;
     };
 
-// ─── استدعاء Gemini API ───────────────────────────────────────────────────────
+// ─── استدعاء الـ Supabase Edge Function (المفتاح مخفي في السيرفر) ───────────
 
-async function callGemini(
+async function callGeminiViaEdge(
+  systemContext: string,
+  history: { role: string; parts: { text: string }[] }[],
+  userText: string,
+): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("gemini-proxy", {
+    body: { systemContext, history, userText },
+  });
+
+  if (error) {
+    console.error("❌ Gemini Edge Error:", error);
+    // FunctionsHttpError يحمل الرسالة الأصلية ضمن context.json() غالباً
+    const message =
+      (error as any)?.context?.error ?? error.message ?? "حدث خطأ غير معروف";
+    throw new Error(message);
+  }
+
+  if (data?.error) {
+    console.error("❌ Gemini Edge Error (payload):", data.error);
+    throw new Error(data.error);
+  }
+
+  return data.text;
+}
+
+// ─── استدعاء مباشر بمفتاح المستخدم الخاص (اختياري) ──────────────────────────
+
+async function callGeminiWithUserKey(
   apiKey: string,
   systemContext: string,
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<string> {
+  const GEMINI_MODEL = "gemini-2.0-flash-lite";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
@@ -42,9 +67,8 @@ async function callGemini(
   const data = await res.json();
 
   if (!res.ok) {
-    // 2. طباعة الخطأ الفعلي القادم من جوجل في الكونسول لمعرفة السبب الجذري
-    console.error("❌ Gemini API Error Details:", data); 
-    throw new Error(data?.error?.message ?? "حدث خطأ غير معروف من خوادم Gemini");
+    console.error("❌ Gemini User Key Error:", data);
+    throw new Error(data?.error?.message ?? "حدث خطأ من خوادم Gemini");
   }
 
   return (
@@ -54,19 +78,28 @@ async function callGemini(
 }
 
 // ─── تحقق من الاستخدام اليومي لنوفا وزد العداد ──────────────────────────────
+
 async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError) {
-      console.error("❌ Supabase Auth Error:", authError);
-    }
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError) console.error("❌ Supabase Auth Error:", authError);
 
     if (!user) {
-      // محاولة الإعادة بعد ثانية
-      await new Promise(r => setTimeout(r, 1000));
-      const { data: { user: retryUser } } = await supabase.auth.getUser();
-      if (!retryUser) return { ok: false, reason: "nova_depleted", message: "يجب تسجيل الدخول أولاً", userLimit: false };
+      await new Promise((r) => setTimeout(r, 1000));
+      const {
+        data: { user: retryUser },
+      } = await supabase.auth.getUser();
+      if (!retryUser)
+        return {
+          ok: false,
+          reason: "nova_depleted",
+          message: "يجب تسجيل الدخول أولاً",
+          userLimit: false,
+        };
     }
 
     const { data, error } = await supabase.rpc("increment_ai_usage", {
@@ -75,7 +108,12 @@ async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
 
     if (error) {
       console.error("❌ Supabase RPC Error:", error);
-      return { ok: false, reason: "error", message: "خطأ في الاتصال بقاعدة البيانات", userLimit: false };
+      return {
+        ok: false,
+        reason: "error",
+        message: "خطأ في الاتصال بقاعدة البيانات",
+        userLimit: false,
+      };
     }
 
     if (!data.allowed) {
@@ -90,7 +128,12 @@ async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
     return null;
   } catch (err) {
     console.error("❌ Unknown Usage Check Error:", err);
-    return { ok: false, reason: "error", message: "حدث خطأ أثناء التحقق من الرصيد", userLimit: false };
+    return {
+      ok: false,
+      reason: "error",
+      message: "حدث خطأ أثناء التحقق من الرصيد",
+      userLimit: false,
+    };
   }
 }
 
@@ -101,39 +144,34 @@ export async function sendToGemini(
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<GeminiResult> {
-  
-  // 3. التحقق من بيئة التشغيل لتجنب انهيار SSR (Server-Side Rendering)
-  const userKey = typeof window !== "undefined" ? localStorage.getItem("gemini_api_key") : null;
+  // مفتاح المستخدم الخاص — أولوية قصوى (لا يزال آمناً لأنه مفتاحه هو)
+  const userKey =
+    typeof window !== "undefined"
+      ? localStorage.getItem("gemini_api_key")
+      : null;
 
-  // 1. مفتاح المستخدم الخاص — أولوية قصوى
   if (userKey) {
     try {
-      const text = await callGemini(userKey, systemContext, history, userText);
+      const text = await callGeminiWithUserKey(
+        userKey,
+        systemContext,
+        history,
+        userText,
+      );
       return { ok: true, text };
     } catch (e: any) {
-      console.error("❌ User Key Failure:", e);
       return { ok: false, reason: "error", message: `خطأ (مفتاحك): ${e.message}` };
     }
   }
 
-  // 2. مفتاح نوفا — تحقق من الحد اليومي
-  if (NOVA_KEY) {
-    const check = await checkAndIncrementNovaUsage();
-    if (check !== null) return check;
+  // نوفا Key — عبر Edge Function آمنة
+  const check = await checkAndIncrementNovaUsage();
+  if (check !== null) return check;
 
-    try {
-      const text = await callGemini(NOVA_KEY, systemContext, history, userText);
-      return { ok: true, text };
-    } catch (e: any) {
-      console.error("❌ Nova Key Failure:", e);
-      return { ok: false, reason: "error", message: `خطأ (النظام): ${e.message}` };
-    }
+  try {
+    const text = await callGeminiViaEdge(systemContext, history, userText);
+    return { ok: true, text };
+  } catch (e: any) {
+    return { ok: false, reason: "error", message: `خطأ (النظام): ${e.message}` };
   }
-
-  // 3. لا مفتاح متاح
-  return {
-    ok: false,
-    reason: "no_key",
-    message: "لا يوجد مفتاح API متاح حالياً",
-  };
 }

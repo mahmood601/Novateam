@@ -3,6 +3,7 @@ import { lazy, Suspense } from "solid-js";
 import SubjectsPage from "../pages/SubjectsPage";
 import Login from "../pages/Login";
 import AuthCallback from "./auth/AuthCallback";
+import NotFound from "../pages/NotFound";
 
 // الصفحات الثقيلة — تُحمَّل عند الطلب فقط
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -35,6 +36,7 @@ export default function AppRoutes() {
       <Route path="/:subject/weak" component={() => <Suspense><WeakQuestionsPage /></Suspense>} />
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
+      <Route path="*" component={NotFound} />
     </>
   );
 }

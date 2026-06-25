@@ -6,6 +6,8 @@ import {
   getSeasonName,
   getSubjectsByYear,
   getYearName,
+  getPassageById,
+  syncPassagesOfflineFirst,
   removeFavorite,
   updateFavoriteNote,
 } from "../services/local/indexeddb";
@@ -97,6 +99,16 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
      () => snapshot?.season_id,
      (seasonId) => getSeasonName(snapshot?.subject, seasonId ?? null),
    );
+
+  // ✅ تُفتح المقالة فقط عند الضغط على tag "مقالة"
+  const [passageOpen, setPassageOpen] = createSignal(false);
+  const [passage] = createResource(
+    () => (passageOpen() && snapshot?.passage_id ? snapshot.passage_id : null),
+    async (passageId) => {
+      await syncPassagesOfflineFirst(snapshot?.subject ?? "");
+      return getPassageById(passageId);
+    },
+  );
  
 
   const handleRemove = async (qid: string) => {
@@ -146,6 +158,33 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
           <p class="mb-3 text-right font-semibold" dir="rtl">
             {props.fav.snapshot?.question ?? "سؤال محفوظ"}
           </p>
+
+          {/* Badge مقالة — قابل للضغط لعرض/إخفاء نص الحالة السريرية */}
+          <Show when={snapshot?.passage_id}>
+            <button
+              type="button"
+              onClick={() => setPassageOpen((v) => !v)}
+              class="mb-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-500 transition hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
+            >
+              📋 مقالة {passageOpen() ? "▲" : "▼"}
+            </button>
+          </Show>
+
+          <Show when={passageOpen() && snapshot?.passage_id}>
+            <div
+              dir="rtl"
+              class="mb-3 rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm dark:border-purple-900/40 dark:bg-purple-900/10"
+            >
+              <Show
+                when={passage()}
+                fallback={<p class="text-xs text-gray-400">جاري التحميل...</p>}
+              >
+                <p class="whitespace-pre-wrap text-right text-gray-700 dark:text-gray-300">
+                  {passage()?.content}
+                </p>
+              </Show>
+            </div>
+          </Show>
           <For each={snapshot?.options.filter((option) => option)}>
             {(option, index) => (
               <p

@@ -12,6 +12,7 @@ import { Toaster } from "solid-toast";
 import AppRoutes from "./components/AppRoutes.tsx";
 import PWAProvider from "./components/PWAProvider.tsx";
 import { useTheme } from "./hooks/useTheme.tsx";
+import AppErrorBoundary from "./components/ErrorBoundary.tsx";
 import { onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
 import UpdatePanel from "./components/updates/UpdatePanel.tsx";
@@ -40,6 +41,7 @@ export default function App() {
     );
   });
   return (
+    <AppErrorBoundary>
     <UserProvider>
       <MaintenanceGate>
         <Toaster />
@@ -50,5 +52,6 @@ export default function App() {
       </MaintenanceGate>
       <PWAProvider />
     </UserProvider>
+    </AppErrorBoundary>
   );
 }

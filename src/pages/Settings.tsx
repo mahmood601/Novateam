@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { useTheme } from "../hooks/useTheme";
+import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
 
 export const colors = {
   Ola: {
@@ -175,6 +176,9 @@ export default function Settings() {
             </Show>
           </div>
         </div>
+
+        {/* ─── تشخيص الجهاز ─── */}
+        <CopyDiagnosticsButton />
       </div>
     </div>
   );

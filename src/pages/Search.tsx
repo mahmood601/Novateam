@@ -11,6 +11,8 @@ import {
   type CachedSection,
   db,
   getSubjectsOfflineFirst,
+  getPassageById,
+  syncPassagesOfflineFirst,
 } from "../services/local/indexeddb";
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
@@ -62,9 +64,19 @@ function ResultCard(props: {
   subjectMap: Record<string, string>;
 }) {
   const [expanded, setExpanded] = createSignal(false);
+  const [passageOpen, setPassageOpen] = createSignal(false); // ✅ فتح/إغلاق المقالة عند الضغط على الـ tag، مستقل عن توسيع البطاقة
 
   const subjectName = () =>
     props.subjectMap[props.question.subject] ?? props.question.subject;
+
+  // ✅ نجلب المقالة فقط عند الضغط على tag "مقالة"، وبعد ضمان مزامنتها أوفلاين-أولاً
+  const [passage] = createResource(
+    () => (passageOpen() && props.question.passage_id ? props.question.passage_id : null),
+    async (passageId) => {
+      await syncPassagesOfflineFirst(props.question.subject);
+      return getPassageById(passageId);
+    },
+  );
 
   const matchingOptionsCount = createMemo(
     () =>
@@ -88,9 +100,17 @@ function ResultCard(props: {
       class="dark:bg-lighter-dark-1 overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200"
       classList={{ "ring-2 ring-main/25": expanded() }}
     >
-      <button
-        class="flex w-full items-start gap-3 p-4 text-right"
+      <div
+        role="button"
+        tabIndex={0}
+        class="flex w-full items-start gap-3 p-4 text-right cursor-pointer"
         onClick={() => setExpanded(!expanded())}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded(!expanded());
+          }
+        }}
       >
         <span class="bg-main/10 text-main mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
           {props.index + 1}
@@ -118,11 +138,35 @@ function ResultCard(props: {
               </span>
             </Show>
             <Show when={props.question.passage_id}>
-              <span class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-500 dark:bg-purple-900/30 dark:text-purple-400">
-                مقالة
-              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation(); // لا نريد توسيع/تصغير البطاقة كاملة عند الضغط على الـ tag فقط
+                  setPassageOpen((v) => !v);
+                }}
+                class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-500 transition hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50"
+              >
+                📋 مقالة {passageOpen() ? "▲" : "▼"}
+              </button>
             </Show>
           </div>
+
+          {/* ✅ محتوى المقالة — يظهر عند الضغط على الـ tag، بشكل مستقل عن توسيع البطاقة */}
+          <Show when={passageOpen() && props.question.passage_id}>
+            <div
+              dir="rtl"
+              class="mb-2 rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm dark:border-purple-900/40 dark:bg-purple-900/10"
+            >
+              <Show
+                when={passage()}
+                fallback={<p class="text-xs text-gray-400">جاري التحميل...</p>}
+              >
+                <p class="whitespace-pre-wrap text-right text-gray-700 dark:text-gray-300">
+                  {passage()?.content}
+                </p>
+              </Show>
+            </div>
+          </Show>
 
           <p class="text-sm leading-relaxed font-bold dark:text-white">
             <Highlight text={props.question.question} query={props.query} />
@@ -148,7 +192,7 @@ function ResultCard(props: {
         >
           <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
         </svg>
-      </button>
+      </div>
 
       <Show when={expanded()}>
         <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-4 pt-3 pb-4">
