@@ -4,15 +4,14 @@ import { useUser } from "../context/user";
 
 async function checkAccess() {
   // هل الصيانة مفعلة؟
-  // const { data: config } = await supabase
-  //   .from("app_config")
-  //   .select("value")
-  //   .eq("key", "maintenance_mode")
-  //   .single();
+  const { data: config } = await supabase
+    .from("app_config")
+    .select("value")
+    .eq("key", "maintenance_mode")
+    .single();
 
-  // if (config?.value !== "true") return "open";
-  return "open"; // مؤقتاً، تعطيل وضع الصيانة
-  
+  if (config?.value !== "true") return "open";
+
   // هل المستخدم admin؟
   const {
     data: { user },

@@ -16,7 +16,7 @@ import AppErrorBoundary from "./components/ErrorBoundary.tsx";
 import { onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
 import UpdatePanel from "./components/updates/UpdatePanel.tsx";
-import MaintenanceGate from "./components/MaintenanceGate.tsx";
+// import MaintenanceGate from "./components/MaintenanceGate.tsx";
 
 export default function App() {
   const { applyTheme } = useTheme();
@@ -43,13 +43,13 @@ export default function App() {
   return (
     <AppErrorBoundary>
     <UserProvider>
-      <MaintenanceGate>
+      {/* <MaintenanceGate> */}
         <Toaster />
         <UpdatePanel />
         <Router root={Layout as any}>
           <AppRoutes />
         </Router>
-      </MaintenanceGate>
+      {/* </MaintenanceGate> */}
       <PWAProvider />
     </UserProvider>
     </AppErrorBoundary>

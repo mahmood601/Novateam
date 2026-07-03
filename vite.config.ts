@@ -44,20 +44,6 @@ const pwaOptions: Partial<VitePWAOptions> = {
         purpose: "maskable",
       },
     ],
-    screenshots: [
-      {
-        src: "screenshots/dark-mobile.png",
-        sizes: "1280x720",
-        type: "image/png",
-        platform: "wide",
-      },
-      {
-        src: "screenshots/light-mobile.png",
-        sizes: "1280x720",
-        type: "image/png",
-        platform: "wide",
-      },
-    ],
   },
   devOptions: {
     enabled: process.env.SW_DEV === "true",
