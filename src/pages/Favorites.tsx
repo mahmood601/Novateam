@@ -164,7 +164,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
             <button
               type="button"
               onClick={() => setPassageOpen((v) => !v)}
-              class="mb-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-main transition hover:bg-main/30 dark:bg-main/10 dark:text-main/70 dark:hover:bg-main/30"
+              class="mb-2 inline-block rounded-full bg-main/10 px-2 py-0.5 text-[10px] font-bold text-main transition hover:bg-main/30 dark:bg-main/10 dark:text-main/70 dark:hover:bg-main/30"
             >
               📋 مقالة {passageOpen() ? "▲" : "▼"}
             </button>
@@ -173,7 +173,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
           <Show when={passageOpen() && snapshot?.passage_id}>
             <div
               dir="rtl"
-              class="mb-3 rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm dark:border-main/40 dark:bg-main/10"
+              class="mb-3 rounded-xl border border-main/30 bg-main/10 p-3 text-sm dark:border-main/40 dark:bg-main/10"
             >
               <Show
                 when={passage()}
