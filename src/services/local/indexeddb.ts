@@ -654,6 +654,7 @@ export async function addFavoriteForQuestion(
       seasonName: question.seasonName,
       yearValue: question.yearValue,
       image_url: question.image_url,
+      passage_id: question.passage_id,
       userAnswer,
     },
     note: note ?? "",

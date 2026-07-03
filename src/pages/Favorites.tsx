@@ -218,14 +218,14 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
 
         <div class="flex justify-around">
           <button
-            class="bg-main text-main-dark rounded px-3 py-1 text-sm"
+            class="bg-main text-main-light rounded px-3 py-1 text-sm"
             onClick={() => handleRemove(props.fav.questionId)}
           >
             إزالة
           </button>
 
           <button
-            class="bg-main text-main-dark rounded px-3 py-1 text-sm"
+            class="bg-main text-main-light rounded px-3 py-1 text-sm"
             onClick={() => handleEditNote(props.fav)}
           >
             تعديل الملاحظة

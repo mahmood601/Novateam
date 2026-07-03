@@ -25,6 +25,7 @@ export default function GeminiPanel(props: {
   const [input, setInput] = createSignal("");
   const [loading, setLoading] = createSignal(false);
   const [depleted, setDepleted] = createSignal(false);
+  const [isUserLimit, setIsUserLimit] = createSignal(false);
 
   const hasUserKey = () => !!localStorage.getItem("gemini_api_key");
 
@@ -60,9 +61,12 @@ export default function GeminiPanel(props: {
       setMessages((prev) => [...prev, { role: "model", text: result.text }]);
     } else if (result.reason === "nova_depleted") {
       // تحقق من السبب
+      if (result.userLimit) {
+        setIsUserLimit(true);
+      }
       const msg = result.userLimit
         ? "وصلت لحدك اليومي (10 طلب) — أضف مفتاحك الخاص للاستمرار"
-        : "نفد رصيد نوفا اليومي — أضف مفتاحك الخاص للاستمرار";
+        : result.message || "نفد رصيد Nova AI، أضف مفتاحك الخاص للاستمرار";
 
       setMessages((prev) => [
         ...prev,
@@ -150,7 +154,7 @@ export default function GeminiPanel(props: {
                 </div>
 
                 {/* زر التحويل عند نفاد الرصيد */}
-                <Show when={msg.depleted}>
+                <Show when={msg.depleted && isUserLimit()}>
                   <div class="flex max-w-[85%] flex-col items-end gap-2">
                     <p class="text-center text-xs text-slate-400">
                       احصل على مفتاحك المجاني من Google AI Studio واستمر بدون
