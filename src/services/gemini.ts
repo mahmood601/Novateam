@@ -51,7 +51,7 @@ async function callGeminiWithUserKey(
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<string> {
-  const GEMINI_MODEL = "gemini-2.0-flash-lite";
+  const GEMINI_MODEL = "gemini-2.5-flash-lite";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
@@ -79,7 +79,7 @@ async function callGeminiWithUserKey(
 
 // ─── تحقق من الاستخدام اليومي لنوفا وزد العداد ──────────────────────────────
 
-async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
+async function checkNovaUsage(): Promise<GeminiResult | null> {
   try {
     const {
       data: { user },
@@ -101,6 +101,40 @@ async function checkAndIncrementNovaUsage(): Promise<GeminiResult | null> {
           userLimit: false,
         };
     }
+
+    const { data, error } = await supabase
+      .from("ai_usage")
+      .select("usage_count, last_reset_date")
+      .eq("user_id", user!.id)
+      .single();
+
+    const today = new Date().toISOString().split("T")[0];
+    const isNewDay = !data || data?.last_reset_date !== today;
+    const currentCount = isNewDay ? 0 : (data.usage_count ?? 0);
+
+    if (currentCount >= 10) {
+      return {
+        ok: false,
+        reason: "nova_depleted",
+        message: "لقد استنفدت الحد اليومي من الاستخدام",
+        userLimit: true,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function incrementNovaUsage(): Promise<GeminiResult | null> {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError) console.error("❌ Supabase Auth Error:", authError);
 
     const { data, error } = await supabase.rpc("increment_ai_usage", {
       p_user_id: user!.id,
@@ -160,18 +194,28 @@ export async function sendToGemini(
       );
       return { ok: true, text };
     } catch (e: any) {
-      return { ok: false, reason: "error", message: `خطأ (مفتاحك): ${e.message}` };
+      return {
+        ok: false,
+        reason: "error",
+        message: `خطأ (مفتاحك): ${e.message}`,
+      };
     }
   }
 
   // نوفا Key — عبر Edge Function آمنة
-  const check = await checkAndIncrementNovaUsage();
+const check= await checkNovaUsage();
   if (check !== null) return check;
 
   try {
     const text = await callGeminiViaEdge(systemContext, history, userText);
+
+    await incrementNovaUsage();
     return { ok: true, text };
   } catch (e: any) {
-    return { ok: false, reason: "error", message: `خطأ (النظام): ${e.message}` };
+    return {
+      ok: false,
+      reason: "error",
+      message: `خطأ (النظام): ${e.message}`,
+    };
   }
 }

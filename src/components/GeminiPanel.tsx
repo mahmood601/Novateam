@@ -90,7 +90,7 @@ export default function GeminiPanel(props: {
       { defer: true },
     ),
   );
-  
+
   return (
     <Show when={props.open}>
       {/* Overlay */}
