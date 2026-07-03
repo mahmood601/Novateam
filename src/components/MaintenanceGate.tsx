@@ -1,19 +1,18 @@
 import { createResource, createSignal, Show } from "solid-js";
 import { supabase } from "../services/supabase";
-import { useNavigate } from "@solidjs/router";
-import Login from "../pages/Login";
 import { useUser } from "../context/user";
 
 async function checkAccess() {
   // هل الصيانة مفعلة؟
-  const { data: config } = await supabase
-    .from("app_config")
-    .select("value")
-    .eq("key", "maintenance_mode")
-    .single();
+  // const { data: config } = await supabase
+  //   .from("app_config")
+  //   .select("value")
+  //   .eq("key", "maintenance_mode")
+  //   .single();
 
-  if (config?.value !== "true") return "open";
-
+  // if (config?.value !== "true") return "open";
+  return "open"; // مؤقتاً، تعطيل وضع الصيانة
+  
   // هل المستخدم admin؟
   const {
     data: { user },
@@ -35,7 +34,10 @@ export default function MaintenanceGate(props: { children: any }) {
   const [access] = createResource(checkAccess);
 
   // صفحة /status عامة — لا تخضع لوضع الصيانة
-  if (location.pathname.startsWith("/status") || location.pathname.startsWith("/privacy")) { 
+  if (
+    location.pathname.startsWith("/status") ||
+    location.pathname.startsWith("/privacy")
+  ) {
     return props.children;
   }
 
@@ -43,11 +45,11 @@ export default function MaintenanceGate(props: { children: any }) {
     <Show
       when={import.meta.env.DEV || access() === "open"}
       fallback={
-      <Show when={access.loading} fallback={<MaintenanceScreen />}>
-        <div class="fixed inset-0 flex items-center justify-center">
-        <span>...</span>
-        </div>
-      </Show>
+        <Show when={access.loading} fallback={<MaintenanceScreen />}>
+          <div class="fixed inset-0 flex items-center justify-center">
+            <span>...</span>
+          </div>
+        </Show>
       }
     >
       {props.children}
@@ -69,7 +71,7 @@ function MaintenanceScreen() {
         on:dblclick={(e) => {
           e.stopPropagation();
           setShowSecret(true);
-          login("google")
+          login("google");
         }}
       ></div>
       <div class="dark:bg-main-dark bg-main-light flex flex-col items-center gap-4 rounded-2xl p-10 shadow-xl">
@@ -77,7 +79,6 @@ function MaintenanceScreen() {
         <h1 class="text-2xl font-bold">الموقع قيد الصيانة</h1>
         <p class="text-sm opacity-60">نعمل على تحسين التطبيق، نعود قريباً!</p>
       </div>
-      
     </div>
   );
 }
