@@ -19,6 +19,7 @@ export default function GeminiPanel(props: {
   open: boolean;
   onClose: () => void;
   question: any;
+  passage?: string;
 }) {
   const navigate = useNavigate();
   const [messages, setMessages] = createSignal<Message[]>([]);
@@ -31,7 +32,7 @@ export default function GeminiPanel(props: {
 
   const systemContext = () =>
     `أنت Nova AI مساعد طبي تعليمي متخصص. المستخدم يدرس هذا السؤال:
-
+${props.passage? `النص: ${props.passage ?? ""}` : ""}
 السؤال: ${props.question?.question ?? ""}
 الخيارات: ${props.question?.options?.join(" | ") ?? ""}
 الإجابة الصحيحة: الخيار رقم ${(props.question?.correctIndex?.[0] ?? 0) + 1}

@@ -18,6 +18,7 @@ export default function QuizHeader(props: {
   currentQuestion: any;
   userAnswer: any;
   isDisabled: boolean;
+  passage?: string;
   onTimeUp?: () => void;
   onTimeWarning?: () => void;
 }) {
@@ -129,6 +130,7 @@ export default function QuizHeader(props: {
           open={geminiOpen()}
           onClose={() => setGeminiOpen(false)}
           question={props.currentQuestion}
+          passage={props.passage}
         />
 
         <div class="text-secondary flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 dark:bg-gray-800">

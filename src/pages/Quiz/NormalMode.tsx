@@ -235,6 +235,7 @@ export default function NormalMode() {
             isDisabled={quizState.isOptionDisabled}
             total={orderedQs().length}
             currentQuestion={orderedQs()[quizState.index]}
+            passage={currentPassage()?.content}
             userAnswer={quizState.userAnswers[quizState.index]}
             onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
             onTimeUp={() => {
