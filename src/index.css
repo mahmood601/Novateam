@@ -4,6 +4,10 @@
 @import "./styles/index.css";
 @import "./styles/theme.css";
 
+@import "./pages/Editor/paged-styles.css";
+@import "./pages/Editor/editor-toolbar.css";
+@import "./pages/Editor/nova-template-tokens.css";
+
 .gemini-dots {
   display: inline-flex;
   gap: 4px;

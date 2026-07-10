@@ -1,0 +1,78 @@
+/* nova-template-tokens.css
+   مستخرجة مباشرة من قالب الفريق (__قالب_نوفا_2024_1__.dotx / styles.xml).
+   هذا الملف هو "القالب" بالمعنى اللي حكينا عنه سابقاً: لتغيير الهوية
+   البصرية بالكامل، تعدّل هذا الملف فقط — لا حاجة تلمس منطق المحرر
+   أو الـ export.
+
+   كل عنوان رئيسي بالقالب الأصلي = fill (خلفية) + نص أبيض/أسود ثابت.
+   كل "فرعي" = نفس اللون بحجم خط أصغر (28 بدل 32 نصف نقطة = 14pt/16pt).
+*/
+
+:root {
+  /* الخط */
+  --nova-font-heading: "Hacen Tunisia", "OoredooArabic-Heavy", sans-serif;
+  --nova-font-body: "Hacen Tunisia Lt", "Century Gothic", sans-serif;
+
+  /* شريط الهيدر المتدرج (من header1.xml) */
+  --nova-header-gradient: linear-gradient(90deg, #ec008c, #991f60);
+
+  /* لون النص الأساسي بالفقرات */
+  --nova-text: #000000;
+
+  /* === ألوان العناوين الرئيسية (٧ ألوان، كل عنوان جديد يأخذ التالي) === */
+  --nova-h-1-bg: #d00054;   /* heading 1 — الافتراضي */
+  --nova-h-1-fg: #ffffff;
+
+  --nova-h-blue-bg: #add6ff;    /* عنوان أزرق */
+  --nova-h-blue-fg: #000000;
+
+  --nova-h-pink-bg: #ffccff;    /* عنوان زهري */
+  --nova-h-pink-fg: #000000;
+
+  --nova-h-rosered-bg: #ffb7db; /* عنوان أحمر زهري */
+  --nova-h-rosered-fg: #000000;
+
+  --nova-h-orange-bg: #ffcc99;  /* عنوان برتقالي */
+  --nova-h-orange-fg: #000000;
+
+  --nova-h-yellow-bg: #ffde7f;  /* عنوان أصفر */
+  --nova-h-yellow-fg: #000000;
+
+  --nova-h-green-bg: #99ff99;   /* عنوان أخضر */
+  --nova-h-green-fg: #000000;
+
+  --nova-h-purple-bg: #ebb9ff;  /* عنوان بنفسجي */
+  --nova-h-purple-fg: #000000;
+}
+
+/* ترتيب دوري الألوان الرئيسية — يُستخدم برمجياً (انظر headingPalette.ts)
+   لتلوين كل عنوان رئيسي جديد باللون التالي بالدورة تلقائياً، بنفس
+   الأسلوب اللي كان الفريق يستخدمه يدوياً بـ Word. */
+
+.nova-heading {
+  font-family: var(--nova-font-heading);
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 6px 14px;
+  margin: 14px 0 8px;
+  font-size: 16pt; /* sz=32 half-points بالقالب الأصلي */
+}
+
+.nova-heading.sub {
+  font-size: 14pt; /* sz=28 — نسخة "فرعي" */
+  padding: 4px 12px;
+}
+
+.nova-heading[data-color="default"]  { background: var(--nova-h-1-bg);      color: var(--nova-h-1-fg); }
+.nova-heading[data-color="blue"]     { background: var(--nova-h-blue-bg);   color: var(--nova-h-blue-fg); }
+.nova-heading[data-color="pink"]     { background: var(--nova-h-pink-bg);   color: var(--nova-h-pink-fg); }
+.nova-heading[data-color="rosered"]  { background: var(--nova-h-rosered-bg);color: var(--nova-h-rosered-fg); }
+.nova-heading[data-color="orange"]   { background: var(--nova-h-orange-bg); color: var(--nova-h-orange-fg); }
+.nova-heading[data-color="yellow"]   { background: var(--nova-h-yellow-bg); color: var(--nova-h-yellow-fg); }
+.nova-heading[data-color="green"]    { background: var(--nova-h-green-bg);  color: var(--nova-h-green-fg); }
+.nova-heading[data-color="purple"]   { background: var(--nova-h-purple-bg); color: var(--nova-h-purple-fg); }
+
+body {
+  font-family: var(--nova-font-body);
+  color: var(--nova-text);
+}

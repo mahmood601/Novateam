@@ -1,0 +1,73 @@
+/* paged-styles.css
+   Loaded only inside the export/print route (not the live editor).
+   Paged.js polyfills the CSS @page spec in the browser, so this is
+   plain CSS — no special build step needed.
+*/
+
+@page {
+  size: A4;
+  margin: 22mm 16mm 20mm 16mm;
+
+  /* running header: repeats on every content page */
+  @top-center {
+    content: element(page-header);
+  }
+
+  /* page number in the footer, matches "٧" style numbering in the source */
+  @bottom-center {
+    content: counter(page);
+    font-size: 11pt;
+    color: #6b6b6b;
+  }
+}
+
+/* the cover page gets its own @page selector: no header/footer, no number */
+@page cover {
+  margin: 0;
+  @top-center { content: none; }
+  @bottom-center { content: none; }
+}
+
+.pgd-cover {
+  page: cover;
+  break-after: page;
+}
+
+/* the element referenced by `element(page-header)` above */
+.pgd-page-header {
+  position: running(page-header);
+}
+.pgd-page-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: var(--nova-header-gradient, linear-gradient(90deg, #ec008c, #991f60));
+  color: #fff;
+  font-family: var(--nova-font-heading, "Tajawal", sans-serif);
+  direction: rtl;
+}
+
+/* Nova brand colors reused from the template — keep as CSS variables
+   so a future "template swap" only touches this file. */
+:root {
+  --nova-pink: #e91e8c;
+  --nova-gold: #c9a227;
+  --nova-text: #222;
+}
+
+body {
+  font-family: "Tajawal", "Cairo", sans-serif;
+  color: var(--nova-text);
+}
+
+/* keep tables/info-boxes from splitting awkwardly across a page break */
+table, [data-info-box] {
+  break-inside: avoid;
+}
+
+img {
+  max-width: 100%;
+  break-inside: avoid;
+}

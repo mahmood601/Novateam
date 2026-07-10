@@ -1,9 +1,10 @@
 import { Route } from "@solidjs/router";
-import { lazy, Suspense } from "solid-js";
+import { lazy, Show, Suspense } from "solid-js";
 import SubjectsPage from "../pages/SubjectsPage";
 import Login from "../pages/Login";
 import AuthCallback from "./auth/AuthCallback";
 import NotFound from "../pages/NotFound";
+import LectureEditorPage from "../pages/Editor/LectureEditorPage";
 
 // الصفحات الثقيلة — تُحمَّل عند الطلب فقط
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -37,6 +38,7 @@ export default function AppRoutes() {
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
       <Route path="*" component={NotFound} />
+       <Route path="/editor-test" component={() => <Suspense><LectureEditorPage /></Suspense>} />
     </>
   );
 }

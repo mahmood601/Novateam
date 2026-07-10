@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function Privacy(): JSX.Element {
 	return (
 		<main dir="rtl" lang="ar" class="max-w-3xl mx-auto p-6">

@@ -1,0 +1,74 @@
+/* editor-toolbar.css
+   مصمم للهاتف أولاً: أزرار 44px، تمرير أفقي، ثابت أثناء التمرير.
+*/
+
+.nova-toolbar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.nova-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nova-toolbar::-webkit-scrollbar { display: none; }
+
+.nova-tb-btn {
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: #f4f4f4;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
+.nova-tb-btn:active {
+  background: #e0e0e0;
+}
+
+.nova-tb-wide {
+  padding: 0 14px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.nova-tb-sep {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 28px;
+  background: #ddd;
+  margin: 0 2px;
+}
+
+.nova-color-row {
+  padding-top: 0;
+}
+
+.nova-color-swatch {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #ccc;
+}
+.nova-color-swatch[data-color="default"]  { background: #d00054; }
+.nova-color-swatch[data-color="blue"]     { background: #add6ff; }
+.nova-color-swatch[data-color="pink"]     { background: #ffccff; }
+.nova-color-swatch[data-color="rosered"]  { background: #ffb7db; }
+.nova-color-swatch[data-color="orange"]   { background: #ffcc99; }
+.nova-color-swatch[data-color="yellow"]   { background: #ffde7f; }
+.nova-color-swatch[data-color="green"]    { background: #99ff99; }
+.nova-color-swatch[data-color="purple"]   { background: #ebb9ff; }
