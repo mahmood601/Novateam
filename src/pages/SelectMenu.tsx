@@ -1,5 +1,5 @@
 import { useParams, A, useNavigate } from "@solidjs/router";
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { setQuizType } from "../stores/quizType";
 import {
@@ -16,8 +16,11 @@ export default function SelectMenu() {
   const [sections] = createResource(async () => syncAndGetSections(subject));
   const [favorites] = createResource(() => getFavorites(subject));
 
-  const seasons = () => sections()?.filter((s) => s.type === "season") ?? [];
-  const years = () => sections()?.filter((s) => s.type === "year") ?? [];
+  const seasons = () => sections()?.filter((s) => s.type === "season").sort((a, b) => +a.value - +b.value) ?? [];
+  const years = () => sections()?.filter((s) => s.type === "year").sort((a, b) => +b.value - +a.value) ?? [];
+createEffect(() => {  
+console.log(seasons());
+})
 
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
@@ -210,7 +213,7 @@ function ItemRow(props: {
   };
 
   return (
-    <div class="flex w-11/12 items-center gap-2">
+    <div class="flex w-full items-center gap-2">
       <A
         href={props.href}
         onClick={handleClick}
