@@ -1853,7 +1853,7 @@ export default function Dashboard() {
                   </Show>
                 </p>
 
-                <div class="grid gap-4">
+                <div class="grid gap-4 mb-10">
                   <For each={data()?.questions}>
                     {/* 📌 LESSON 14: i() في For هو الـ index (يبدأ من 0)
                         نضيف page() * PAGE_SIZE لعرض الرقم الصحيح عبر الصفحات */}
