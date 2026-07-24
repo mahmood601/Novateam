@@ -10,6 +10,8 @@ import LeftArrow from "../../components/Icons/LeftArrow";
 import { useAudio } from "../../hooks/useAudio";
 import FavoriteButton from "./Favorite";
 import GeminiPanel from "../../components/GeminiPanel";
+import AdminEditPanel from "./AdminEditPanel";
+import { useUser } from "../../context/user";
 
 export default function QuizHeader(props: {
   total: number;
@@ -21,10 +23,16 @@ export default function QuizHeader(props: {
   passage?: string;
   onTimeUp?: () => void;
   onTimeWarning?: () => void;
+  // ✅ يلزمان فقط لزر التعديل الخاص بالأدمن
+  subjectId?: string;
+  onQuestionChanged?: () => void;
 }) {
   const [timeLeft, setTimeLeft] = createSignal(0);
   const [isPaused, setIsPaused] = createSignal(false);
   const [geminiOpen, setGeminiOpen] = createSignal(false);
+  const [editOpen, setEditOpen] = createSignal(false);
+  const { user } = useUser();
+  const isAdmin = () => user()?.role === "admin";
 
   createEffect(() => {
     setTimeLeft((props.total - 1) * 60);
@@ -132,6 +140,35 @@ export default function QuizHeader(props: {
           question={props.currentQuestion}
           passage={props.passage}
         />
+
+        {/* زر تعديل السؤال — يظهر فقط للأدمن */}
+        <Show when={isAdmin() && props.subjectId}>
+          <button
+            onClick={() => setEditOpen(true)}
+            class="flex items-center justify-center rounded-full bg-amber-100 p-2 transition hover:scale-105 dark:bg-amber-900/30"
+            title="تعديل السؤال (أدمن)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="1.4em"
+              height="1.4em"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zm17.71-10.04a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-1.42 0l-1.83 1.83l3.75 3.75z"
+              />
+            </svg>
+          </button>
+
+          <AdminEditPanel
+            open={editOpen()}
+            onClose={() => setEditOpen(false)}
+            subjectId={props.subjectId!}
+            question={props.currentQuestion}
+            onQuestionChanged={() => props.onQuestionChanged?.()}
+          />
+        </Show>
 
         <div class="text-secondary flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 dark:bg-gray-800">
           <span>{formatTime()}</span>

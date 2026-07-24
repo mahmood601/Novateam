@@ -83,7 +83,9 @@ export default function NormalMode() {
 
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [questions] = createResource<Question[]>(
+  const [questions, { refetch: refetchQuestions }] = createResource<
+    Question[]
+  >(
     () =>
       getQuestionsOrAnswersWithFilter(
         subject,
@@ -210,6 +212,21 @@ export default function NormalMode() {
     });
   };
 
+  // ✅ يُستدعى بعد تعديل/حذف سؤال من لوحة الأدمن داخل الكويز
+  const handleQuestionChanged = () => {
+    refetchQuestions();
+    // نُعيد فتح خيارات الإجابة لأن محتوى السؤال (وربما موضعه) تغيّر
+    setQuizState({ selectedOption: 7, isOptionDisabled: false });
+  };
+
+  // إذا حُذف السؤال الأخير، نصحح الموضع كي لا يبقى خارج الحدود
+  createEffect(() => {
+    const len = orderedQs().length;
+    if (len > 0 && quizState.index >= len) {
+      setQuizState("index", len - 1);
+    }
+  });
+
   const nextQuestion = () => {
     if (quizState.index >= orderedQs().length - 1) {
       setQuizState("showResult", true);
@@ -237,6 +254,8 @@ export default function NormalMode() {
             currentQuestion={orderedQs()[quizState.index]}
             passage={currentPassage()?.content}
             userAnswer={quizState.userAnswers[quizState.index]}
+            subjectId={subject}
+            onQuestionChanged={handleQuestionChanged}
             onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
             onTimeUp={() => {
               // تسليم تلقائي

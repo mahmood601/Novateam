@@ -34,7 +34,6 @@ export type qModeT = "insert" | "edit" | "delete" | "";
 
 const PAGE_SIZE = 10;
 
-// ─── QuestionCard ─────────────────────────────────────────────────────────────
 
 function QuestionCard(props: {
   question: QuestionUI;
@@ -317,15 +316,15 @@ function QuestionCard(props: {
 // الصحيح: props.seasonId  ← يتحدث تلقائياً
 // الخطأ:  const { seasonId } = props  ← لن يتحدث
 
-function SectionSelectors(props: {
+export function SectionSelectors(props: {
   sections: Section[];
   seasonId: number | null;
   yearId: number | null;
   onSeasonChange: (id: number) => void;
   onYearChange: (id: number) => void;
 }) {
-  const seasons = () => props.sections.filter((s) => s.type === "season");
-  const years = () => props.sections.filter((s) => s.type === "year");
+  const seasons = () => props.sections.filter((s) => s.type === "season").sort((a, b) => +a.value - +b.value);
+  const years = () => props.sections.filter((s) => s.type === "year").sort((a, b) => +b.value - +a.value);
 
   return (
     <div class="grid grid-cols-2 gap-3">
@@ -665,7 +664,7 @@ function SmartImporter(props: {
 // الأفضل: createSignal للمستخدم في مكان مشترك (context أو store)
 // لكن لعدم كسر الكود الحالي سنبقيه كما هو مع تحسين طفيف
 
-function ManualForm(props: {
+export function ManualForm(props: {
   subjectId: string;
   sections: Section[];
   editQuestion?: QuestionUI | null;
@@ -1723,7 +1722,7 @@ export default function Dashboard() {
                     }}
                   >
                     <option value="">الكل</option>
-                    <For each={sections()?.filter((s) => s.type === "season")}>
+                    <For each={sections()?.filter((s) => s.type === "season").sort((a, b) => +a.value - +b.value)}>
                       {(s) => (
                         <option
                           value={s.id}
@@ -1750,7 +1749,7 @@ export default function Dashboard() {
                     }}
                   >
                     <option value="">الكل</option>
-                    <For each={sections()?.filter((s) => s.type === "year")}>
+                    <For each={sections()?.filter((s) => s.type === "year").sort((a, b) => +b.value - +a.value)}>
                       {(y) => (
                         <option value={y.id} selected={filterYearId() === y.id}>
                           {y.name}
@@ -1854,7 +1853,7 @@ export default function Dashboard() {
                   </Show>
                 </p>
 
-                <div class="grid gap-4">
+                <div class="grid gap-4 mb-10">
                   <For each={data()?.questions}>
                     {/* 📌 LESSON 14: i() في For هو الـ index (يبدأ من 0)
                         نضيف page() * PAGE_SIZE لعرض الرقم الصحيح عبر الصفحات */}

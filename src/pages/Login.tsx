@@ -12,7 +12,7 @@ export default function Login() {
 
   return (
     <div class="h-auto items-center justify-center">
-      <div class="bg-brown/95 relative top-0 flex h-fit w-5/6 flex-col items-center justify-between rounded-3xl">
+      <div class="bg-brown/95 relative top-0 flex h-fit  flex-col items-center justify-between rounded-3xl">
         <Virus />
         <div class="my-4 flex h-fit w-full flex-col items-center">
           <p class="dark:text-main-light text-main-dark mb-3">
