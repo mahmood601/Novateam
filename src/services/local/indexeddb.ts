@@ -376,7 +376,11 @@ async function syncSectionsInBackground(
 export async function addQuestionsToFirstDB(
   subject: string,
   wait = false,
+  forceFullSync = false,
 ): Promise<boolean> {
+  if (forceFullSync) {
+    resetSync(subject);
+  }
   if (wait) {
     return await syncQuestionsInBackground(subject);
   }
@@ -441,7 +445,18 @@ export async function syncQuestionsInBackground(subject: string): Promise<boolea
           .filter((q) => !remoteSet.has(q.$id))
           .map((q) => q.$id);
 
-        if (toDelete.length > 0) {
+        // 🛡️ حماية من الحذف الكارثي: إذا رجعت remoteIds فاضية أو شبه فاضية
+        // بينما عنا بيانات محلية كتيرة، الأغلب إنه فشل مؤقت (نت/جلسة منتهية)
+        // مش حذف فعلي لكل أسئلة المادة — فنتجاهل الحذف بدل ما نمسح كل شيء
+        // بالخطأ ونخسر بيانات المستخدم بشكل لا رجعة فيه.
+        const deleteRatio =
+          localQuestions.length > 0 ? toDelete.length / localQuestions.length : 0;
+
+        if (toDelete.length > 0 && deleteRatio > 0.5) {
+          console.warn(
+            `⚠️ تم تجاهل حذف ${toDelete.length}/${localQuestions.length} سؤال دفعة واحدة — يبدو كفشل مؤقت بالمزامنة وليس حذفاً فعلياً، تم حماية البيانات المحلية`,
+          );
+        } else if (toDelete.length > 0) {
           await db.questions.bulkDelete(toDelete);
           console.log(
             `🗑️ حُذف ${toDelete.length} سؤال من IndexedDB (غير موجود في Supabase)`,
@@ -452,6 +467,7 @@ export async function syncQuestionsInBackground(subject: string): Promise<boolea
       saveLastSync(subject);
       return true;
     }
+
 
     // ─── Full sync (أول تشغيل) ───────────────────────────────────────────
     const { data, error } = await supabase

@@ -1,5 +1,4 @@
 import { A } from "@solidjs/router";
-import Download from "./Icons/Download";
 import { createEffect, createResource, createSignal, on } from "solid-js";
 import { Transition } from "solid-transition-group";
 import {
@@ -93,7 +92,7 @@ export default function Box(props: {
             if (!props.subject) return;
 
             toast.promise(
-              addQuestionsToFirstDB(props.subject, true).then(() => refetch()),
+              addQuestionsToFirstDB(props.subject, true, true).then(() => refetch()),
               {
                 loading: () => {
                   setDownloadStatus("pending");
