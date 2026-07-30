@@ -51,7 +51,7 @@ async function callGeminiWithUserKey(
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<string> {
-  const GEMINI_MODEL = "gemini-3.1-flash-lite";
+  const GEMINI_MODEL = "gemini-3.5-flash-lite";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {
