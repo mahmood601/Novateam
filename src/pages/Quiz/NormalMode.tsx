@@ -22,8 +22,7 @@ import { quizType } from "../../stores/quizType";
 // unwrap مستخدم في useBeforeLeave أدناه
 import QuizHeader from "./QuizHeader";
 import { quizState, resetQuizState, setQuizState } from "./quizStore";
-import QuizBox from "./QuizBox";
-import QuizFooter from "./QuizFooter";
+import QuizFeed from "./QuizFeed";
 import Result from "./Result";
 import { recordActivityToday } from "../../services/local/streak";
 import { toast } from "solid-toast";
@@ -83,9 +82,7 @@ export default function NormalMode() {
 
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [questions, { refetch: refetchQuestions }] = createResource<
-    Question[]
-  >(
+  const [questions] = createResource<Question[]>(
     () =>
       getQuestionsOrAnswersWithFilter(
         subject,
@@ -164,10 +161,23 @@ export default function NormalMode() {
     return groupedQs;
   });
 
+  // الفقرة (Passage) الخاصة بالسؤال الظاهر حاليًا — تُستخدم كسياق لمساعد AI بالهيدر
   const currentPassage = createMemo(() => {
     const q = orderedQs()[quizState.index];
     if (!q?.passage_id) return null;
     return passages()?.find((p) => p.$id === q.passage_id) ?? null;
+  });
+
+  // خريطة الأسئلة المُجابة — تُستخدم لعرض كل سؤال بحالته في وضع التمرير
+  const answeredMap = createMemo(() => {
+    const map = new Map<string, { selectedIndex: number; isCorrect: boolean }>();
+    for (const a of quizState.userAnswers) {
+      map.set(a.$id, {
+        selectedIndex: (a as any).selectedIndex ?? 7,
+        isCorrect: a.answer,
+      });
+    }
+    return map;
   });
 
   // ─── Navigation guard ─────────────────────────────────────────────────────────
@@ -205,6 +215,7 @@ export default function NormalMode() {
           state: true,
           answer: isCorrect,
           answerContent: content,
+          selectedIndex: optIdx,
           answeredAt: Date.now(),
           attempts: 1,
         },
@@ -212,31 +223,9 @@ export default function NormalMode() {
     });
   };
 
-  // ✅ يُستدعى بعد تعديل/حذف سؤال من لوحة الأدمن داخل الكويز
-  const handleQuestionChanged = () => {
-    refetchQuestions();
-    // نُعيد فتح خيارات الإجابة لأن محتوى السؤال (وربما موضعه) تغيّر
-    setQuizState({ selectedOption: 7, isOptionDisabled: false });
-  };
-
-  // إذا حُذف السؤال الأخير، نصحح الموضع كي لا يبقى خارج الحدود
-  createEffect(() => {
-    const len = orderedQs().length;
-    if (len > 0 && quizState.index >= len) {
-      setQuizState("index", len - 1);
-    }
-  });
-
-  const nextQuestion = () => {
-    if (quizState.index >= orderedQs().length - 1) {
-      setQuizState("showResult", true);
-    } else {
-      setQuizState({
-        index: quizState.index + 1,
-        selectedOption: 7,
-        isOptionDisabled: false,
-      });
-    }
+  const finishQuiz = () => {
+    addAnswersToProgress(unwrap(quizState.userAnswers));
+    setQuizState("showResult", true);
   };
 
   return (
@@ -254,8 +243,6 @@ export default function NormalMode() {
             currentQuestion={orderedQs()[quizState.index]}
             passage={currentPassage()?.content}
             userAnswer={quizState.userAnswers[quizState.index]}
-            subjectId={subject}
-            onQuestionChanged={handleQuestionChanged}
             onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
             onTimeUp={() => {
               // تسليم تلقائي
@@ -264,34 +251,16 @@ export default function NormalMode() {
             }}
           />
 
-          <main class="flex-1 overflow-y-auto px-5">
-            <QuizBox
-              question={orderedQs()[quizState.index]}
-              index={quizState.index}
-              subject={subject}
-              subjectName={subjectInfo()?.name ?? subject}
-              selectedOption={quizState.selectedOption}
-              isDisabled={quizState.isOptionDisabled}
-              onSelect={handleOptionSelect}
-              currentQuestion={orderedQs()[quizState.index]}
-              passage={currentPassage()}
-            />
-          </main>
-
-          <QuizFooter
-            index={quizState.index}
-            total={orderedQs().length}
-            isDisabled={!quizState.isOptionDisabled}
-            onNext={nextQuestion}
-            onPrev={() => {
-              setQuizState("index", Math.max(0, quizState.index - 1));
-              setQuizState({ selectedOption: 7, isOptionDisabled: false });
-            }}
-            isCorrect={
-              quizState.userAnswers[quizState.userAnswers.length - 1]?.answer
-            }
-            explanation={orderedQs()[quizState.index]?.explanation}
-            showExplanation={quizState.isOptionDisabled}
+          <QuizFeed
+            questions={orderedQs()}
+            passages={passages()}
+            subject={subject}
+            subjectName={subjectInfo()?.name ?? subject}
+            answeredMap={answeredMap()}
+            startIndex={quizState.index}
+            onSelect={handleOptionSelect}
+            onIndexChange={(idx) => setQuizState("index", idx)}
+            onFinish={finishQuiz}
           />
         </div>
       </Show>

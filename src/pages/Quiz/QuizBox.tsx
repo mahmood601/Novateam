@@ -119,7 +119,7 @@ export default function QuizBox(props: any) {
               }`}
             >
               <div
-                class={`ml-3 flex size-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                class={`ml-3 flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${
                   props.isDisabled && props.question.correctIndex == i()
                     ? "bg-main"
                     : props.selectedOption === i()
@@ -144,6 +144,19 @@ export default function QuizBox(props: any) {
           )}
         </For>
       </ul>
+
+      {/* التفسير — يظهر مباشرة تحت الخيارات بعد الإجابة */}
+      <Show when={props.isDisabled && props.explanation}>
+        <div
+          dir="rtl"
+          class="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed opacity-90 dark:border-gray-700 dark:bg-gray-800/50"
+        >
+          <p class="mb-1 text-[10px] font-bold tracking-widest text-main uppercase">
+            التفسير
+          </p>
+          {props.explanation}
+        </div>
+      </Show>
     </div>
   );
 }
