@@ -64,7 +64,7 @@ export default function QuizBox(props: any) {
       </Show>
 
       {/* نص السؤال */}
-      <div class="flex flex-row-reverse">
+      <div class="flex flex-row-reverse p-3">
         <pre dir="rtl" class="text-md font-bold">
           {props.index + 1}.{" "}
         </pre>
