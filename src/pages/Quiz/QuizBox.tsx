@@ -68,7 +68,7 @@ export default function QuizBox(props: any) {
         <pre dir="rtl" class="text-md font-bold">
           {props.index + 1}.{" "}
         </pre>
-        <p dir="auto">{props.currentQuestion?.question}</p>
+        <p dir="rtl">{props.currentQuestion?.question}:</p>
       </div>
 
       {/* صورة السؤال */}
