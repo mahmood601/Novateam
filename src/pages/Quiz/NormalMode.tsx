@@ -7,6 +7,7 @@ import {
   Show,
   Suspense,
 } from "solid-js";
+
 import {
   addAnswersToProgress,
   getQuestionsOrAnswersWithFilter,
@@ -82,7 +83,9 @@ export default function NormalMode() {
 
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [questions] = createResource<Question[]>(
+  const [questions, { refetch: refetchQuestions }] = createResource<
+    Question[]
+  >(
     () =>
       getQuestionsOrAnswersWithFilter(
         subject,
@@ -223,6 +226,22 @@ export default function NormalMode() {
     });
   };
 
+  
+  // ✅ يُستدعى بعد تعديل/حذف سؤال من لوحة الأدمن داخل الكويز
+  const handleQuestionChanged = () => {
+    refetchQuestions();
+    // نُعيد فتح خيارات الإجابة لأن محتوى السؤال (وربما موضعه) تغيّر
+    setQuizState({ selectedOption: 7, isOptionDisabled: false });
+  };
+
+  // إذا حُذف السؤال الأخير، نصحح الموضع كي لا يبقى خارج الحدود
+  createEffect(() => {
+    const len = orderedQs().length;
+    if (len > 0 && quizState.index >= len) {
+      setQuizState("index", len - 1);
+    }
+  });
+
   const finishQuiz = () => {
     addAnswersToProgress(unwrap(quizState.userAnswers));
     setQuizState("showResult", true);
@@ -236,13 +255,15 @@ export default function NormalMode() {
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <QuizHeader
-            subjectName={subjectInfo()?.name ?? subject}
+             subjectName={subjectInfo()?.name ?? subject}
             index={quizState.index}
             isDisabled={quizState.isOptionDisabled}
             total={orderedQs().length}
             currentQuestion={orderedQs()[quizState.index]}
             passage={currentPassage()?.content}
             userAnswer={quizState.userAnswers[quizState.index]}
+            subjectId={subject}
+            onQuestionChanged={handleQuestionChanged}
             onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
             onTimeUp={() => {
               // تسليم تلقائي

@@ -1,9 +1,17 @@
-import { createEffect, For, on, onCleanup, onMount, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import QuizBox from "./QuizBox";
 import { quizDisplayMode } from "./quizDisplayMode";
 import type { Question, Passage } from "../../services/local/indexeddb";
 
-const AUTO_ADVANCE_DELAY = 900;
+const AUTO_ADVANCE_DELAY = 700;
 
 export default function QuizFeed(props: {
   questions: Question[];
@@ -19,6 +27,8 @@ export default function QuizFeed(props: {
   let containerEl: HTMLDivElement | undefined;
   const slideEls: (HTMLDivElement | undefined)[] = [];
   let hasScrolledToStart = false;
+
+  const [visibleIndex, setVisibleIndex] = createSignal(props.startIndex);
 
   const passageFor = (q: Question) =>
     q.passage_id
@@ -51,7 +61,10 @@ export default function QuizFeed(props: {
             best = { idx, ratio: entry.intersectionRatio };
           }
         }
-        if (best) props.onIndexChange(best.idx);
+        if (best) {
+          setVisibleIndex(best.idx);
+          props.onIndexChange(best.idx);
+        }
       },
       { root: containerEl, threshold: [0.5, 0.6, 0.7] },
     );
@@ -79,10 +92,17 @@ export default function QuizFeed(props: {
     ),
   );
 
-  const handleSelect = (q: Question, optIdx: number, content: string, idx: number) => {
+  const handleSelect = (
+    q: Question,
+    optIdx: number,
+    content: string,
+    idx: number,
+  ) => {
     props.onSelect(q, optIdx, content);
     if (idx < props.questions.length - 1) {
-      setTimeout(() => scrollToIndex(idx + 1), AUTO_ADVANCE_DELAY);
+      setTimeout(() => {
+        if (visibleIndex() === idx) scrollToIndex(idx + 1);
+      }, AUTO_ADVANCE_DELAY);
     }
   };
 
@@ -98,7 +118,7 @@ export default function QuizFeed(props: {
         ref={containerEl}
         dir="ltr"
         classList={{
-          "flex h-full w-full scroll-smooth": true,
+          "flex h-full w-full overscroll-contain": true,
           "flex-row-reverse snap-x snap-mandatory overflow-x-auto overflow-y-hidden":
             quizDisplayMode() === "horizontal",
           "flex-col snap-y snap-mandatory overflow-y-auto overflow-x-hidden":
@@ -113,8 +133,9 @@ export default function QuizFeed(props: {
                 ref={(el) => (slideEls[i()] = el)}
                 data-idx={i()}
                 classList={{
-                  "flex h-full w-full flex-shrink-0 snap-start overflow-y-auto px-5 pt-2 pb-8":
-                    true,
+                  "w-full flex-shrink-0 snap-start px-5 pt-2 pb-8": true,
+                  "min-h-full": quizDisplayMode() === "vertical",
+                  "h-full overflow-y-auto": quizDisplayMode() === "horizontal",
                 }}
               >
                 <div class="w-full">
