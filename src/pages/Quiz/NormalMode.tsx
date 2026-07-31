@@ -186,12 +186,12 @@ export default function NormalMode() {
   // ─── Navigation guard ─────────────────────────────────────────────────────────
 
   useBeforeLeave((e) => {
-    if (
-      !quizState.showResult &&
-      !confirm("هل تريد مغادرة الاختبار؟ سيتم حفظ تقدمك.")
-    ) {
-      e.preventDefault();
-    }
+    // if (
+    //   !quizState.showResult &&
+    //   !confirm("هل تريد مغادرة الاختبار؟ سيتم حفظ تقدمك.")
+    // ) {
+    //   e.preventDefault();
+    // }
     sessionStorage.removeItem(SESSION_KEY); // مسح الموضع المحفوظ عند المغادرة
     addAnswersToProgress(unwrap(quizState.userAnswers));
   });

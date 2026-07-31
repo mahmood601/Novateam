@@ -199,15 +199,17 @@ function ItemRow(props: {
       props.sectionId,
     );
 
-    if (savedAnswers.length > 0) {
-      if (window.confirm("هل تريد الإكمال من حيث توقفت سابقا؟")) {
-        setQuizType("continue");
-      } else {
+    // if (savedAnswers.length > 0) {
+    //   if (window.confirm("هل تريد الإكمال من حيث توقفت سابقا؟")) {
+    //     setQuizType("continue");
+    //   } else {
+    //     await startFromBeginning();
+    //   }
+    // } else {
+    //   setQuizType("continue");
+    // }
+
         await startFromBeginning();
-      }
-    } else {
-      setQuizType("continue");
-    }
 
     navigate(route());
   };

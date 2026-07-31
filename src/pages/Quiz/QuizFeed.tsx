@@ -1,19 +1,11 @@
-import {
-  createEffect,
-  createSignal,
-  For,
-  on,
-  onCleanup,
-  onMount,
-  Show,
-} from "solid-js";
+import { createEffect, For, on, onCleanup, onMount, Show } from "solid-js";
 import QuizBox from "./QuizBox";
-import { quizDisplayMode } from "./quizDisplayMode";
+import { quizDisplayMode, type QuizDisplayMode } from "./quizDisplayMode";
 import type { Question, Passage } from "../../services/local/indexeddb";
 
 const AUTO_ADVANCE_DELAY = 700;
 
-export default function QuizFeed(props: {
+type FeedProps = {
   questions: Question[];
   passages: Passage[] | undefined;
   subject: string;
@@ -22,13 +14,11 @@ export default function QuizFeed(props: {
   startIndex: number;
   onSelect: (q: Question, optIdx: number, content: string) => void;
   onIndexChange: (idx: number) => void;
-  onFinish: () => void;
-}) {
+};
+
+function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
   let containerEl: HTMLDivElement | undefined;
   const slideEls: (HTMLDivElement | undefined)[] = [];
-  let hasScrolledToStart = false;
-
-  const [visibleIndex, setVisibleIndex] = createSignal(props.startIndex);
 
   const passageFor = (q: Question) =>
     q.passage_id
@@ -43,7 +33,6 @@ export default function QuizFeed(props: {
     });
   };
 
-  // ─── مراقبة السؤال الظاهر حاليًا على الشاشة ────────────────────────────────
   let observer: IntersectionObserver | undefined;
 
   const setupObserver = () => {
@@ -61,10 +50,7 @@ export default function QuizFeed(props: {
             best = { idx, ratio: entry.intersectionRatio };
           }
         }
-        if (best) {
-          setVisibleIndex(best.idx);
-          props.onIndexChange(best.idx);
-        }
+        if (best) props.onIndexChange(best.idx);
       },
       { root: containerEl, threshold: [0.5, 0.6, 0.7] },
     );
@@ -73,18 +59,13 @@ export default function QuizFeed(props: {
 
   onMount(() => {
     setupObserver();
-    // استعادة الموضع المحفوظ دون تمرير متحرك
-    queueMicrotask(() => {
-      if (!hasScrolledToStart && props.startIndex > 0) {
-        scrollToIndex(props.startIndex, false);
-      }
-      hasScrolledToStart = true;
+    requestAnimationFrame(() => {
+      if (props.startIndex > 0) scrollToIndex(props.startIndex, false);
     });
   });
 
   onCleanup(() => observer?.disconnect());
 
-  // إعادة ربط المراقب عند تغيّر عدد الأسئلة (تحميل البيانات لاحقًا)
   createEffect(
     on(
       () => props.questions.length,
@@ -100,12 +81,59 @@ export default function QuizFeed(props: {
   ) => {
     props.onSelect(q, optIdx, content);
     if (idx < props.questions.length - 1) {
-      setTimeout(() => {
-        if (visibleIndex() === idx) scrollToIndex(idx + 1);
-      }, AUTO_ADVANCE_DELAY);
+      setTimeout(() => scrollToIndex(idx + 1), AUTO_ADVANCE_DELAY);
     }
   };
 
+  return (
+    <div
+      ref={containerEl}
+      dir="ltr"
+      classList={{
+        "flex h-full w-full overscroll-contain": true,
+        "flex-row-reverse snap-x snap-mandatory overflow-x-auto overflow-y-hidden":
+          props.axis === "horizontal",
+        "flex-col snap-y snap-mandatory overflow-y-auto overflow-x-hidden":
+          props.axis === "vertical",
+      }}
+    >
+      <For each={props.questions}>
+        {(q, i) => {
+          const answered = () => props.answeredMap.get(q.$id);
+          return (
+            <div
+              ref={(el) => (slideEls[i()] = el)}
+              data-idx={i()}
+              classList={{
+                "w-full flex-shrink-0 snap-start px-5 pt-2 pb-8": true,
+                "min-h-full": props.axis === "vertical",
+                "h-full overflow-y-auto": props.axis === "horizontal",
+              }}
+            >
+              <div class="w-full">
+                <QuizBox
+                  question={q}
+                  currentQuestion={q}
+                  index={i()}
+                  subject={props.subject}
+                  subjectName={props.subjectName}
+                  selectedOption={answered()?.selectedIndex ?? 7}
+                  isDisabled={!!answered()}
+                  explanation={q.explanation}
+                  onSelect={(qq: Question, optIdx: number, content: string) =>
+                    handleSelect(qq, optIdx, content, i())
+                  }
+                  passage={passageFor(q)}
+                />
+              </div>
+            </div>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
+export default function QuizFeed(props: FeedProps & { onFinish: () => void }) {
   const isLastAnswered = () => {
     const last = props.questions.length - 1;
     const lastQ = props.questions[last];
@@ -114,53 +142,13 @@ export default function QuizFeed(props: {
 
   return (
     <div class="relative flex h-full flex-1 flex-col overflow-hidden">
-      <div
-        ref={containerEl}
-        dir="ltr"
-        classList={{
-          "flex h-full w-full overscroll-contain": true,
-          "flex-row-reverse snap-x snap-mandatory overflow-x-auto overflow-y-hidden":
-            quizDisplayMode() === "horizontal",
-          "flex-col snap-y snap-mandatory overflow-y-auto overflow-x-hidden":
-            quizDisplayMode() === "vertical",
-        }}
+      <Show
+        when={quizDisplayMode() === "vertical"}
+        fallback={<FeedAxis {...props} axis="horizontal" />}
       >
-        <For each={props.questions}>
-          {(q, i) => {
-            const answered = () => props.answeredMap.get(q.$id);
-            return (
-              <div
-                ref={(el) => (slideEls[i()] = el)}
-                data-idx={i()}
-                classList={{
-                  "w-full flex-shrink-0 snap-start px-5 pt-2 pb-8": true,
-                  "min-h-full": quizDisplayMode() === "vertical",
-                  "h-full overflow-y-auto": quizDisplayMode() === "horizontal",
-                }}
-              >
-                <div class="w-full">
-                  <QuizBox
-                    question={q}
-                    currentQuestion={q}
-                    index={i()}
-                    subject={props.subject}
-                    subjectName={props.subjectName}
-                    selectedOption={answered()?.selectedIndex ?? 7}
-                    isDisabled={!!answered()}
-                    explanation={q.explanation}
-                    onSelect={(qq: Question, optIdx: number, content: string) =>
-                      handleSelect(qq, optIdx, content, i())
-                    }
-                    passage={passageFor(q)}
-                  />
-                </div>
-              </div>
-            );
-          }}
-        </For>
-      </div>
+        <FeedAxis {...props} axis="vertical" />
+      </Show>
 
-      {/* زر إظهار النتيجة — يظهر فقط بعد الإجابة على آخر سؤال */}
       <Show when={isLastAnswered()}>
         <div class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
           <button
