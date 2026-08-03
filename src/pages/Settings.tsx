@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { useTheme } from "../hooks/useTheme";
+import { useCustomFont } from "../hooks/useCustomFont";
 import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
 
 export const colors = {
@@ -37,6 +38,19 @@ export const colors = {
 
 export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
+
+  // ─── خط التطبيق المخصص ───────────────────────────────────────────
+  const { fontName, isSaving, error: fontError, uploadFont, resetFont } =
+    useCustomFont();
+  let fontInputRef: HTMLInputElement | undefined;
+
+  const onFontFileChange = async (e: Event) => {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) await uploadFont(file);
+    input.value = ""; // يسمح برفع نفس الملف مرة أخرى إن احتاج المستخدم
+  };
+
   // ─── Gemini API Key ───────────────────────────────────────────────
   const [geminiKey, setGeminiKey] = createSignal(
     localStorage.getItem("gemini_api_key") ?? "",
@@ -118,6 +132,63 @@ export default function Settings() {
                 }}
               ></span>
             </label>
+          </div>
+        </div>
+
+        {/* ─── خط التطبيق ─── */}
+        <div
+          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+          dir="rtl"
+        >
+          <div class="mb-3 flex items-center gap-2">
+            <span class="text-xl">🔤</span>
+            <h3 class="font-bold">خط التطبيق</h3>
+          </div>
+          <p class="mb-3 text-xs text-slate-400">
+            ارفع ملف خط من جهازك (ttf, otf, woff, woff2) ليُطبَّق على واجهة
+            التطبيق بالكامل، ويُحفظ محلياً على جهازك فقط.
+          </p>
+
+          <Show when={fontName()}>
+            <div class="mb-3 flex items-center justify-between rounded-xl bg-slate-100 px-3 py-2 text-sm dark:bg-slate-700">
+              <span class="truncate">الخط الحالي: {fontName()}</span>
+              <span class="text-main">مفعّل ✓</span>
+            </div>
+          </Show>
+
+          <Show when={fontError()}>
+            <p class="mb-3 text-xs text-red-500">{fontError()}</p>
+          </Show>
+
+          <input
+            ref={fontInputRef}
+            type="file"
+            accept=".ttf,.otf,.woff,.woff2"
+            class="hidden"
+            onChange={onFontFileChange}
+          />
+
+          <div class="flex gap-2">
+            <button
+              disabled={isSaving()}
+              onClick={() => fontInputRef?.click()}
+              class="bg-main rounded-full px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {isSaving()
+                ? "جاري الحفظ..."
+                : fontName()
+                  ? "تغيير الخط"
+                  : "رفع خط مخصص"}
+            </button>
+            <Show when={fontName()}>
+              <button
+                disabled={isSaving()}
+                onClick={resetFont}
+                class="rounded-full bg-red-50 px-4 py-2 text-sm text-red-500 disabled:opacity-50 dark:bg-red-900/20"
+              >
+                الرجوع للخط الافتراضي
+              </button>
+            </Show>
           </div>
         </div>
 

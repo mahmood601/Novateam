@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@csstools/postcss-oklab-function": "^5.0.4",
+    "@fontsource-variable/readex-pro": "^5.3.0",
     "@fontsource/cairo": "^5.2.6",
     "@fontsource/poppins": "^5.2.6",
     "@solid-primitives/media": "^2.3.3",
@@ -28,19 +29,6 @@
     "solid-toast": "^0.5.0",
     "solid-transition-group": "^0.3.0",
     "tailwindcss": "^4.1.13"
-  },
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "esbuild"
-    ],
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "postinstall-postinstall",
-      "sharp"
-    ]
-  },
-  "patches": {
-    "vite-plugin-pwa@1.0.0.patch": "patches/vite-plugin-pwa@1.0.0.patch"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",

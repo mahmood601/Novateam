@@ -20,7 +20,7 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
-    font-family: "Cairo", "Poppins";
+    font-family: var(--app-font, 'Readex Pro Variable', sans-serif);
   }
 }
 

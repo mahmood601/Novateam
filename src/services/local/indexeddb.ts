@@ -77,6 +77,14 @@ export type Passage = {
   image_url?: string | null;
 };
 
+// خط التطبيق المخصص (يُحفظ كملف Blob محلياً في IndexedDB)
+export type AppFont = {
+  id: string; // ثابت دائماً "app-font"
+  name: string; // اسم الملف الأصلي
+  blob: Blob;
+  addedAt: number;
+};
+
 // ─── Dexie DB ─────────────────────────────────────────────────────────────────
 
 class AppDB extends Dexie {
@@ -87,6 +95,7 @@ class AppDB extends Dexie {
   subjects!: Table<CachedSubject, string>;
   years!: Table<CachedYear, string>;
   passages!: Table<Passage, string>;
+  appFont!: Table<AppFont, string>;
 
   constructor() {
     super("db");
@@ -162,6 +171,11 @@ class AppDB extends Dexie {
         [subject+season_id],
         [subject+year_id]
       `,
+    });
+
+    // v6: جدول appFont — لحفظ خط التطبيق المخصص (ملف يرفعه المستخدم) محلياً
+    this.version(6).stores({
+      appFont: `id`,
     });
   }
 }

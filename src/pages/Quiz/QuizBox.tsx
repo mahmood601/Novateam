@@ -64,7 +64,7 @@ export default function QuizBox(props: any) {
       </Show>
 
       {/* نص السؤال */}
-      <div class="flex flex-row-reverse p-3">
+      <div class="flex flex-row-reverse p-3 font-bold text-md">
         <pre dir="rtl" class="text-md font-bold">
           {props.index + 1}.{" "}
         </pre>
@@ -99,7 +99,7 @@ export default function QuizBox(props: any) {
       {/* الخيارات — options[] مصفوفة */}
       <ul
         classList={{
-          "space-y-3 mt-5": true,
+          "space-y-3 mt-1": true,
           "pointer-events-none": props.isDisabled,
         }}
       >
@@ -137,7 +137,7 @@ export default function QuizBox(props: any) {
                     : ""}
                 </p>
               </div>
-              <span dir="auto" class="flex-1 text-right">
+              <span dir="auto" class="flex-1 text-right text-sm">
                 {opt}
               </span>
             </button>

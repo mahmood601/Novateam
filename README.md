@@ -66,8 +66,7 @@ No more staring at static PDFs. With Nova app, your study material comes alive.
 
 Make sure you have the following installed:
 
-- **Node.js** `>= 18`
-- **pnpm** (recommended) — `npm install -g pnpm`
+- **Bun** `>= 1.2.2`
 
 ### Installation
 
@@ -77,10 +76,10 @@ git clone https://github.com/mahmood601/Novateam.git
 cd Novateam
 
 # 2. Install dependencies
-pnpm install        # or: npm install / yarn install
+bun install        # or: npm install / yarn install
 
 # 3. Start the development server
-pnpm dev            # or: npm run dev
+bun dev            # or: npm run dev
 ```
 
 Then open your browser at **[http://localhost:5173](http://localhost:5173)** 🎉
@@ -91,9 +90,9 @@ Then open your browser at **[http://localhost:5173](http://localhost:5173)** �
 
 | Command | Description |
 |---|---|
-| `pnpm dev` | Start the local development server |
-| `pnpm build` | Build for production (outputs to `/dist`) |
-| `pnpm preview` | Preview the production build locally |
+| `bun dev` | Start the local development server |
+| `bun build` | Build for production (outputs to `/dist`) |
+| `bun preview` | Preview the production build locally |
 
 ---
 

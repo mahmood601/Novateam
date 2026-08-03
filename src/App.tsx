@@ -2,9 +2,7 @@ import "./index.css";
 import "./styles/rainbow.css";
 import { Router } from "@solidjs/router";
 import Layout from "./components/Layout.tsx";
-import "@fontsource/cairo/400.css";
-import "@fontsource/cairo/700.css";
-import "@fontsource/poppins/400.css";
+import '@fontsource-variable/readex-pro/wght.css';
 import { UserProvider } from "./context/user.tsx";
 import { Toaster } from "solid-toast";
 // import "solid-devtools";
@@ -15,6 +13,7 @@ import { useTheme } from "./hooks/useTheme.tsx";
 import AppErrorBoundary from "./components/ErrorBoundary.tsx";
 import { onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
+import { applyStoredFont } from "./services/local/customFont.ts";
 import UpdatePanel from "./components/updates/UpdatePanel.tsx";
 // import MaintenanceGate from "./components/MaintenanceGate.tsx";
 
@@ -23,6 +22,7 @@ export default function App() {
 
   onMount(async () => {
     applyTheme((localStorage.getItem("theme-color") as any) || "Ola");
+    applyStoredFont(); // يطبّق خط التطبيق المخصص إن وُجد (لا يوقف باقي الإقلاع)
     await checkAndMigrateIfNeeded();
 
     const handleVisbilityChange = () => {
