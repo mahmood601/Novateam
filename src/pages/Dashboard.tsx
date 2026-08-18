@@ -22,7 +22,7 @@ import {
   type Section,
   type QuestionUI,
   type PassageUI,
-} from "../services/documentsManuplation";
+} from "../services/documentsManipulation";
 import { fetchUserNames } from "../services/user";
 import toast from "solid-toast";
 import { uploadQuestionImage, deleteQuestionImage } from "../services/imageUpload";

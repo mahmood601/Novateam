@@ -20,7 +20,7 @@ export type {
   Question,
 } from "../../../types";
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 6;
 export const SCHEMA_KEY = "db_schema_version";
 export const SYNC_KEY = (subject: string) => `sync_${subject}`;
 export const PASSAGES_SYNC_KEY = (subject: string) => `passages_sync_${subject}`;

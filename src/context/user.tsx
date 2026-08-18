@@ -11,7 +11,6 @@ import {
   ensureUserExists,
   updateUserProfile,
 } from "../services/user";
-import { json } from "@solidjs/router";
 
 type User = {
   id: string;

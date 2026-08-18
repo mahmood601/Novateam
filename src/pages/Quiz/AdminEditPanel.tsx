@@ -13,7 +13,7 @@ import {
   getQuestion,
   deleteQuestion,
   type QuestionUI,
-} from "../../services/documentsManuplation";
+} from "../../services/documentsManipulation";
 import { ManualForm } from "../Dashboard";
 import { db, type Question } from "../../services/local/indexeddb";
 import toast from "solid-toast";

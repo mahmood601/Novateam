@@ -28,8 +28,10 @@ export default function App() {
     const handleVisbilityChange = () => {
       if (document.visibilityState === "visible") {
         navigator.serviceWorker.getRegistrations().then((registrations) => {
-          if (registrations.wating) {
-            console.log("New version available, refreshing...");
+          for (const registration of registrations) {
+            if (registration.waiting) {
+              console.log("New version available, refreshing...");
+            }
           }
         });
       }
@@ -42,16 +44,16 @@ export default function App() {
   });
   return (
     <AppErrorBoundary>
-    <UserProvider>
-      {/* <MaintenanceGate> */}
+      <UserProvider>
+        {/* <MaintenanceGate> */}
         <Toaster />
         <UpdatePanel />
         <Router root={Layout as any}>
           <AppRoutes />
         </Router>
-      {/* </MaintenanceGate> */}
-      <PWAProvider />
-    </UserProvider>
+        {/* </MaintenanceGate> */}
+        <PWAProvider />
+      </UserProvider>
     </AppErrorBoundary>
   );
 }
