@@ -1,4 +1,4 @@
-import { YearData, YearKey } from "../../types/years";
+import type { YearData, YearKey } from "../../types";
 
 const years: Record<YearKey, YearData> = {
   // This file should be updated every year and season

@@ -8,7 +8,7 @@ export type QStoreType = {
   question: string;
   explanation: string;
   options: string[];       
-  correctIndex: number[];
+  correctIndex: number;
   user_id: string;
   [key: string]: any;
 };
@@ -20,7 +20,7 @@ const initialState: QStoreType = {
   question:     "",
   explanation:  "",
   options:      ["", "", "", ""],
-  correctIndex: [],
+  correctIndex: 0,
   user_id:      "",
 };
 

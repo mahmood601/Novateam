@@ -102,7 +102,7 @@ async function checkNovaUsage(): Promise<GeminiResult | null> {
         };
     }
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("ai_usage")
       .select("usage_count, last_reset_date")
       .eq("user_id", user!.id)

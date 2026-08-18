@@ -1,0 +1,21 @@
+export type Question = {
+  $id: string;
+  subject: string;
+  subject_id: string;
+  season_id: number | null;
+  year_id: number | null;
+  seasonName?: string;
+  seasonValue?: string;
+  yearName?: string;
+  yearValue?: string;
+  question: string;
+  explanation: string | null;
+  options: string[];
+  correctIndex: number;
+  user_id: string | null;
+  image_url?: string | null;
+  passage_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  [key: string]: any;
+};
