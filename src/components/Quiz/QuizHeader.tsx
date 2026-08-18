@@ -1,8 +1,8 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
-import LeftArrow from "../../components/Icons/LeftArrow";
+import LeftArrow from "../Icons/LeftArrow";
 import { useAudio } from "../../hooks/useAudio";
 import FavoriteButton from "./Favorite";
-import GeminiPanel from "../../components/GeminiPanel";
+import GeminiPanel from "../GeminiPanel";
 import { quizDisplayMode, setQuizDisplayMode } from "./quizDisplayMode";
 import { quizState } from "./quizStore";
 import AdminEditPanel from "./AdminEditPanel";
@@ -19,6 +19,7 @@ export default function QuizHeader(props: {
   subjectId?: string;
   onTimeUp?: () => void;
   onTimeWarning?: () => void;
+  onQuestionChanged: () => void;
 }) {
   const [timeLeft, setTimeLeft] = createSignal(0);
   const [isPaused, setIsPaused] = createSignal(false);

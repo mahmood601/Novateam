@@ -13,7 +13,7 @@ const StatusPage = lazy(() => import("../pages/Status"));
 const Profile = lazy(() => import("../pages/Profile"));
 const Settings = lazy(() => import("../pages/Settings"));
 const SelectMenu = lazy(() => import("../pages/SelectMenu"));
-const Quiz = lazy(() => import("../pages/Quiz/Quiz"));
+const Quiz = lazy(() => import("../pages/Quiz"));
 const FavoritesPage = lazy(() => import("../pages/Favorites"));
 const WeakQuestionsPage = lazy(() => import("../pages/WeakQuestions"));
 const Privacy = lazy(() => import("../pages/Privacy"));

@@ -16,26 +16,27 @@ import {
   getPassagesForSubject,
   Question,
   Answer,
-} from "../../services/local/indexeddb";
-import { useAudio } from "../../hooks/useAudio";
+} from "../services/local/indexeddb";
+import { useAudio } from "../hooks/useAudio";
 import { unwrap } from "solid-js/store";
-import { quizType } from "../../stores/quizType";
+import { quizType } from "../stores/quizType";
 // unwrap مستخدم في useBeforeLeave أدناه
-import QuizHeader from "./QuizHeader";
-import { quizState, resetQuizState, setQuizState } from "./quizStore";
-import QuizFeed from "./QuizFeed";
-import Result from "./Result";
-import { recordActivityToday } from "../../services/local/streak";
+import QuizHeader from "../components/Quiz/QuizHeader";
+import { quizState, resetQuizState, setQuizState } from "../components/Quiz/quizStore";
+import QuizFeed from "../components/Quiz/QuizFeed";
+import Result from "../components/Quiz/Result";
+import { recordActivityToday } from "../services/local/streak";
 import { toast } from "solid-toast";
 
-export default function NormalMode() {
-  const subject = useParams().subject;
+export default function Quiz() {
+  const subject = useParams().subject ?? "";
+  const section = useParams().section ?? "";
 
   // section param: "season_id-5" أو "year_id-2024"
-  const sectionType = useParams().section.split("-").at(0) as
+  const sectionType = section.split("-")[0] as
     | "season_id"
     | "year_id";
-  const sectionId = Number(useParams().section.split("-").at(1));
+  const sectionId = Number(section.split("-")[1]);
 
   const { playSound } = useAudio();
   const [subjectInfo] = createResource(async () => {
@@ -251,7 +252,7 @@ export default function NormalMode() {
     <Suspense fallback={<LoadingSpinner />}>
       <Show
         when={!quizState.showResult}
-        fallback={<Result subject={subject} section={useParams().section} answers={quizState.userAnswers} />}
+        fallback={<Result subject={subject} section={useParams().section ?? ""} answers={quizState.userAnswers} />}
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <QuizHeader

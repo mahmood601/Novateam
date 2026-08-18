@@ -5,20 +5,18 @@ import { getSections, type QuestionUI, type Section } from "../services/document
 import { fetchUserNames } from "../services/user";
 import { useUser } from "../context/user";
 import toast from "solid-toast";
-import { getSubjectsOfflineFirst } from "../services/local/indexeddb";
-import { QuestionCard } from "./Dashboard/components/QuestionCard";
-import { SectionSelectors } from "./Dashboard/components/SectionSelectors";
-import { SmartImporter } from "./Dashboard/components/SmartImporter";
-import { ManualForm } from "./Dashboard/components/ManualForm";
-import { PassageManager } from "./Dashboard/components/PassageManager";
-import { BulkActionBar } from "./Dashboard/components/BulkActionBar";
-import { SubjectPicker } from "./Dashboard/components/SubjectPicker";
-import { SuggestionsManager } from "./Dashboard/components/SuggestionsManager";
+import { QuestionCard } from "../components/Dashboard/components/QuestionCard";
+import { SmartImporter } from "../components/Dashboard/components/SmartImporter";
+import { ManualForm } from "../components/Dashboard/components/ManualForm";
+import { PassageManager } from "../components/Dashboard/components/PassageManager";
+import { BulkActionBar } from "../components/Dashboard/components/BulkActionBar";
+import { SubjectPicker } from "../components/Dashboard/components/SubjectPicker";
+import { SuggestionsManager } from "../components/Dashboard/components/SuggestionsManager";
 
 export type qModeT = "insert" | "edit" | "delete" | "";
-export { ManualForm } from "./Dashboard/components/ManualForm";
-export { SectionSelectors } from "./Dashboard/components/SectionSelectors";
-export { SubjectPicker } from "./Dashboard/components/SubjectPicker";
+export { ManualForm } from "../components/Dashboard/components/ManualForm";
+export { SectionSelectors } from "../components/Dashboard/components/SectionSelectors";
+export { SubjectPicker } from "../components/Dashboard/components/SubjectPicker";
 
 const PAGE_SIZE = 10;
 
