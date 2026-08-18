@@ -1,24 +1,17 @@
-import { A, useNavigate } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import {
   createMemo,
   For,
   Match,
-  onCleanup,
-  onMount,
   Show,
   Switch,
 } from "solid-js";
 import ThemeBtn from "./ThemeBtn";
 import { useUser } from "../../context/user";
-import { createStore } from "solid-js/store";
 
 export function Links() {
   const { user } = useUser();
 
-  const navigate = useNavigate();
-  const hadelPopState = (e: PopStateEvent) => {
-    navigate("/", { replace: true });
-  };
   const baseLinks = [
     { name: "وضع الإضاءة", image: "mode", route: null },
     { name: "الحساب", image: "account", route: "profile" },
@@ -33,15 +26,6 @@ export function Links() {
     }
     return baseLinks;
   });
-
-  onMount(() => {
-    window.addEventListener("popstate", hadelPopState);
-  });
-
-  onCleanup(() => {
-    window.removeEventListener("popstate", hadelPopState);
-  });
-
 
   return (
     <nav class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2">

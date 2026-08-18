@@ -4,9 +4,14 @@ import SubjectsPage from "../pages/SubjectsPage";
 import Login from "../pages/Login";
 import AuthCallback from "./auth/AuthCallback";
 import NotFound from "../pages/NotFound";
+import AdminGate from "./Dashboard/AdminGate";
 
 // الصفحات الثقيلة — تُحمَّل عند الطلب فقط
-const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Dashboard = lazy(() => import("../pages/Dashboard/Dashboard"));
+const QuizEditor = lazy(() => import("../pages/Dashboard/QuizEditor"));
+const LectureEditor = lazy(() => import("../pages/Dashboard/LectureEditor"));
+const SectionPicker = lazy(() => import("../pages/Dashboard/SectionPicker"));
+
 const SearchPage = lazy(() => import("../pages/Search"));
 const StatsPage = lazy(() => import("../pages/Stats"));
 const StatusPage = lazy(() => import("../pages/Status"));
@@ -30,12 +35,19 @@ export default function AppRoutes() {
       <Route path="/settings" component={() => <Suspense><Settings /></Suspense>} />
       <Route path="/status" component={() => <Suspense><StatusPage /></Suspense>} />
       <Route path="/privacy" component={() => <Suspense><Privacy /></Suspense>} />
-      <Route path="/dashboard" component={() => <Suspense><Dashboard /></Suspense>} />
-      <Route path="/dashboard/:subject" component={() => <Suspense><Dashboard /></Suspense>} />
       <Route path="/:subject" component={() => <Suspense><SelectMenu /></Suspense>} />
       <Route path="/:subject/weak" component={() => <Suspense><WeakQuestionsPage /></Suspense>} />
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
+
+      <Route path="/dashboard" component={AdminGate} >
+      <Route path="/" component={() => <Suspense><Dashboard /></Suspense>} />
+      <Route path="/:subject" component={() => <Suspense><SectionPicker /></Suspense>} />
+      <Route path="/:subject/edit-quiz" component={() => <Suspense><QuizEditor /></Suspense>} />
+      <Route path="/:subject/edit-lecture" component={() => <Suspense><LectureEditor /></Suspense>} />
+
+      </Route>
+
       <Route path="*" component={NotFound} />
     </>
   );

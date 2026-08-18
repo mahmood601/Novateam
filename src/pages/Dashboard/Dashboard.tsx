@@ -1,5 +1,6 @@
 import { createResource, createSignal, For, Show } from "solid-js";
-import { getSubjectsOfflineFirst } from "../../../services/local/indexeddb";
+import { getSubjectsOfflineFirst } from "../../services/local/indexeddb";
+import { A } from "@solidjs/router";
 
 const YEARS = [
   { id: "second", name: "الثانية" },
@@ -8,7 +9,7 @@ const YEARS = [
   { id: "fifth", name: "الخامسة" },
 ];
 
-export function SubjectPicker(props: { onSelect: (subjectId: string) => void }) {
+export default function Dashboard() {
   const [yearKey, setYearKey] = createSignal<string>("second");
   const [subjects] = createResource(() => yearKey(), (year) => getSubjectsOfflineFirst(year));
 
@@ -58,8 +59,8 @@ export function SubjectPicker(props: { onSelect: (subjectId: string) => void }) 
               <div class="grid gap-2">
                 <For each={subjects()}>
                   {(sub) => (
-                    <button
-                      onClick={() => props.onSelect(sub.id)}
+                    <A
+                      href={`/dashboard/${sub.id}`}
                       class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-right transition-all hover:border-cyan-200 hover:bg-cyan-50 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-700 dark:hover:bg-cyan-900/20"
                     >
                       <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500 text-sm font-black text-white shadow-sm">
@@ -70,7 +71,7 @@ export function SubjectPicker(props: { onSelect: (subjectId: string) => void }) 
                         <p class="text-[11px] text-slate-400">{sub.id}</p>
                       </div>
                       <span class="text-slate-300 dark:text-slate-600">←</span>
-                    </button>
+                    </A>
                   )}
                 </For>
               </div>

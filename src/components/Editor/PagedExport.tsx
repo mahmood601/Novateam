@@ -12,7 +12,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { InfoBox } from "./extensions/InfoBox";
 import { ColorTable } from "./extensions/ColorTable";
 import { NovaHeading } from "./extensions/NovaHeading";
-import type { JSONContent } from "./TiptapEditor";
+import type { JSONContent } from "../../pages/Editor";
 import "./paged-styles.css";
 import "./nova-template-tokens.css";
 

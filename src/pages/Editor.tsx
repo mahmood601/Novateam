@@ -6,9 +6,9 @@
 import { onMount, onCleanup, createEffect, createSignal } from "solid-js";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import { InfoBox } from "./extensions/InfoBox";
-import { ColorTable } from "./extensions/ColorTable";
-import { NovaHeading } from "./extensions/NovaHeading";
+import { InfoBox } from "../components/Editor/extensions/InfoBox";
+import { ColorTable } from "../components/Editor/extensions/ColorTable";
+import { NovaHeading } from "../components/Editor/extensions/NovaHeading";
 
 // A JSONContent is Tiptap's own doc shape — this is what gets stored
 // in Supabase (e.g. formatted_lectures.content_json), same philosophy
@@ -52,7 +52,7 @@ export default function TiptapEditor(props: TiptapEditorProps) {
     const next = props.content;
     const ed = editor();
     if (ed && next && JSON.stringify(ed.getJSON()) !== JSON.stringify(next)) {
-      ed.commands.setContent(next, false);
+      ed.commands.setContent(next, { emitUpdate: false });
     }
   });
 
@@ -60,6 +60,5 @@ export default function TiptapEditor(props: TiptapEditorProps) {
     editor()?.destroy();
   });
 
-  return <div ref={(el) => (containerEl = el)} class="mt-16 p-5" dir="rtl" />;
+  return <div ref={(el) => (containerEl = el)} class="p-5" dir="rtl" />;
 }
-

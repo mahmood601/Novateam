@@ -14,7 +14,7 @@ import {
   deleteQuestion,
   type QuestionUI,
 } from "../../services/documentsManipulation";
-import { ManualForm } from "../../pages/Dashboard";
+import { ManualForm } from "../Dashboard/Quizzes/ManualForm";
 import { db, type Question } from "../../services/local/indexeddb";
 import toast from "solid-toast";
 
