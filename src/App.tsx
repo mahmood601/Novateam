@@ -12,7 +12,7 @@ import PWAProvider from "./components/PWAProvider.tsx";
 import { useTheme } from "./hooks/useTheme.tsx";
 import AppErrorBoundary from "./components/ErrorBoundary.tsx";
 import { onCleanup, onMount } from "solid-js";
-import { checkAndMigrateIfNeeded } from "./services/local/indexeddb.ts";
+import { checkAndMigrateIfNeeded } from "./services/local/indexeddb/sync.ts";
 import { applyStoredFont } from "./services/local/customFont.ts";
 import UpdatePanel from "./components/updates/UpdatePanel.tsx";
 // import MaintenanceGate from "./components/MaintenanceGate.tsx";
