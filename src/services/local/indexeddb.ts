@@ -2,88 +2,29 @@ import { supabase } from "../supabase";
 import { Dexie, Table } from "dexie";
 import yearsFallback from "./years";
 import toast from "solid-toast";
+import type {
+  Answer,
+  AppFont,
+  CachedSection,
+  CachedSubject,
+  CachedYear,
+  Favorite,
+  Passage,
+  Question,
+} from "../../types";
+export type {
+  Answer,
+  AppFont,
+  CachedSection,
+  CachedSubject,
+  CachedYear,
+  Favorite,
+  Passage,
+  Question,
+} from "../../types";
 
 const SCHEMA_VERSION = 4; // ← غيّره كل ما تضيف ميزة تحتاج بيانات جديدة
 const SCHEMA_KEY = "db_schema_version";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type Question = {
-  $id: string;
-  subject: string;
-  subject_id: string;
-  season_id: number | null;
-  year_id: number | null;
-  seasonName?: string;
-  seasonValue?: string;
-  yearName?: string;
-  yearValue?: string;
-  question: string;
-  explanation: string | null;
-  options: string[];
-  correctIndex: number ;
-  user_id: string | null;
-  image_url?: string | null; // ← جاهز للصور مستقبلاً
-  passage_id?: string | null; // ← مقالة مرتبطة (اختياري)
-  [key: string]: any;
-};
-
-export type Answer = {
-  $id: string;
-  subject: string;
-  season_id: number | null;
-  year_id: number | null;
-  answer: boolean;
-  answeredAt: number; // timestamp
-  attempts: number;   // عدد المحاولات
-  [key: string]: any;
-};
-
-export type Favorite = {
-  $id: string;
-  questionId: string;
-  subject: string;
-  snapshot?: Partial<Question>;
-  note?: string;
-  savedAt: number;
-};
-
-export type CachedSection = {
-  id: number;
-  subject_id: string;
-  type: "season" | "year";
-  value: string;
-  name: string;
-};
-
-export type CachedSubject = {
-  id: string;
-  name: string;
-  year_keys: string[];
-};
-
-export type CachedYear = {
-  id: string;
-  name: string;
-  subjects: string[];
-};
-
-export type Passage = {
-  $id: string;
-  subject_id: string;
-  season_id: number | null;
-  year_id: number | null;
-  content: string;
-  image_url?: string | null;
-};
-
-// خط التطبيق المخصص (يُحفظ كملف Blob محلياً في IndexedDB)
-export type AppFont = {
-  id: string; // ثابت دائماً "app-font"
-  name: string; // اسم الملف الأصلي
-  blob: Blob;
-  addedAt: number;
-};
 
 // ─── Dexie DB ─────────────────────────────────────────────────────────────────
 
