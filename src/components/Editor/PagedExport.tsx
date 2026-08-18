@@ -3,7 +3,7 @@
 // it as static HTML (via Tiptap's generateHTML, NOT the live editor),
 // paginates it with Paged.js, and lets the user print/save as PDF.
 //
-// Route suggestion: /lectures/:id/export — a light route, not part of
+// Route suggestion: /edit-leacture/:id/export — a light route, not part of
 // the main editor bundle or the PWA's core service-worker cache set.
 
 import { onMount, createSignal, Show } from "solid-js";
@@ -12,7 +12,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { InfoBox } from "./extensions/InfoBox";
 import { ColorTable } from "./extensions/ColorTable";
 import { NovaHeading } from "./extensions/NovaHeading";
-import type { JSONContent } from "../../pages/Editor";
+import type { JSONContent } from "./Editor";
 import "./paged-styles.css";
 import "./nova-template-tokens.css";
 

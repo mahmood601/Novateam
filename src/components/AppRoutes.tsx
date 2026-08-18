@@ -11,6 +11,7 @@ const Dashboard = lazy(() => import("../pages/Dashboard/Dashboard"));
 const QuizEditor = lazy(() => import("../pages/Dashboard/QuizEditor"));
 const LectureEditor = lazy(() => import("../pages/Dashboard/LectureEditor"));
 const SectionPicker = lazy(() => import("../pages/Dashboard/SectionPicker"));
+const EditorPage = lazy(() => import("../pages/Dashboard/EditorPage"));
 
 const SearchPage = lazy(() => import("../pages/Search"));
 const StatsPage = lazy(() => import("../pages/Stats"));
@@ -45,6 +46,7 @@ export default function AppRoutes() {
       <Route path="/:subject" component={() => <Suspense><SectionPicker /></Suspense>} />
       <Route path="/:subject/edit-quiz" component={() => <Suspense><QuizEditor /></Suspense>} />
       <Route path="/:subject/edit-lecture" component={() => <Suspense><LectureEditor /></Suspense>} />
+      <Route path="/:subject/edit-lecture/:season/editor" component={() => <Suspense><EditorPage /></Suspense>} />
 
       </Route>
 

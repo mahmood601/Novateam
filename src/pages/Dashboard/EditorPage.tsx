@@ -2,11 +2,11 @@
 
 import { createSignal } from "solid-js";
 import type { Editor } from "@tiptap/core";
-import TiptapEditor, { type JSONContent } from "../../pages/Editor";
-import EditorToolbar from "./EditorToolbar";
-import "./editor-toolbar.css";
+import TiptapEditor, { type JSONContent } from "../../components/Editor/Editor";
+import EditorToolbar from "../../components/Editor/EditorToolbar";
+import "../../components/Editor/editor-toolbar.css";
 
-export default function LectureEditorPage(props: { subjectId: string; initialContent?: JSONContent }) {
+export default function EditorPage(props: { subjectId: string; initialContent?: JSONContent }) {
   // المحرر يُسلَّم للأب عبر onReady، والـ toolbar بيستخدم نفس الـ instance
   // — بهيك الأزرار بتنفذ أوامر مباشرة على نفس المحرر المعروض.
   const [editorInstance, setEditorInstance] = createSignal<Editor | undefined>(undefined);

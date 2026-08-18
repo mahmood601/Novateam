@@ -1,5 +1,4 @@
 import { supabase } from "../../supabase";
-import yearsFallback from "../years";
 import { db, getLastSync, resetSync, saveLastSync } from "./db";
 import type { Answer, Question } from "../../../types";
 

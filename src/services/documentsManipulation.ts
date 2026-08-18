@@ -102,6 +102,23 @@ export async function getSections(subjectId: string): Promise<Section[]> {
   return data ?? [];
 }
 
+// Get seasons
+
+export async function getSeasonsFromRemote(subjectId: string): Promise<Section[]> {
+  const { data, error } = await supabase
+    .from("sections")
+    .select("id, subject_id, type, value, name")
+    .eq("subject_id", subjectId)
+    .eq("type", "season")
+    .order("value", { ascending: true });
+
+  if (error) {
+    toast.error("فشل تحميل الفصول: " + error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
 // INSERT 
 
 export async function insertQuestion(subjectId: string, data: any) {

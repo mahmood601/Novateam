@@ -24,6 +24,7 @@ export default function Layout(props: { children: JSX.Element }) {
       location().includes("/settings") ||
       location().includes("/status") ||
       location().includes("/weak") ||
+      location().includes("/editor") ||
       location().includes("/favorite") ? null : (
         <>
           <Header />

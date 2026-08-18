@@ -1,4 +1,3 @@
-// TiptapEditor.tsx
 // SolidJS wrapper around Tiptap core (framework-agnostic editor engine).
 // Usage:
 //   <TiptapEditor content={initialJSON} onChange={(json) => save(json)} />
@@ -6,9 +5,9 @@
 import { onMount, onCleanup, createEffect, createSignal } from "solid-js";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import { InfoBox } from "../components/Editor/extensions/InfoBox";
-import { ColorTable } from "../components/Editor/extensions/ColorTable";
-import { NovaHeading } from "../components/Editor/extensions/NovaHeading";
+import { InfoBox } from "./extensions/InfoBox";
+import { ColorTable } from "./extensions/ColorTable";
+import { NovaHeading } from "./extensions/NovaHeading";
 
 // A JSONContent is Tiptap's own doc shape — this is what gets stored
 // in Supabase (e.g. formatted_lectures.content_json), same philosophy
@@ -60,5 +59,6 @@ export default function TiptapEditor(props: TiptapEditorProps) {
     editor()?.destroy();
   });
 
-  return <div ref={(el) => (containerEl = el)} class="p-5" dir="rtl" />;
+  return <div ref={(el) => (containerEl = el)} class="pt-20" dir="rtl" />;
 }
+
