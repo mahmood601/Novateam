@@ -3,7 +3,10 @@
 
 import { For, createSignal, onMount, onCleanup, Show } from "solid-js";
 import type { Editor } from "@tiptap/core";
-import { HEADING_COLORS, type HeadingLevel } from "./extensions/NovaHeading";
+import {
+  HEADING_COLOR_CYCLE,
+  type HeadingLevel,
+} from "./extensions/NovaHeading";
 
 interface EditorToolbarProps {
   editor: () => Editor | undefined;
@@ -34,7 +37,7 @@ export default function EditorToolbar(props: EditorToolbarProps) {
       if (!wrapEl) return;
       const keyboardOffset = Math.max(
         0,
-        window.innerHeight - vv.height - vv.offsetTop,
+        window.innerHeight - vv.height - vv.offsetTop
       );
       wrapEl.style.bottom = `${keyboardOffset}px`;
     };
@@ -58,7 +61,15 @@ export default function EditorToolbar(props: EditorToolbarProps) {
   /** تطبيق عنوان مع الألوان الدورية */
   const applyHeading = (level: HeadingLevel) => {
     run((e) => {
-      e.chain().focus().toggleHeading({ level }).run();
+      const cmds = e.commands as any;
+      if (cmds.toggleNovaHeading) {
+        cmds.toggleNovaHeading(level);
+      } else if (cmds.insertNovaHeading) {
+        cmds.insertNovaHeading(level);
+      } else {
+        // fallback للأمر الرسمي
+        e.chain().focus().toggleHeading({ level }).run();
+      }
     });
     setPanel("none");
   };
@@ -155,7 +166,7 @@ export default function EditorToolbar(props: EditorToolbarProps) {
                 class={`nova-level-btn ${isActive("heading", { level }) ? "is-active" : ""}`}
                 onClick={() => applyHeading(level)}
                 aria-label={`عنوان مستوى ${level}`}
-                aria-pressed={isActive("heading", { level})}
+                aria-pressed={isActive("heading", { level })}
               >
                 H{level}
               </button>
@@ -167,7 +178,7 @@ export default function EditorToolbar(props: EditorToolbarProps) {
       {/* لوحة ألوان الصناديق */}
       <Show when={panel() === "boxes"}>
         <div class="nova-toolbar-panel" role="group" aria-label="لون الصندوق">
-          <For each={[...HEADING_COLORS]}>
+          <For each={[...HEADING_COLOR_CYCLE]}>
             {(color) => (
               <button
                 class="nova-color-swatch"

@@ -3,12 +3,11 @@
 //   <TiptapEditor content={initialJSON} onChange={(json) => save(json)} />
 
 import { onMount, onCleanup, createEffect, createSignal } from "solid-js";
+import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { InfoBox } from "./extensions/InfoBox";
 import { ColorTable } from "./extensions/ColorTable";
 import { NovaHeading } from "./extensions/NovaHeading";
-import "./nova-template-tokens.css";
-import { Editor } from "@tiptap/core";
 
 // A JSONContent is Tiptap's own doc shape — this is what gets stored
 // in Supabase (e.g. formatted_lectures.content_json), same philosophy

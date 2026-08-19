@@ -14,6 +14,7 @@ createEffect(() => {
 
   return (
     <Suspense>
+      {/* TODO: Implement proper admin gate logic */}
     <Show when={true} fallback={<div class="text-center text-red-600">🚫 غير مصرح</div>}>
       {props.children}
     </Show>

@@ -1,17 +1,15 @@
 // extensions/NovaHeading.ts
-// عنوان رئيسي/فرعي بنظام الألوان الدوري المستخرج من قالب الفريق.
+// امتداد رسمي لـ Heading + ألوان دورية + 6 مستويات
 //
-// السلوك المطلوب: "كل عنوان رئيسي جديد لون مختلف" — يعني ما بتحدد
-// اللون يدوياً كل مرة، المحرر بيدور تلقائياً على الألوان الثمانية
-// بالترتيب، ويعيد من الأول بعد آخر لون. أي عنوان "فرعي" يرث لون
-// أقرب عنوان رئيسي فوقه (نفس منطق "فرعي أحمر/أزرق/..." بالقالب الأصلي).
+// - H1 جديد → يأخذ اللون التالي في الدورة تلقائياً
+// - H2–H6 → ترث لون آخر H1 في المستند
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Decoration } from "@tiptap/core";
+import Heading, { HeadingOptions } from "@tiptap/extension-heading";
 
-export const HEADING_COLOR_CYCLE = [
-  "default", // د00054 نيّ/أحمر غامق — heading 1 الأصلي
-  "blue",
+export const HEADING_COLORS = [
   "pink",
+  "blue",
   "rosered",
   "orange",
   "yellow",
@@ -19,79 +17,53 @@ export const HEADING_COLOR_CYCLE = [
   "purple",
 ] as const;
 
-export type HeadingColor = (typeof HEADING_COLOR_CYCLE)[number];
+export type HeadingColor = (typeof HEADING_COLORS)[number];
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
-export const NovaHeading = Node.create({
-  name: "novaHeading",
-  group: "block",
-  content: "text*",
-  defining: true,
+export interface ColoredHeadingOptions extends HeadingOptions {
+  colors: readonly string[];
+}
 
-  addAttributes() {
+export const NovaHeading = Heading.extend<ColoredHeadingOptions>({
+  name: "heading",
+
+  addOptions() {
     return {
-      level: { default: "main" }, // "main" | "sub"
-      color: { default: "default" as HeadingColor },
+      ...this.parent?.(),
+      colors: HEADING_COLORS,
     };
   },
 
-  parseHTML() {
-    return [{ tag: "div[data-nova-heading]" }];
-  },
+  addDecorations() {
+    const colors = this.options.colors;
 
-  renderHTML({ HTMLAttributes, node }) {
-    const isSub = node.attrs.level === "sub";
-    return [
-      "div",
-      mergeAttributes(HTMLAttributes, {
-        "data-nova-heading": "",
-        "data-color": node.attrs.color,
-        class: isSub ? "nova-heading sub" : "nova-heading",
-      }),
-      0,
-    ];
-  },
-
-  addCommands() {
     return {
-      // ينده تلقائياً من المحرر: "أضف عنوان رئيسي" بدون تمرير لون —
-      // getNextHeadingColor() بالأسفل يتابع الدورة عبر كل المستند.
-      insertNovaHeading:
-        (level: "main" | "sub" = "main") =>
-        ({ chain, editor }: any) => {
-          const color =
-            level === "main"
-              ? getNextHeadingColor(editor)
-              : getLastMainHeadingColor(editor);
-          return chain()
-            .insertContent({
-              type: this.name,
-              attrs: { level, color },
-              content: [{ type: "text", text: " " }],
-            })
-            .run();
-        },
-    } as any;
+      create: ({ state }) => {
+        const decorations: Decoration[] = [];
+        let colorIndex = -1;
+        let currentColor = colors[0];
+
+        state.doc.descendants((node, pos) => {
+          if (node.type.name !== "heading") return;
+
+          if (node.attrs.level === 1) {
+            colorIndex = (colorIndex + 1) % colors.length;
+            currentColor = colors[colorIndex];
+          }
+
+          decorations.push(
+            Decoration.Node(pos, pos + node.nodeSize, {
+              class: `nova-heading nova-h${node.attrs.level}`,
+              style: `--heading-color: ${currentColor};`,
+              "data-color": currentColor,
+            }),
+          );
+        });
+
+        return decorations;
+      },
+    };
   },
 });
 
-/** يفحص كل عناوين المستند الحالية، ويرجع اللون التالي بالدورة. */
-export function getNextHeadingColor(editor: any): HeadingColor {
-  let count = 0;
-  editor.state.doc.descendants((node: any) => {
-    if (node.type.name === "novaHeading" && node.attrs.level === "main") {
-      count++;
-    }
-  });
-  return HEADING_COLOR_CYCLE[count % HEADING_COLOR_CYCLE.length];
-}
-
-/** يرجع لون آخر عنوان رئيسي بالمستند — يُستخدم لتلوين "فرعي" تحته. */
-function getLastMainHeadingColor(editor: any): HeadingColor {
-  let last: HeadingColor = "default";
-  editor.state.doc.descendants((node: any) => {
-    if (node.type.name === "novaHeading" && node.attrs.level === "main") {
-      last = node.attrs.color;
-    }
-  });
-  return last;
-}
+export default NovaHeading;

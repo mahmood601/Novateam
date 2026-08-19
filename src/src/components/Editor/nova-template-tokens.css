@@ -39,6 +39,7 @@
 .nova-heading {
   font-family: var(--nova-font-heading);
   font-weight: 700;
+  border-radius: 10px;
   margin: 12px 0 6px;
   line-height: 1.35;
   direction: rtl;
@@ -48,8 +49,6 @@
   font-size: var(--nova-h1-size);
   padding: 8px 16px;
   margin-top: 18px;
-  text-align: center;
-  border: 2px solid var(--nova-h-1-bg);
 }
 .nova-h2 {
   font-size: var(--nova-h2-size);
