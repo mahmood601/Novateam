@@ -5,6 +5,7 @@ import process from "node:process";
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
+import path from "node:path";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",
@@ -17,8 +18,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
     name: "Nova App",
     short_name: "Nova App",
     id: "NovaApp",
-    description:
-      "تطبيق فريق نوڤا لطلاب الطب البشري في جامعة طرطوس ✨❤️",
+    description: "تطبيق فريق نوڤا لطلاب الطب البشري في جامعة طرطوس ✨❤️",
     display_override: ["standalone", "window-controls-overlay"],
     icons: [
       {
@@ -74,8 +74,10 @@ if (claims) pwaOptions.registerType = "autoUpdate";
 if (selfDestroying) pwaOptions.selfDestroying = selfDestroying;
 
 export default defineConfig({
-   define: {
-    __RELOAD_SW__: JSON.stringify(process.env.RELOAD_SW === "true" ? "true" : "false"),
+  define: {
+    __RELOAD_SW__: JSON.stringify(
+      process.env.RELOAD_SW === "true" ? "true" : "false",
+    ),
     __DATE__: JSON.stringify(new Date().toISOString()),
   },
   build: {
@@ -93,4 +95,9 @@ export default defineConfig({
     }),
     VitePWA(pwaOptions),
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
 });

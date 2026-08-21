@@ -15,14 +15,15 @@ export default function EditorPage(props: { subjectId: string; initialContent?: 
     <div class="nova-lecture-page px-5">
       {/* المحتوى أولاً — الشريط ثابت أسفل الشاشة فوق لوحة المفاتيح */}
       <TiptapEditor
-        content={props.initialContent}
-        onReady={(ed) => setEditorInstance(ed)}
-        onChange={(json) => {
-          // TODO: احفظ json بجدول formatted_lectures (subjectId + debounce)
-          console.log("content changed for subject", props.subjectId, json);
-        }}
+        // content={props.initialContent}
+        // onReady={(ed) => setEditorInstance(ed)}
+        // onChange={(json) => {
+        //   // TODO: احفظ json بجدول formatted_lectures (subjectId + debounce)
+        //   console.log("content changed for subject", props.subjectId, json);
+        // }
+      // }
       />
-      <EditorToolbar editor={editorInstance} />
+      {/* <EditorToolbar editor={editorInstance} /> */}
     </div>
   );
 }
