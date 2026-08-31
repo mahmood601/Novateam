@@ -1,0 +1,32 @@
+/* طباعة محاضرة Nova — نعرض فقط منطقة المعاينة (print-area) */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    inset: 0;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .nova-doc {
+    max-width: none !important;
+  }
+}

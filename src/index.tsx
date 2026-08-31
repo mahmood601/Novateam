@@ -1,9 +1,9 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
-import App from "./App";
-import { initDiagnostics } from "./services/diagnostics";
+import App from "./app/App";
+import { initDiagnostics } from "./features/shared/services/diagnostics";
 
-initDiagnostics(); // ✅ يبدأ تسجيل console logs منذ أول لحظة، قبل أي خطأ محتمل
+initDiagnostics(); // logs failures to the console for debugging purposes
 
 const root = document.getElementById("root");
 

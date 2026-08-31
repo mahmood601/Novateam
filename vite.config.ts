@@ -5,7 +5,7 @@ import process from "node:process";
 import devtools from "solid-devtools/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
-import path from "node:path";
+import path from "path";
 
 const pwaOptions: Partial<VitePWAOptions> = {
   mode: "development",
@@ -97,7 +97,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
 });

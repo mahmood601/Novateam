@@ -1,0 +1,418 @@
+/* =========================================
+   Paged.js Print Styles - Nova Lectures
+   A4 + Cover + TOC + Running Header/Footer
+   ========================================= */
+
+/* body{
+  background-color: #fff;
+} */
+
+.paged-output * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.pagedjs_pagebox {
+  background-color: #fff;
+}
+
+
+@font-face {
+  font-family: "OoredooArabic-Heavy";
+  src: url("../../public/print/fonts/OoredooArabic-Heavy.ttf")
+    format("truetype");
+  font-weight: bold;
+  ascent-override: 90%;
+  descent-override: 20%;
+}
+
+/* ---------- إعداد الصفحة ---------- */
+@page {
+  size: A4;
+  margin: 1cm 0.7cm;
+}
+
+/* ---------- الغلاف ---------- */
+.cover {
+  page: cover;
+  width: 21cm;
+  height: 29.7cm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@page cover {
+  size: A4;
+  margin: 0;
+}
+
+.cover-header {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  background-color: #d6ebff;
+  width: 218.8mm;
+  height: 100.9mm;
+  border-radius: 70%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.header-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 184.7mm;
+  height: 35.1mm;
+  position: relative;
+  margin-top: -10mm;
+}
+
+.logos-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nova-logo {
+  width: 60mm;
+  height: 19.5mm;
+  margin-right: 20px;
+}
+
+.team-box {
+  height: 0.98cm;
+  width: 7.63cm;
+  background-color: #ffdf7f;
+  border: 1.5pt solid #604700;
+  font-family: "Recompense", sans-serif;
+  font-size: 16pt;
+  padding: 2pt 5pt;
+  border-radius: 5pt;
+  font-weight: bold;
+  letter-spacing: 3pt;
+  margin-top: 1pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tartous-logo {
+  width: 39mm;
+  height: 35mm;
+}
+
+.cover-circle {
+  width: 13cm;
+  height: 13cm;
+  border-radius: 100%;
+  border: 6pt solid #991f60;
+}
+
+.cover-lecture-title {
+  width: 13cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  color: white;
+  border-radius: 10pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28pt;
+  position: relative;
+  top: -60pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  padding: 10pt 15pt;
+  text-align: center;
+  z-index: 10;
+}
+
+.cover-footer {
+  position: absolute;
+  bottom: 40pt;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.footer-box {
+  width: 17cm;
+  height: 5.7cm;
+  border: 4.5pt solid #991f60;
+  border-radius: 28pt;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to right, #991f60 10%, #ec008c 30%);
+  position: relative;
+}
+
+.footer-box .footer-info {
+  width: 13cm;
+  height: 5.7cm;
+  font-size: 18pt;
+  border-radius: 30pt;
+  border: 4.5pt solid #991f60;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  position: absolute;
+  right: -7pt;
+  background: white;
+  padding: 15pt 25pt 15pt 15pt;
+  list-style: none;
+}
+
+.footer-box .footer-pages-number {
+  display: flex;
+  flex-direction: column;
+  width: 4cm;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+}
+
+.footer-box .footer-pages-text {
+  font-size: 12pt;
+  width: 75%;
+}
+
+.footer-box .footer-pages-count {
+  font-size: 48pt;
+  line-height: 1;
+}
+
+/* ---------- جدول المحتويات ---------- */
+.toc {
+  page: toc;
+  width: 21cm;
+  height: 29.7cm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.running-header,
+.running-footer {
+  page: main;
+}
+
+@page toc {
+  size: A4;
+  margin: 0;
+}
+
+.toc .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.toc .table-header {
+  width: 13cm;
+  height: 2.54cm;
+  font-size: 28pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  color: white;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  text-align: center;
+  border-radius: 10pt;
+  padding-top: 16pt;
+  margin-bottom: -1.26cm;
+  z-index: 10;
+}
+
+.toc .toc-box {
+  background-color: #d6ebff;
+  padding: 2cm 0.5cm 0.25cm;
+  border-radius: 15pt;
+  border: 3pt solid #991f60;
+  width: 17cm;
+}
+
+.toc .description {
+  font-size: 13pt;
+  margin-bottom: 10pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+}
+
+.toc table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+}
+
+.toc th,
+.toc td {
+  border: 2.25pt solid #991f60;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 12pt;
+  padding: 10pt;
+}
+
+/* ---------- Running Header & Footer ---------- */
+.running-header {
+  position: running(header);
+  width: 100%;
+}
+
+.header-flex-content,
+.footer-flex-content {
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+}
+
+.running-header img {
+  height: 0.6cm;
+}
+
+.running-header .title-bar {
+  height: 0.6cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 10pt;
+  flex: 1;
+  padding: 3pt 10pt;
+  border-radius: 5pt;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.running-footer {
+  position: running(footer);
+  width: 100%;
+}
+
+.running-footer .number {
+  height: 1.5cm;
+  width: 1.5cm;
+  background: url("/print/footer-l.png") center / 80% no-repeat;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.running-footer .number::after {
+  content: counter(page);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "OoredooArabic-Heavy";
+  font-size: 14pt;
+}
+
+.running-footer .info-bar {
+  height: 0.6cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  font-family: "OoredooArabic-Heavy";
+  font-size: 10pt;
+  flex: 1;
+  padding: 3pt 10pt;
+  border-radius: 5pt;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- صفحات المحتوى ---------- */
+.lecture-body {
+  page: main;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 12pt;
+  line-height: 1.7;
+  direction: rtl;
+  background-color: #fff;
+}
+
+@page main {
+  size: A4;
+  margin: 1.5cm 0.8cm 1.8cm 0.8cm;
+
+  @top-center {
+    content: element(header);
+    width: 100%;
+  }
+
+  @bottom-center {
+    content: element(footer);
+    width: 100%;
+  }
+}
+
+/* عكس الاتجاه في الصفحات الزوجية إن أمكن */
+.pagedjs_left_page .header-flex-content,
+.pagedjs_left_page .footer-flex-content {
+  flex-direction: row-reverse;
+}
+
+.pagedjs_left_page .header-flex-content .title-bar,
+.pagedjs_left_page .footer-flex-content .info-bar {
+  background: linear-gradient(to left, #ec008c, #991f60);
+  display: flex;
+  justify-content: flex-end; /* Aligns content to the right edge */
+  align-items: center;
+}
+
+/* تنسيقات المحتوى */
+.lecture-body h1 {
+  text-align: center;
+  background-color: rgb(236 0 140);
+  color: white;
+  border: 4pt cornered rgba(180, 18, 116, 0.8);
+}
+
+.lecture-body h2 {
+  text-align: center;
+  background-color: rgb(236 0 140);
+  color: white;
+  border-top-width: 3pt;
+  border-bottom-width: 3pt;
+  border-top-style: solid;
+  border-bottom-style: solid;
+  border-top-color: rgba(180, 18, 116, 0.8);
+  border-bottom-color: rgba(180, 18, 116, 0.8);
+}
+
+.lecture-body h1,
+.lecture-body h2,
+.lecture-body h3 {
+  margin: 1em 0 0.5em;
+  break-after: avoid;
+  padding: 3pt;
+}
+
+.lecture-body p {
+  margin-bottom: 0.8em;
+}
+
+.lecture-body img {
+  max-width: 100%;
+  height: auto;
+}
+
+.lecture-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.lecture-body th,
+.lecture-body td {
+  border: 1pt solid #991f60;
+  padding: 6pt;
+}
