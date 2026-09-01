@@ -1,14 +1,9 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import toast from "solid-toast";
 import { deleteQuestionImage, uploadQuestionImage } from "../../shared/services/imageUpload";
-import {
-  insertQuestion,
-  insertPassage,
-  updateQuestion,
-  getPassages,
-  type Section,
-  type QuestionUI,
-} from "../services/documentsManipulation";
+import { insertQuestion, updateQuestion } from "../services/questions";
+import { insertPassage, getPassages } from "../services/passages";
+import type { Section, QuestionUI } from "../services/types";
 import { SectionSelectors } from "./SectionSelectors";
 
 export function ManualForm(props: {

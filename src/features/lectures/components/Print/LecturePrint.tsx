@@ -39,11 +39,17 @@ export default function LecturePrint(props: Props) {
     // 4. تشغيل Paged.js
     // @ts-ignore
     const paged = new window.Paged.Previewer();
-    await paged.preview(
+    const flow = await paged.preview(
       fragment,
       [new URL("/print/paged-print.css", import.meta.url).href],
       outputEl
     );
+
+    const pageCount = flow.total;
+    const pageCountElements = outputEl?.querySelectorAll(".footer-pages-count");
+    pageCountElements?.forEach((el) => {
+      el.textContent = pageCount.toString();
+    });
 
     setReady(true);
   });
@@ -98,12 +104,12 @@ function buildDocument(
         <div class="footer-box">
           <div class="footer-pages-number">
             <span class="footer-pages-text">عدد الصفحات</span>
-            <span class="footer-pages-count">—</span>
+            <span class="footer-pages-count"></span>
           </div>
           <ul class="footer-info" dir="rtl">
-            <li>${data.lectureNumber || ""} ${data.lectureTitle}</li>
+            <li>${data.lectureNumber || ""}. ${data.lectureTitle}</li>
             <li>د. ${data.doctorName}</li>
-            <li>السنة ${data.year} – الفصل ${data.semester}</li>
+            <li>السنة ${data.year}ة – الفصل ${data.semester}</li>
           </ul>
         </div>
       </div>
@@ -137,7 +143,7 @@ function buildDocument(
         <div class="footer-flex-content">
       <div class="number"></div>
       <div class="info-bar" dir="rtl">
-        ${data.lectureNumber || ""} ${data.lectureTitle} - د. ${data.doctorName} – السنة ${data.year} الفصل ${data.semester}
+        ${data.lectureNumber || ""} ${data.lectureTitle} - د. ${data.doctorName} – السنة ${data.year}ة الفصل ${data.semester}
       </div>
     </div>
 

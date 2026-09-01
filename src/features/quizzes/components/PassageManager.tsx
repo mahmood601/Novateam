@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import toast from "solid-toast";
-import { deletePassage, getPassages, updatePassage, type PassageUI } from "../services/documentsManipulation";
+import { deletePassage, getPassages, updatePassage } from "../services/passages";
+import type { PassageUI } from "../services/types";
 
 export function PassageManager(props: { subjectId: string }) {
   const [passages, { refetch }] = createResource(() => getPassages(props.subjectId));

@@ -8,12 +8,9 @@
  */
 
 import { createResource, createSignal, Show } from "solid-js";
-import {
-  getSections,
-  getQuestion,
-  deleteQuestion,
-  type QuestionUI,
-} from "../services/documentsManipulation";
+import { getSections } from "../../shared/services/sections";
+import { getQuestion, deleteQuestion } from "../services/questions";
+import type { QuestionUI } from "../services/types";
 import { ManualForm } from "./ManualForm";
 import { db, type Question } from "../services/local/indexeddb";
 import toast from "solid-toast";

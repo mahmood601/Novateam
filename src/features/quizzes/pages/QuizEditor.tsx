@@ -1,7 +1,8 @@
 import { createEffect, createResource, createSignal, For, Match, Show, Suspense, Switch } from "solid-js";
 import { useLocation, useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { supabase } from "../../shared/services/supabase";
-import { getSections, type QuestionUI, type Section } from "../services/documentsManipulation";
+import { getSections } from "../../shared/services/sections";
+import type { QuestionUI, Section } from "../services/types";
 import { fetchUserNames } from "../../shared/services/user";
 import { useUser } from "../../shared/context/user";
 import toast from "solid-toast";

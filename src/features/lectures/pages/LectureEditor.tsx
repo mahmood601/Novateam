@@ -1,6 +1,6 @@
 import { createResource, For, Show } from "solid-js";
 import { A, useParams } from "@solidjs/router";
-import { getSeasonsFromRemote } from "../../quizzes/services/documentsManipulation";
+import { getSeasonsFromRemote } from "../../shared/services/sections";
 
 export default function LectureEditor() {
   const subjectId = useParams().subject!;

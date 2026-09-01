@@ -22,7 +22,7 @@
 
 @font-face {
   font-family: "OoredooArabic-Heavy";
-  src: url("../../public/print/fonts/OoredooArabic-Heavy.ttf")
+  src: url("/print/fonts/OoredooArabic-Heavy.ttf")
     format("truetype");
   font-weight: bold;
   ascent-override: 90%;
@@ -164,12 +164,15 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  font-family: "OoredooArabic-Heavy", sans-serif;
   position: absolute;
   right: -7pt;
   background: white;
   padding: 15pt 25pt 15pt 15pt;
   list-style: none;
+}
+
+.footer-box .footer-info * {
+  font-family: "OoredooArabic-Heavy", sans-serif;
 }
 
 .footer-box .footer-pages-number {
@@ -180,17 +183,19 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-family: "OoredooArabic-Heavy";
 }
 
 .footer-box .footer-pages-text {
   font-size: 12pt;
   width: 75%;
+  font-family: "OoredooArabic-Heavy";
 }
 
 .footer-box .footer-pages-count {
   font-size: 48pt;
   line-height: 1;
+  font-family: "OoredooArabic-Heavy";
 }
 
 /* ---------- جدول المحتويات ---------- */

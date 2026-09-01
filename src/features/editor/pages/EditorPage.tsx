@@ -1,4 +1,4 @@
-import Editor from "@/features/lectures/components/Editor";
+import Editor from "@/features/editor/components/Editor";
 import { useParams } from "@solidjs/router";
 
 export default function EditorPage() {

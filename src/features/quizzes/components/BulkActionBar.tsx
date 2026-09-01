@@ -1,7 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import toast from "solid-toast";
 import { supabase } from "../../shared/services/supabase";
-import type { Section } from "../services/documentsManipulation";
+import type { Section } from "../services/types";
 
 export function BulkActionBar(props: {
   selectedIds: Set<string>;

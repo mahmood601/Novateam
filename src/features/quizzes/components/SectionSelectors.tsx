@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import type { Section } from "../services/documentsManipulation";
+import type { Section } from "../services/types";
 export function SectionSelectors(props: {
   sections: Section[];
   seasonId: number | null;

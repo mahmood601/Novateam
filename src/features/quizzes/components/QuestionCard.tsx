@@ -1,10 +1,10 @@
 import { createSignal, For, Show } from "solid-js";
 import { supabase } from "../../shared/services/supabase";
-import { deleteQuestion } from "../services/documentsManipulation";
+import { deleteQuestion } from "../services/questions";
 import { uploadQuestionImage, deleteQuestionImage } from "../../shared/services/imageUpload";
 import ImageLightbox from "./ImageLightbox";
 import toast from "solid-toast";
-import type { QuestionUI } from "../services/documentsManipulation";
+import type { QuestionUI } from "../services/types";
 
 export function QuestionCard(props: {
   question: QuestionUI;

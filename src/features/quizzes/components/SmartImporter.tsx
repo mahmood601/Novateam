@@ -1,8 +1,8 @@
 import { createSignal, Show } from "solid-js";
 import toast from "solid-toast";
 import { supabase } from "../../shared/services/supabase";
-import { insertPassage } from "../services/documentsManipulation";
-import type { Section } from "../services/documentsManipulation";
+import { insertPassage } from "../services/passages";
+import type { Section } from "../services/types";
 import { SectionSelectors } from "./SectionSelectors";
 
 export function SmartImporter(props: {

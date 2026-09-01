@@ -1,12 +1,17 @@
 // src/pages/PrintPage.jsx
 import { useSearchParams } from "@solidjs/router";
-import { createEffect, createResource, Show, Suspense } from "solid-js";
+import {  createResource, Show, Suspense } from "solid-js";
 import { getLecture } from "@/features/shared/services/lecturesUpdates";
 import { parseMarkdown } from "../lib/parseMarkdown";
 import LecturePrint from "../components/Print/LecturePrint";
+import { getSeasonNameFromRemote } from "@/features/shared/services/sections";
+import { getSubjectInfo, trasnlationMap } from "@/features/shared/services/subjects";
 
 export default function PrintPage() {
   const [params] = useSearchParams();
+  const subjectId = params.subject as string;
+  const seasonValue = params.season as string;
+  
   const [lecture] = createResource(() =>
     getLecture({ subjectId: params.subject, seasonId: params.season }),
   );
@@ -16,7 +21,8 @@ export default function PrintPage() {
     parseMarkdown,
   );
 
-  
+  const [seasonName] = createResource(()=> getSeasonNameFromRemote(subjectId, seasonValue))
+  const [subjectInfo] = createResource(()=> getSubjectInfo(subjectId).then(res => { return { name: res?.name, year_key: trasnlationMap[res?.year_key], semester: trasnlationMap[res?.semester] } }) )  
 
   return (
     <Suspense fallback={<div>جار التحميل...</div>}>
@@ -24,14 +30,15 @@ export default function PrintPage() {
       {(data) => {
         return (
           <LecturePrint
-            subjectName={params.subject}
+            subjectName={subjectInfo()?.name ?? ""}
             lectureNumber={params.season}
             subjectId={params.subject}
-            doctorName={"fkdsj"}
+            seasonName={seasonName() ?? ""}
+            doctorName={data()?.doctorName || ""}
             content={html() ?? ""}
-            lectureTitle={"mks;"}
-            year="mds"
-            semester="mds"
+            lectureTitle={seasonName()}
+            year={subjectInfo()?.year_key }
+            semester={subjectInfo()?.semester }
           />
         );
       }}
