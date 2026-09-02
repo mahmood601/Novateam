@@ -1,8 +1,22 @@
 // features/lectures/components/Print/LecturePrint.tsx
 
 import { onMount, createSignal, Show } from "solid-js";
-import { marked } from "marked";
+import { Editor } from "@tiptap/core";
+import { Markdown } from "@tiptap/markdown";
+import StarterKit from "@tiptap/starter-kit";
+import {Table} from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableHeader from "@tiptap/extension-table-header";
+import TableCell from "@tiptap/extension-table-cell";
+import ImageExt from "@tiptap/extension-image";
+import LinkExt from "@tiptap/extension-link";
 import DOMPurify from "dompurify";
+
+import { NovaHeading } from "@/features/editor/tiptap/extensions/NovaHeadingExtensionPrint";
+import { NovaNote } from "@/features/editor/tiptap/extensions/NovaNote";
+import { NovaQuiz } from "@/features/editor/tiptap/extensions/NovaQuiz";
+
+import '../../../editor/tiptap/nova-tiptap.css'
 
 interface Props {
   subjectName: string;
@@ -15,13 +29,50 @@ interface Props {
   content: string; // Markdown
 }
 
+// Same source of truth as the review editor (TiptapReviewEditor.tsx):
+// this MUST use the exact same extension set, or print output can
+// silently diverge from what the team actually reviewed.
+function markdownToPrintHtml(markdown: string): string {
+  const editor = new Editor({
+    extensions: [
+      StarterKit.configure({ heading: false }),
+      NovaHeading,
+      NovaNote,
+      NovaQuiz,
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      ImageExt,
+      LinkExt.configure({ openOnClick: false }),
+      Markdown,
+    ],
+    content: markdown,
+    contentType: "markdown",
+  });
+
+  const html = (() => {
+    // ProseMirror plugins' appendTransaction never runs on the very
+    // first (initial-content) transaction — only on ones dispatched
+    // afterward. NovaHeadingExtension's color computation is an
+    // appendTransaction, so without this, data-color never gets set
+    // at all in a headless editor that's read immediately after
+    // construction (confirmed: attribute was completely absent).
+    editor.view.dispatch(editor.view.state.tr);
+    return editor.getHTML();
+  })();
+  editor.destroy();
+  return html;
+}
+
 export default function LecturePrint(props: Props) {
   const [ready, setReady] = createSignal(false);
   let outputEl: HTMLDivElement | undefined;
 
   onMount(async () => {
-    // 1. تحويل Markdown
-    const rawHtml = await marked.parse(props.content || "");
+    // 1. تحويل Markdown عبر نفس محرك Tiptap يلي بمحرر المراجعة
+    //    (بدل marked — عشان يطلع data-color و classes نوفا صح)
+    const rawHtml = markdownToPrintHtml(props.content || "");
     const safeHtml = DOMPurify.sanitize(rawHtml);
 
     // 2. بناء المستند
@@ -108,7 +159,7 @@ function buildDocument(
           </div>
           <ul class="footer-info" dir="rtl">
             <li>${data.lectureNumber || ""}. ${data.lectureTitle}</li>
-            <li>د. ${data.doctorName}</li>
+            <li contenteditable="true">د. ${data.doctorName}</li>
             <li>السنة ${data.year}ة – الفصل ${data.semester}</li>
           </ul>
         </div>
@@ -172,4 +223,3 @@ function loadPagedJs(): Promise<void> {
     document.head.appendChild(script);
   });
 }
-

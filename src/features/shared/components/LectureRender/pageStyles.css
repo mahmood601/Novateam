@@ -1,3 +1,9 @@
 .editor-render {
     padding: 5px 12px;
+    overflow-x: scroll;
+}
+
+.editor-render table {
+    padding: 5px 12px;
+    min-width: 480px;
 }

@@ -1,0 +1,246 @@
+/* Styles for the Tiptap review editor's DOM output.
+   NovaHeadingExtension / NovaNote / NovaQuiz all render a
+   data-color="<NovaColor>" attribute — this file is what actually
+   turns that attribute into color. Without this file, the attribute
+   is present but invisible. */
+
+.nova-tiptap-content [data-color="rose"] {
+  --nova-color: #d00054;
+}
+.nova-tiptap-content [data-color="orange"] {
+  --nova-color: #ff9933;
+}
+.nova-tiptap-content [data-color="blue"] {
+  --nova-color: #3399ff;
+}
+.nova-tiptap-content [data-color="green"] {
+  --nova-color: #00b050;
+}
+.nova-tiptap-content [data-color="yellow"] {
+  --nova-color: #bf8f00;
+}
+.nova-tiptap-content [data-color="purple"] {
+  --nova-color: #cc00ff;
+}
+.nova-tiptap-content [data-color="pink"] {
+  --nova-color: #ff3bff;
+}
+
+/* Section headings (level 1) */
+/* .nova-tiptap-content h1[data-color] {
+  color: var(--nova-color);
+  border: 3px solid var(--nova-color);
+  background-color: color-mix(in srgb, var(--nova-color) 15%, white);
+  padding: 0.4em 1em;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+} */
+
+/* Sub-headings (level 2+) — inherit color, no background */
+/* .nova-tiptap-content h2[data-color],
+.nova-tiptap-content h3[data-color],
+.nova-tiptap-content h4[data-color] {
+  color: var(--nova-color);
+  border-inline-end: 3px solid var(--nova-color);
+  padding-inline-end: 0.5em;
+  font-weight: bold;
+} */
+
+/* :::note::: */
+.nova-tiptap-content .nova-note[data-color] {
+  border: 2px solid var(--nova-color);
+  background-color: color-mix(in srgb, var(--nova-color) 12%, white);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+}
+
+/* :::quiz::: placeholder */
+.nova-tiptap-content .nova-quiz-placeholder[data-color] {
+  border: 2px dashed var(--nova-color);
+  color: var(--nova-color);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  font-weight: bold;
+  text-align: center;
+}
+.tiptap {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-align: right;
+    font-family: "NovaHeading";
+    padding: 0.3em;
+    color: #fff;
+    border: 5px solid color-mix(in srgb, var(--nova-color) 80%, black);
+    background-color: color-mix(in srgb, var(--nova-color) 80%, white);
+    margin-top: 1em;
+    margin-bottom: 0.6em;
+  }
+
+  h1 {
+    font-size: 1.9em;
+    font-weight: 700;
+    text-align: center;
+  }
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+  }
+  h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    text-align: center;
+    color: var(--nova-color);
+    background: color-mix(in srgb, var(--nova-color) 30%, white);
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1.05em;
+    font-weight: 600;
+    opacity: 0.9;
+    background: color-mix(in srgb, var(--nova-color) 30%, white);
+  }
+  h4 {
+    border-top: none;
+    border-bottom: none;
+    color: var(--nova-color);
+    text-align: center;
+  }
+
+  h4 {
+    border-top: none;
+    border-bottom: none;
+    color: var(--nova-color) !important;
+    text-align: center;
+  }
+  h5 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    color: var(--nova-color) !important;
+  }
+  h6 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-right-width: 2px;
+    color: black !important;
+  }
+
+  /* ---------- الصناديق (InfoBox) — نمط Obsidian callout ---------- */
+  /* بالماركداون: >[!note] عنوان الصندوق
+   يقابل :::note بصياغة نوفا AST */
+  .callout {
+    --callout-color: var(--nova-color);
+    border-right: 4px solid var(--callout-color);
+    border-radius: 8px;
+    background-color: color-mix(in srgb, var(--callout-color) 8%, white);
+    padding: 0.9em 1.1em;
+    margin: 1em 0;
+    direction: rtl;
+    text-align: right;
+    color: black;
+  }
+
+  .callout-title {
+    color: var(--callout-color);
+    font-weight: 700;
+    font-family: var(--nova-font-ar);
+  }
+
+  .callout-icon {
+    color: var(--callout-color);
+  }
+
+  /* صندوق كويز placeholder — يقابل :::quiz id:... */
+  .callout[data-callout="quiz"] {
+    --callout-color: var(--nova-color-1);
+    border-style: dashed;
+    background-color: color-mix(in srgb, var(--nova-color-1) 6%, white);
+  }
+
+  /* ---------- الجداول ---------- */
+  table {
+    direction: rtl;
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+  }
+
+  table thead th {
+    background-color: var(--nova-color);
+    color: white;
+    font-family: var(--nova-font-ar);
+    padding: 0.5em 0.8em;
+  }
+
+  table td,
+  table th {
+    border: 1px solid var(--nova-color);
+    padding: 0.5em 0.8em;
+  }
+
+  table td:first-child {
+    border-right: 4px solid var(--nova-color);
+  }
+
+  /* ---------- الاقتباسات ---------- */
+  blockquote {
+    border-right: 4px solid var(--nova-color, var(--nova-color-2));
+    padding-right: 1em;
+    margin-right: 0;
+    direction: rtl;
+    color: var(--nova-ink);
+    opacity: 0.85;
+  }
+
+  /* ---------- الكود ---------- */
+  code {
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+
+  pre {
+    border-right: 4px solid var(--nova-color, var(--nova-color-2));
+    border-radius: 6px;
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ---------- الروابط ---------- */
+  a {
+    color: var(--nova-color, #0563c1);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+  }
+
+  /* ---------- القوائم ---------- */
+  ul li::marker,
+  ol li::marker {
+    color: var(--nova-color);
+  }
+
+  /* ---------- خط أفقي ---------- */
+  hr {
+    border: none;
+    border-top: 2px solid var(--nova-color, var(--nova-border-light));
+    margin: 2em 0;
+  }
+}

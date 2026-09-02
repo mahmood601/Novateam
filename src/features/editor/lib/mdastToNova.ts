@@ -2,7 +2,9 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
+import remarkDirective from "remark-directive";
 import type { Root, RootContent, PhrasingContent, Heading } from "mdast";
+import type { ContainerDirective } from "mdast-util-directive";
 
 import {
   NOVA_COLOR_CYCLE,
@@ -15,14 +17,19 @@ import {
 } from "../types/novaAst";
 
 /**
- * الخطوة 1: Markdown خام → mdast (عبر remark، بدون rehype/HTML)
- * الخطوة 2: mdast → Nova AST (هون بنحسب لون كل section مرة وحدة)
+ * Step 1: raw Markdown -> mdast (remark, no rehype/HTML involved)
+ * Step 2: mdast -> Nova AST (section color assigned once, here)
+ *
+ * Directive syntax (:::name ... :::) is parsed by remark-directive per
+ * the AI-markdown contract (step 1) — this replaces the old blockquote
+ * -as-note hack; `>` is now its own separate "quote" block type.
  */
 export function parseToMdast(raw: string): Root {
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkFrontmatter, ["yaml"]);
+    .use(remarkFrontmatter, ["yaml"])
+    .use(remarkDirective);
 
   return processor.parse(raw) as Root;
 }
@@ -38,65 +45,53 @@ export function mdastToNovaDocument(root: Root): NovaDocument {
     return color;
   };
 
+  const ensureSection = (): NovaSection => {
+    if (currentSection) return currentSection;
+    const color = nextColor();
+    currentSection = {
+      type: "section",
+      color,
+      heading: {
+        type: "heading",
+        depth: 1,
+        children: [{ type: "text", value: "" }],
+        color,
+      },
+      children: [],
+    };
+    sections.push(currentSection);
+    return currentSection;
+  };
+
   for (const node of root.children) {
     if (node.type === "heading") {
-      const headingNode = convertHeading(node as Heading);
+      const heading = node as Heading;
 
-      if (headingNode.depth === 1) {
+      if (heading.depth === 1) {
         const color = nextColor();
-        headingNode.color = color;
         currentSection = {
           type: "section",
           color,
-          heading: headingNode,
+          heading: convertHeading(heading, color),
           children: [],
         };
         sections.push(currentSection);
         continue;
       }
 
-      if (currentSection) {
-        headingNode.color = currentSection.color;
-        currentSection.children.push(headingNode);
-      } else {
-        const color = nextColor();
-        headingNode.color = color;
-        currentSection = {
-          type: "section",
-          color,
-          heading: headingNode,
-          children: [],
-        };
-        sections.push(currentSection);
-      }
+      const section = ensureSection();
+      section.children.push(convertHeading(heading, section.color));
       continue;
     }
 
-    // أي محتوى تاني منحطه جوا الـ section الحالي؛ إذا ما في section بعد
-    // (محتوى قبل أول ##) منعمله section افتراضي بلون أول بالدورة
-    const block = convertBlock(node);
-    if (!block) continue;
-
-    if (!currentSection) {
-      const color = nextColor();
-      currentSection = {
-        type: "section",
-        color,
-        heading: {
-          type: "heading",
-          depth: 1,
-          children: [{ type: "text", value: "" }],
-          color,
-        },
-        children: [],
-      };
-      sections.push(currentSection);
-    }
-
-    currentSection.children.push(block);
+    const section = ensureSection();
+    // convertBlock never returns null — unrecognized content becomes an
+    // explicit "unknown" node per the contract, so nothing is ever
+    // silently dropped.
+    section.children.push(convertBlock(node));
   }
 
-  return sections;
+  return { sections };
 }
 
 export async function parseMarkdownToNova(raw: string): Promise<NovaDocument> {
@@ -106,15 +101,24 @@ export async function parseMarkdownToNova(raw: string): Promise<NovaDocument> {
 
 // ---------------- helpers ----------------
 
-function convertHeading(node: Heading): NovaHeadingNode {
+function convertHeading(node: Heading, color: NovaColor): NovaHeadingNode {
   return {
     type: "heading",
     depth: node.depth,
     children: convertInlineChildren(node.children),
+    color,
   };
 }
 
-function convertBlock(node: RootContent): NovaBlockNode | null {
+function isContainerDirective(node: RootContent): node is ContainerDirective {
+  return node.type === "containerDirective";
+}
+
+function convertBlock(node: RootContent): NovaBlockNode {
+  if (isContainerDirective(node)) {
+    return convertDirective(node);
+  }
+
   switch (node.type) {
     case "paragraph":
       return {
@@ -127,9 +131,7 @@ function convertBlock(node: RootContent): NovaBlockNode | null {
         type: "list",
         ordered: !!node.ordered,
         items: node.children.map((item) =>
-          item.children
-            .map((child) => convertBlock(child as RootContent))
-            .filter((b): b is NovaBlockNode => b !== null),
+          item.children.map((child) => convertBlock(child as RootContent)),
         ),
       };
 
@@ -153,19 +155,45 @@ function convertBlock(node: RootContent): NovaBlockNode | null {
       };
     }
 
-    // blockquote عادي (مش callout مميز) منعامله كملاحظة عامة
-    // ملاحظة: دعم ":::note" و ":::quiz" الفعلي بده remark-directive
-    // (مو مثبتة بعد) — هاد hook جاهز نربطه فيها لاحقًا
+    // Plain `>` — a genuine quotation, distinct from the `:::note` directive.
     case "blockquote":
       return {
-        type: "note",
-        children: node.children
-          .map((child) => convertBlock(child as RootContent))
-          .filter((b): b is NovaBlockNode => b !== null),
+        type: "quote",
+        children: node.children.map((child) => convertBlock(child as RootContent)),
       };
 
     default:
-      return null;
+      // Contract rule: never drop content silently. Anything we don't
+      // recognize yet is preserved as raw text inside an "unknown" block.
+      return {
+        type: "unknown",
+        directiveName: node.type,
+        raw: rawFallbackText(node),
+      };
+  }
+}
+
+function convertDirective(node: ContainerDirective): NovaBlockNode {
+  switch (node.name) {
+    case "note":
+      return {
+        type: "note",
+        children: node.children.map((child) => convertBlock(child as RootContent)),
+      };
+
+    case "quiz": {
+      const quizId = String(node.attributes?.id ?? "");
+      return { type: "quiz", quizId };
+    }
+
+    default:
+      // Unrecognized directive name — per the contract, this must degrade
+      // gracefully instead of breaking parsing or vanishing.
+      return {
+        type: "unknown",
+        directiveName: node.name,
+        raw: rawFallbackText(node),
+      };
   }
 }
 
@@ -200,14 +228,12 @@ function convertInlineChildren(children: PhrasingContent[]): NovaInlineNode[] {
         });
         break;
       case "image":
-        result.push({
-          type: "image",
-          url: child.url,
-          alt: child.alt ?? undefined,
-        });
+        result.push({ type: "image", url: child.url, alt: child.alt ?? undefined });
         break;
       default:
-        // عناصر مو مدعومة بعد (footnote, break...) منتجاهلها بهالمرحلة
+        // Genuinely unsupported inline nodes (footnotes, breaks...) are
+        // rare and low-risk to skip at the inline level — block-level
+        // content is what the contract's no-data-loss rule protects.
         break;
     }
   }
@@ -223,4 +249,18 @@ function plainText(children: NovaInlineNode[]): string {
       return "";
     })
     .join("");
+}
+
+function rawFallbackText(node: RootContent): string {
+  if ("children" in node && Array.isArray(node.children)) {
+    return node.children
+      .map((child) =>
+        "value" in child
+          ? String((child as { value: unknown }).value)
+          : rawFallbackText(child as RootContent),
+      )
+      .join(" ");
+  }
+  if ("value" in node) return String((node as { value: unknown }).value);
+  return "";
 }

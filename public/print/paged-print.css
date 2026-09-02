@@ -20,14 +20,7 @@
 }
 
 
-@font-face {
-  font-family: "OoredooArabic-Heavy";
-  src: url("/print/fonts/OoredooArabic-Heavy.ttf")
-    format("truetype");
-  font-weight: bold;
-  ascent-override: 90%;
-  descent-override: 20%;
-}
+
 
 /* ---------- إعداد الصفحة ---------- */
 @page {
@@ -373,51 +366,229 @@
   align-items: center;
 }
 
-/* تنسيقات المحتوى */
-.lecture-body h1 {
+
+/* =========================================================
+   Nova color tokens — precomputed static hex only.
+   No color-mix() anywhere below: Paged.js does not resolve it
+   correctly during pagination/reflow (confirmed empirically).
+   Defined on bare [data-color], not scoped to a specific ancestor
+   class, so the same rule works in the live Tiptap editor
+   (.nova-tiptap-content) AND inside Paged.js print output
+   (.pagedjs_pages / .tiptap) without duplicating the token block.
+   ========================================================= */
+
+[data-color="rose"] {
+  --nova-color: #D00054;
+  --nova-border: #A60043;   /* 80% color / 20% black */
+  --nova-bg-strong: #D93376; /* 80% color / 20% white */
+  --nova-bg-light: #F1B3CC;  /* 30% color / 70% white */
+  --nova-bg-tint: #FBEBF1;   /* 8% color / 92% white */
+  --nova-bg-tint-quiz: #FCF0F5; /* 6% color / 94% white */
+}
+[data-color="orange"] {
+  --nova-color: #FF9933;
+  --nova-border: #CC7A29;
+  --nova-bg-strong: #FFAD5C;
+  --nova-bg-light: #FFE0C2;
+  --nova-bg-tint: #FFF7EF;
+  --nova-bg-tint-quiz: #FFF9F3;
+}
+[data-color="blue"] {
+  --nova-color: #3399FF;
+  --nova-border: #297ACC;
+  --nova-bg-strong: #5CADFF;
+  --nova-bg-light: #C2E0FF;
+  --nova-bg-tint: #EFF7FF;
+  --nova-bg-tint-quiz: #F3F9FF;
+}
+[data-color="green"] {
+  --nova-color: #00B050;
+  --nova-border: #008D40;
+  --nova-bg-strong: #33C073;
+  --nova-bg-light: #B3E7CB;
+  --nova-bg-tint: #EBF9F1;
+  --nova-bg-tint-quiz: #F0FAF5;
+}
+[data-color="yellow"] {
+  --nova-color: #BF8F00;
+  --nova-border: #997200;
+  --nova-bg-strong: #CCA533;
+  --nova-bg-light: #ECDDB3;
+  --nova-bg-tint: #FAF6EB;
+  --nova-bg-tint-quiz: #FBF8F0;
+}
+[data-color="purple"] {
+  --nova-color: #CC00FF;
+  --nova-border: #A300CC;
+  --nova-bg-strong: #D633FF;
+  --nova-bg-light: #F0B3FF;
+  --nova-bg-tint: #FBEBFF;
+  --nova-bg-tint-quiz: #FCF0FF;
+}
+[data-color="pink"] {
+  --nova-color: #FF3BFF;
+  --nova-border: #CC2FCC;
+  --nova-bg-strong: #FF62FF;
+  --nova-bg-light: #FFC4FF;
+  --nova-bg-tint: #FFEFFF;
+  --nova-bg-tint-quiz: #FFF3FF;
+}
+
+/* ---------- headings — dark background / white text (confirmed direction) ---------- */
+.pagedjs_pages,
+.tiptap {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-align: right;
+    font-family: "NovaHeading";
+    padding: 0.3em;
+    color: #fff;
+    border: 5px solid var(--nova-border);
+    background-color: var(--nova-bg-strong);
+    margin-top: 1em;
+    margin-bottom: 0.6em;
+  }
+
+  h1 {
+    font-size: 1.9em;
+    font-weight: 700;
+    text-align: center;
+  }
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+  }
+  h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    text-align: center;
+    color: var(--nova-color);
+    background: var(--nova-bg-light);
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1.05em;
+    font-weight: 600;
+    opacity: 0.9;
+    background: var(--nova-bg-light);
+  }
+  h4 {
+    border-top: none;
+    border-bottom: none;
+    color: var(--nova-color) !important;
+    text-align: center;
+  }
+  h5 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    color: var(--nova-color) !important;
+  }
+  h6 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-right-width: 2px;
+    color: black !important;
+  }
+
+  /* ---------- الصناديق (InfoBox) — نمط Obsidian callout ---------- */
+  /* بالماركداون: >[!note] عنوان الصندوق
+     يقابل :::note بصياغة نوفا AST */
+  .callout {
+    --callout-color: var(--nova-color);
+    border-right: 4px solid var(--callout-color);
+    border-radius: 8px;
+    background-color: var(--nova-bg-tint);
+    padding: 0.9em 1.1em;
+    margin: 1em 0;
+    direction: rtl;
+    text-align: right;
+    color: black;
+  }
+
+  .callout-title {
+    color: var(--callout-color);
+    font-weight: 700;
+    font-family: var(--nova-font-ar, "OoredooArabic-Heavy", sans-serif);
+  }
+
+  .callout-icon {
+    color: var(--callout-color);
+  }
+
+  /* صندوق كويز placeholder — يقابل :::quiz {id="..."} */
+  .callout[data-callout="quiz"] {
+    border-style: dashed;
+    background-color: var(--nova-bg-tint-quiz);
+  }
+
+  /* ---------- الاقتباسات ---------- */
+  blockquote {
+    border-right: 4px solid var(--nova-color, #999);
+    padding-right: 1em;
+    margin-right: 0;
+    direction: rtl;
+    color: var(--nova-ink, #1a1a1a);
+    opacity: 0.85;
+  }
+
+  /* ---------- الكود ---------- */
+  code {
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+
+  pre {
+    border-right: 4px solid var(--nova-color, #999);
+    border-radius: 6px;
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ---------- الروابط ---------- */
+  a {
+    color: var(--nova-color, #0563c1);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+  }
+
+  /* ---------- القوائم ---------- */
+  ul li::marker,
+  ol li::marker {
+    color: var(--nova-color);
+  }
+
+  /* ---------- خط أفقي ---------- */
+  hr {
+    border: none;
+    border-top: 2px solid var(--nova-color, #ddd);
+    margin: 2em 0;
+  }
+}
+
+/* ---------- placeholder الكويز خارج نطاق .callout (NovaQuiz atom node) ---------- */
+.nova-quiz-placeholder[data-color] {
+  border: 2px dashed var(--nova-color);
+  color: var(--nova-color);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  font-weight: bold;
   text-align: center;
-  background-color: rgb(236 0 140);
-  color: white;
-  border: 4pt cornered rgba(180, 18, 116, 0.8);
-}
-
-.lecture-body h2 {
-  text-align: center;
-  background-color: rgb(236 0 140);
-  color: white;
-  border-top-width: 3pt;
-  border-bottom-width: 3pt;
-  border-top-style: solid;
-  border-bottom-style: solid;
-  border-top-color: rgba(180, 18, 116, 0.8);
-  border-bottom-color: rgba(180, 18, 116, 0.8);
-}
-
-.lecture-body h1,
-.lecture-body h2,
-.lecture-body h3 {
-  margin: 1em 0 0.5em;
-  break-after: avoid;
-  padding: 3pt;
-}
-
-.lecture-body p {
-  margin-bottom: 0.8em;
-}
-
-.lecture-body img {
-  max-width: 100%;
-  height: auto;
-}
-
-.lecture-body table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1em 0;
-}
-
-.lecture-body th,
-.lecture-body td {
-  border: 1pt solid #991f60;
-  padding: 6pt;
 }

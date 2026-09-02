@@ -1,5 +1,5 @@
-import Editor from "@/features/editor/components/Editor";
 import { useParams } from "@solidjs/router";
+import TiptapReviewEditor from "../tiptap/TiptapReviewEditor";
 
 export default function EditorPage() {
   const params = useParams();
@@ -7,5 +7,5 @@ export default function EditorPage() {
   const seasonId = params.season;
 
 
-  return <Editor subjectId={subjectId ?? ""} seasonId={seasonId ?? ""} />;
+  return <TiptapReviewEditor subjectId={subjectId ?? ""} seasonId={seasonId ?? ""} />;
 }

@@ -1,5 +1,6 @@
 import { useUser } from "@/features/shared/context/user";
-import { parseMarkdown } from "@/features/lectures/lib/parseMarkdown";
+import { parseMarkdownToNova } from "../lib/mdastToNova";
+import NovaRenderer from "./render/NovaRenderer";
 import {
   upsertLecture,
   getLecture,
@@ -27,26 +28,9 @@ import {
   Save,
 } from "lucide-solid";
 import { debounce } from "@/features/shared/utils/debounce";
-import LectureRender from "@/features/shared/components/LectureRender/LectureRender";
+import TiptapReviewEditor from "../tiptap/TiptapReviewEditor";
 
-// text for testing
-// ---
-// title: Test
-// tags: [test]
-// ---
 
-// # Hello World
-
-// This is a test of the **markdown parser**.
-
-// > This is a callout.
-
-// > [!note]
-// > This is a note callout.
-
-// - Item 1
-// - Item 2
-// - Item 3
 
 export default function Editor(props: { subjectId: string; seasonId: string }) {
   const params = useParams();
@@ -56,7 +40,7 @@ export default function Editor(props: { subjectId: string; seasonId: string }) {
 
   const { user } = useUser();
   const [raw, setRaw] = createSignal<string>("");
-  const [html] = createResource(raw, parseMarkdown);
+  const [novaDoc] = createResource(raw, parseMarkdownToNova);
   const [mode, setMode] = createSignal<"edit" | "preview">("edit");
   const [status, setStatus] = createSignal<
     "typing" | "saving" | "saved" | "error"
@@ -105,8 +89,7 @@ export default function Editor(props: { subjectId: string; seasonId: string }) {
 
   const debounceSave = debounce(saveToSupabase, 1000);
 
-  const handleInputChange = (event: Event) => {
-    const value = event.target.value;
+  const handleInputChange = (value: string) => {
     setStatus("typing");
 
     if (value !== "") {
@@ -184,17 +167,20 @@ export default function Editor(props: { subjectId: string; seasonId: string }) {
 
       <Suspense fallback={<div>Loading...</div>}>
         <Show when={mode() === "edit"}>
-          <textarea
+          {/* <textarea
             placeholder=" Type here..."
             unicode-bidi="plaintext"
             class="h-screen w-screen overflow-y-scroll p-2 outline-none"
             dir="auto"
             value={raw()}
             onInput={handleInputChange}
-          ></textarea>
+          ></textarea> */}
+          <TiptapReviewEditor content={raw()} onChange={handleInputChange}/>
         </Show>
         <Show when={mode() === "preview"}>
-          <LectureRender html={html() ?? ""} />
+          <Show when={novaDoc()}>
+            <NovaRenderer document={novaDoc()!} />
+          </Show>
         </Show>
       </Suspense>
     </div>
