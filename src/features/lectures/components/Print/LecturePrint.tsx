@@ -1,22 +1,18 @@
 // features/lectures/components/Print/LecturePrint.tsx
 
 import { onMount, createSignal, Show } from "solid-js";
-import { Editor } from "@tiptap/core";
-import { Markdown } from "@tiptap/markdown";
+import { Editor, JSONContent } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import {Table} from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
+import { TableKit } from "@tiptap/extension-table";
 import ImageExt from "@tiptap/extension-image";
 import LinkExt from "@tiptap/extension-link";
 import DOMPurify from "dompurify";
 
-import { NovaHeading } from "@/features/editor/tiptap/extensions/NovaHeadingExtensionPrint";
-import { NovaNote } from "@/features/editor/tiptap/extensions/NovaNote";
+import { NovaHeading } from "@/features/editor/tiptap/extensions/NovaHeadingExtension";
+import { NovaAdmonition } from "@/features/editor/tiptap/extensions/NovaAdmonition";
 import { NovaQuiz } from "@/features/editor/tiptap/extensions/NovaQuiz";
-
-import '../../../editor/tiptap/nova-tiptap.css'
+import { Mermaid } from "@/features/editor/tiptap/extensions/mermaid";
+import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
 
 interface Props {
   subjectName: string;
@@ -26,42 +22,34 @@ interface Props {
   year: string;
   semester: string;
   lectureNumber?: string;
-  content: string; // Markdown
+  content: JSONContent | null;
 }
 
 // Same source of truth as the review editor (TiptapReviewEditor.tsx):
 // this MUST use the exact same extension set, or print output can
 // silently diverge from what the team actually reviewed.
-function markdownToPrintHtml(markdown: string): string {
+async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
   const editor = new Editor({
     extensions: [
       StarterKit.configure({ heading: false }),
       NovaHeading,
-      NovaNote,
+      NovaAdmonition,
       NovaQuiz,
-      Table.configure({ resizable: false }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      Mermaid.configure({
+        debounceMs: 400,
+      }),
+      TableKit.configure({ table: { resizable: false } }),
       ImageExt,
       LinkExt.configure({ openOnClick: false }),
-      Markdown,
     ],
-    content: markdown,
-    contentType: "markdown",
+    content: content,
+    contentType: "json",
   });
 
-  const html = (() => {
-    // ProseMirror plugins' appendTransaction never runs on the very
-    // first (initial-content) transaction — only on ones dispatched
-    // afterward. NovaHeadingExtension's color computation is an
-    // appendTransaction, so without this, data-color never gets set
-    // at all in a headless editor that's read immediately after
-    // construction (confirmed: attribute was completely absent).
-    editor.view.dispatch(editor.view.state.tr);
-    return editor.getHTML();
-  })();
+  let html = await editor.getHTML();
+  
   editor.destroy();
+
   return html;
 }
 
@@ -72,12 +60,19 @@ export default function LecturePrint(props: Props) {
   onMount(async () => {
     // 1. تحويل Markdown عبر نفس محرك Tiptap يلي بمحرر المراجعة
     //    (بدل marked — عشان يطلع data-color و classes نوفا صح)
-    const rawHtml = markdownToPrintHtml(props.content || "");
-    const safeHtml = DOMPurify.sanitize(rawHtml);
+    const rawHtml = await jsonToPrintHtml(props.content);
+
+    // commented because it case mermaid to not render
+    // const safeHtml = DOMPurify.sanitize(rawHtml);
+    // console.log(safeHtml);
 
     // 2. بناء المستند
-    const fullHtml = buildDocument(props, safeHtml);
-    const parsedDocument = new DOMParser().parseFromString(fullHtml, "text/html");
+    const fullHtml = buildDocument(props, rawHtml);
+    
+    const parsedDocument = new DOMParser().parseFromString(
+      fullHtml,
+      "text/html",
+    );
     const fragment = document.createDocumentFragment();
 
     while (parsedDocument.body.firstChild) {
@@ -87,13 +82,15 @@ export default function LecturePrint(props: Props) {
     // 3. تحميل Paged.js
     await loadPagedJs();
 
+    await renderAllMermaidInContainer(fragment as unknown as HTMLElement);
+
     // 4. تشغيل Paged.js
     // @ts-ignore
     const paged = new window.Paged.Previewer();
     const flow = await paged.preview(
       fragment,
       [new URL("/print/paged-print.css", import.meta.url).href],
-      outputEl
+      outputEl,
     );
 
     const pageCount = flow.total;
@@ -111,7 +108,8 @@ export default function LecturePrint(props: Props) {
         <div class="fixed top-4 left-4 z-50 flex gap-3 print:hidden">
           <button
             onClick={() => window.print()}
-            class="rounded-xl bg-main px-5 py-2.5 font-bold text-white shadow-lg"
+            class="rounded-xl px-5 py-2.5 font-bold shadow-lg transition hover:opacity-90"
+            style="background-color: var(--color-lecture-cycle); color: var(--color-lecture-cycle-foreground);"
           >
             طباعة / حفظ PDF
           </button>
@@ -129,10 +127,7 @@ export default function LecturePrint(props: Props) {
   );
 }
 
-function buildDocument(
-  data: Props,
-  contentHtml: string
-) {
+function buildDocument(data: Props, contentHtml: string) {
   return `
     <!-- الغلاف -->
     <section class="cover">

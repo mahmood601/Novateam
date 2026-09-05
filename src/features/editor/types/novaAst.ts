@@ -81,6 +81,14 @@ export interface NovaQuizNode {
   quizId: string;
 }
 
+// `:::diagram ... :::` directive from the contract — the Mermaid source
+// is stored as raw text and rendered by the dedicated diagram extension
+// in the editor / print pipeline.
+export interface NovaDiagramNode {
+  type: "diagram";
+  source: string;
+}
+
 // Any `:::something ... :::` directive whose name isn't recognized yet.
 // Required by the contract's forward-compatibility rule: unknown content
 // must degrade gracefully, never silently disappear.
@@ -99,6 +107,7 @@ export type NovaBlockNode =
   | NovaQuoteNode
   | NovaNoteNode
   | NovaQuizNode
+  | NovaDiagramNode
   | NovaUnknownNode;
 
 // ---------------- document ----------------

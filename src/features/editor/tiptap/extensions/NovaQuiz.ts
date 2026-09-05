@@ -1,14 +1,28 @@
-// `:::quiz id:123 :::` directive — an atom placeholder node for the
-// reviewer to see; the actual quiz content is resolved elsewhere via
-// `quizId`, not edited inline here.
+// `:::quiz {quizId="123"}` directive — atom placeholder node. Uses
+// createAtomBlockMarkdownSpec since it has attributes but no content.
+// Same missing-markdown-spec bug as NovaNote — added here now.
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes, createAtomBlockMarkdownSpec, nodeInputRule } from "@tiptap/core";
 
 export const NovaQuiz = Node.create({
   name: "novaQuiz",
   group: "block",
   atom: true,
   selectable: true,
+
+  // novaQuiz is an atom node (no content to wrap into), so
+  // wrappingInputRule can never succeed here — findWrapping() has
+  // nothing valid to wrap and silently no-ops, meaning ":::quiz "
+  // never actually turned into a node. nodeInputRule inserts the
+  // atom directly instead of trying to wrap surrounding content.
+  addInputRules() {
+    return [
+      nodeInputRule({
+        find: /^:::quiz\s$/,
+        type: this.type,
+      }),
+    ];
+  },
 
   addAttributes() {
     return {
@@ -36,4 +50,11 @@ export const NovaQuiz = Node.create({
       `سؤال اختبار — ID: ${node.attrs.quizId}`,
     ];
   },
+
+  ...createAtomBlockMarkdownSpec({
+    nodeName: "novaQuiz",
+    name: "quiz",
+    requiredAttributes: ["quizId"],
+    allowedAttributes: ["quizId"], // color excluded — computed, never authored
+  }),
 });

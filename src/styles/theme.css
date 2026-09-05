@@ -133,6 +133,10 @@
   --sidebar-accent-foreground: #F9FAFB;
   --sidebar-border: #374151;
   --sidebar-ring: #3B82F6;
+  --color-lecture-cycle-foreground: #0f172a;
+  --color-lecture-cycle-soft: color-mix(in srgb, var(--color-lecture-cycle) 18%, transparent);
+  --color-lecture-cycle-border: color-mix(in srgb, var(--color-lecture-cycle) 36%, transparent);
+  --mermaid-node-shadow: rgba(0, 0, 0, 0.24);
 }
 
 @theme inline {

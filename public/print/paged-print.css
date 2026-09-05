@@ -3,10 +3,6 @@
    A4 + Cover + TOC + Running Header/Footer
    ========================================= */
 
-/* body{
-  background-color: #fff;
-} */
-
 .paged-output * {
   box-sizing: border-box;
   margin: 0;
@@ -18,9 +14,6 @@
 .pagedjs_pagebox {
   background-color: #fff;
 }
-
-
-
 
 /* ---------- إعداد الصفحة ---------- */
 @page {
@@ -366,7 +359,6 @@
   align-items: center;
 }
 
-
 /* =========================================================
    Nova color tokens — precomputed static hex only.
    No color-mix() anywhere below: Paged.js does not resolve it
@@ -378,60 +370,60 @@
    ========================================================= */
 
 [data-color="rose"] {
-  --nova-color: #D00054;
-  --nova-border: #A60043;   /* 80% color / 20% black */
-  --nova-bg-strong: #D93376; /* 80% color / 20% white */
-  --nova-bg-light: #F1B3CC;  /* 30% color / 70% white */
-  --nova-bg-tint: #FBEBF1;   /* 8% color / 92% white */
-  --nova-bg-tint-quiz: #FCF0F5; /* 6% color / 94% white */
+  --nova-color: #d00054;
+  --nova-border: #a60043; /* 80% color / 20% black */
+  --nova-bg-strong: #d93376; /* 80% color / 20% white */
+  --nova-bg-light: #f1b3cc; /* 30% color / 70% white */
+  --nova-bg-tint: #fbebf1; /* 8% color / 92% white */
+  --nova-bg-tint-quiz: #fcf0f5; /* 6% color / 94% white */
 }
 [data-color="orange"] {
-  --nova-color: #FF9933;
-  --nova-border: #CC7A29;
-  --nova-bg-strong: #FFAD5C;
-  --nova-bg-light: #FFE0C2;
-  --nova-bg-tint: #FFF7EF;
-  --nova-bg-tint-quiz: #FFF9F3;
+  --nova-color: #ff9933;
+  --nova-border: #cc7a29;
+  --nova-bg-strong: #ffad5c;
+  --nova-bg-light: #ffe0c2;
+  --nova-bg-tint: #fff7ef;
+  --nova-bg-tint-quiz: #fff9f3;
 }
 [data-color="blue"] {
-  --nova-color: #3399FF;
-  --nova-border: #297ACC;
-  --nova-bg-strong: #5CADFF;
-  --nova-bg-light: #C2E0FF;
-  --nova-bg-tint: #EFF7FF;
-  --nova-bg-tint-quiz: #F3F9FF;
+  --nova-color: #3399ff;
+  --nova-border: #297acc;
+  --nova-bg-strong: #5cadff;
+  --nova-bg-light: #c2e0ff;
+  --nova-bg-tint: #eff7ff;
+  --nova-bg-tint-quiz: #f3f9ff;
 }
 [data-color="green"] {
-  --nova-color: #00B050;
-  --nova-border: #008D40;
-  --nova-bg-strong: #33C073;
-  --nova-bg-light: #B3E7CB;
-  --nova-bg-tint: #EBF9F1;
-  --nova-bg-tint-quiz: #F0FAF5;
+  --nova-color: #00b050;
+  --nova-border: #008d40;
+  --nova-bg-strong: #33c073;
+  --nova-bg-light: #b3e7cb;
+  --nova-bg-tint: #ebf9f1;
+  --nova-bg-tint-quiz: #f0faf5;
 }
 [data-color="yellow"] {
-  --nova-color: #BF8F00;
+  --nova-color: #bf8f00;
   --nova-border: #997200;
-  --nova-bg-strong: #CCA533;
-  --nova-bg-light: #ECDDB3;
-  --nova-bg-tint: #FAF6EB;
-  --nova-bg-tint-quiz: #FBF8F0;
+  --nova-bg-strong: #cca533;
+  --nova-bg-light: #ecddb3;
+  --nova-bg-tint: #faf6eb;
+  --nova-bg-tint-quiz: #fbf8f0;
 }
 [data-color="purple"] {
-  --nova-color: #CC00FF;
-  --nova-border: #A300CC;
-  --nova-bg-strong: #D633FF;
-  --nova-bg-light: #F0B3FF;
-  --nova-bg-tint: #FBEBFF;
-  --nova-bg-tint-quiz: #FCF0FF;
+  --nova-color: #cc00ff;
+  --nova-border: #a300cc;
+  --nova-bg-strong: #d633ff;
+  --nova-bg-light: #f0b3ff;
+  --nova-bg-tint: #fbebff;
+  --nova-bg-tint-quiz: #fcf0ff;
 }
 [data-color="pink"] {
-  --nova-color: #FF3BFF;
-  --nova-border: #CC2FCC;
-  --nova-bg-strong: #FF62FF;
-  --nova-bg-light: #FFC4FF;
-  --nova-bg-tint: #FFEFFF;
-  --nova-bg-tint-quiz: #FFF3FF;
+  --nova-color: #ff3bff;
+  --nova-border: #cc2fcc;
+  --nova-bg-strong: #ff62ff;
+  --nova-bg-light: #ffc4ff;
+  --nova-bg-tint: #ffefff;
+  --nova-bg-tint-quiz: #fff3ff;
 }
 
 /* ---------- headings — dark background / white text (confirmed direction) ---------- */
@@ -554,6 +546,13 @@
     padding: 0.1em 0.4em;
   }
 
+  .mermaid-rendered {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
   pre {
     border-right: 4px solid var(--nova-color, #999);
     border-radius: 6px;
@@ -574,15 +573,89 @@
     color: var(--nova-color);
   }
 
-  /* ---------- خط أفقي ---------- */
-  hr {
-    border: none;
-    border-top: 2px solid var(--nova-color, #ddd);
-    margin: 2em 0;
+  /* Table-specific styling */
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+    text-align: center;
+
+    td,
+    th {
+      border: 1px solid var(--gray-3);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 3px;
+      position: relative;
+      vertical-align: top;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      background-color: var(--gray-1);
+      font-weight: bold;
+    }
+
+    .selectedCell:after {
+      background: var(--gray-2);
+      content: "";
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: var(--purple);
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+  }
+
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  &.resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
   }
 }
 
 /* ---------- placeholder الكويز خارج نطاق .callout (NovaQuiz atom node) ---------- */
+.nova-quiz-placeholder[data-color] {
+  border: 2px dashed var(--nova-color);
+  color: var(--nova-color);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* :::note::: */
+.nova-note[data-color] {
+  border: 2px solid var(--nova-color);
+  background-color: color-mix(in srgb, var(--nova-color) 12%, white);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+}
+
+/* :::quiz::: placeholder */
 .nova-quiz-placeholder[data-color] {
   border: 2px dashed var(--nova-color);
   color: var(--nova-color);

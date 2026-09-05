@@ -10,13 +10,10 @@ import {
   Suspense,
   Switch,
 } from "solid-js";
-import { Editor } from "@tiptap/core";
+import { Editor, JSONContent } from "@tiptap/core";
 import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
-import { Table } from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
+import { TableKit } from "@tiptap/extension-table";
 import ImageExt from "@tiptap/extension-image";
 import LinkExt from "@tiptap/extension-link";
 import {
@@ -28,10 +25,11 @@ import {
   Italic,
   Printer,
   Save,
+  Workflow,
 } from "lucide-solid";
 
 import { NovaHeading } from "./extensions/NovaHeadingExtension";
-import { NovaNote } from "./extensions/NovaNote";
+import { NovaAdmonition } from "./extensions/NovaAdmonition";
 import { NovaQuiz } from "./extensions/NovaQuiz";
 import { NavBar } from "solid-mobile";
 import { debounce } from "@/features/shared/utils/debounce";
@@ -41,9 +39,10 @@ import {
 } from "@/features/shared/services/lecturesUpdates";
 import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
-import './nova-tiptap.css'
-import './editor.css'
+import { Mermaid } from "./extensions/mermaid";
 
+import "./editor.css";
+import "../../../../public/print/paged-print.css";
 
 export default function TiptapReviewEditor(props: {
   subjectId: string;
@@ -59,7 +58,7 @@ export default function TiptapReviewEditor(props: {
   const navigate = useNavigate();
 
   const { user } = useUser();
-  const [raw, setRaw] = createSignal<string>("");
+  const [raw, setRaw] = createSignal<JSONContent | null>(null);
   const [status, setStatus] = createSignal<
     "typing" | "saving" | "saved" | "error"
   >("typing");
@@ -70,26 +69,27 @@ export default function TiptapReviewEditor(props: {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
-        setRaw(content);
         editor?.commands.setContent(content, {
           contentType: "markdown",
           emitUpdate: true,
         }); // false = don't emit update event
       };
+      setRaw(editor?.getJSON() || null); // update raw state with the new content
       reader.readAsText(file);
     }
   };
 
   const loadLecture = async () => {
-    await getLecture({
+    const content = await getLecture({
       subjectId: subjectId,
       seasonId: seasonId,
-    }).then(async (result) => {
-      if (result.data) {
-        editor?.commands.setContent(result.data[0].content?.raw, {
-          contentType: "markdown",
-        }); // false = don't emit update event
-      }
+    });
+
+    const json = content.data[0]?.content.raw;
+
+
+    editor?.commands.setContent(json, {
+      contentType: "json",
     });
   };
 
@@ -113,10 +113,10 @@ export default function TiptapReviewEditor(props: {
 
   const debounceSave = debounce(saveToSupabase, 1000);
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = (value: JSONContent) => {
     setStatus("typing");
 
-    if (value !== "") {
+    if (value !== null) {
       setRaw(value);
       debounceSave();
     }
@@ -132,18 +132,18 @@ export default function TiptapReviewEditor(props: {
       extensions: [
         StarterKit.configure({ heading: false }), // replaced by NovaHeading below
         NovaHeading,
-        NovaNote,
+        NovaAdmonition,
         NovaQuiz,
-        Table.configure({ resizable: false }),
-        TableRow,
-        TableHeader,
-        TableCell,
+        Mermaid.configure({
+          debounceMs: 400,
+        }),
+        TableKit.configure({ table: { resizable: false } }),
         ImageExt,
         LinkExt.configure({ openOnClick: false }),
         Markdown,
       ],
       onTransaction: () => setTick((t) => t + 1),
-      onUpdate: ({ editor: e }) => handleInputChange(e.getMarkdown()),
+      onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });
   });
 
@@ -208,26 +208,34 @@ export default function TiptapReviewEditor(props: {
       </div>
 
       <Suspense fallback={<div>Loading...</div>}>
-          <div class="nova-tiptap-review" dir="rtl">
-            <div class="nova-tiptap-toolbar mb-2 flex justify-center gap-2 px-3">
-              <button
-                type="button"
-                classList={{ active: isActive("bold") }}
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-              >
-                <Bold size={18} />
-              </button>
-              <button
-                type="button"
-                classList={{ active: isActive("italic") }}
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-              >
-                <Italic size={18} />
-              </button>
-            </div>
+        <div class="nova-tiptap-review" dir="rtl">
+          <div class="nova-tiptap-toolbar mb-2 flex justify-center gap-2 px-3">
+            <button
+              type="button"
+              classList={{ active: isActive("bold") }}
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+            >
+              <Bold size={18} />
+            </button>
+            <button
+              type="button"
+              classList={{ active: isActive("italic") }}
+              onClick={() => editor?.chain().focus().toggleItalic().run()}
+            >
+              <Italic size={18} />
+            </button>
 
-            <div ref={containerRef} class="nova-tiptap-content" />
+            <button
+              type="button"
+              classList={{ active: isActive("italic") }}
+              onClick={() => editor?.commands.setMermaid()}
+            >
+              <Workflow size={18} />
+            </button>
           </div>
+
+          <div ref={containerRef} class="nova-tiptap-content" />
+        </div>
       </Suspense>
     </div>
   );

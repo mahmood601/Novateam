@@ -13,7 +13,7 @@ import { NOVA_COLOR_CYCLE, type NovaColor } from "../../types/novaAst";
 // Any node type whose color depends on which section it belongs to.
 // A depth-1 heading starts a new section (and advances the cycle);
 // everything else in this set just inherits the current section color.
-const COLORABLE_TYPES = new Set(["heading", "novaNote", "novaQuiz"]);
+const COLORABLE_TYPES = new Set(["heading", "novaNote", "novaQuiz", "novaDiagram"]);
 
 function colorForIndex(index: number): NovaColor {
   return NOVA_COLOR_CYCLE[index % NOVA_COLOR_CYCLE.length];
@@ -37,9 +37,13 @@ export const NovaHeading = Heading.extend({
       ...(this.parent?.() ?? []),
       new Plugin({
         key: new PluginKey("novaHeadingColorSync"),
-        appendTransaction: (transactions, _oldState, newState) => {
-          const docChanged = transactions.some((tr) => tr.docChanged);
-          if (!docChanged) return null;
+        appendTransaction: (_transactions, _oldState, newState) => {
+          // No docChanged early-exit here on purpose: a deliberately
+          // empty forced transaction (dispatched right after initial
+          // load, since appendTransaction never fires for the very
+          // first content-set transaction) must still reach this scan.
+          // Safe from loops/waste because of the updates.length===0
+          // early-exit below instead.
 
           let colorIndex = -1; // -1 = before any section heading (neutral)
           let currentColor: NovaColor | null = null;

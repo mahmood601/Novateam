@@ -28,14 +28,15 @@ export default function LectureEditor() {
                   {(season) => (
                     <A
                       href={`/dashboard/${subjectId}/edit-lecture/${season.id}/editor`}
-                      class="group border border-transparent hover:border-main focus:ring-ring flex items-center justify-between rounded-[1.5rem] px-4 py-4 text-right shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:outline-none dark:bg-slate-800"
+                      class="group border border-transparent hover:border-main focus:ring-ring flex items-center justify-between rounded-3xl px-4 py-4 text-right shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus:ring-2 focus:outline-none dark:bg-slate-800"
+                      style="background-color: var(--color-lecture-cycle-soft); border-color: var(--color-lecture-cycle-border);"
                     >
                       <div>
                         <p class="text-foreground text-sm font-bold">
                           {season.name}
                         </p>
                       </div>
-                      <span class="bg-main/10 text-main group-hover:bg-main group-hover:text-main-light rounded-full px-3 py-1 text-xs font-bold transition">
+                      <span class="rounded-full px-3 py-1 text-xs font-bold transition" style="background-color: var(--color-lecture-cycle); color: var(--color-lecture-cycle-foreground);">
                         فتح
                       </span>
                     </A>
@@ -45,7 +46,7 @@ export default function LectureEditor() {
             </Show>
           }
         >
-          <div class="text-muted-foreground rounded-[1.5rem] px-4 py-10 text-center text-sm shadow-md dark:bg-slate-800">
+          <div class="text-muted-foreground rounded-3xl px-4 py-10 text-center text-sm shadow-md dark:bg-slate-800">
             جاري تحميل الفصول...
           </div>
         </Show>
