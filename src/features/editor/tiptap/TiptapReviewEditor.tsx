@@ -11,11 +11,6 @@ import {
   Switch,
 } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
-import { Markdown } from "@tiptap/markdown";
-import StarterKit from "@tiptap/starter-kit";
-import { TableKit } from "@tiptap/extension-table";
-import ImageExt from "@tiptap/extension-image";
-import LinkExt from "@tiptap/extension-link";
 import {
   Bold,
   CloudCheck,
@@ -28,9 +23,6 @@ import {
   Workflow,
 } from "lucide-solid";
 
-import { NovaHeading } from "./extensions/NovaHeadingExtension";
-import { NovaAdmonition } from "./extensions/NovaAdmonition";
-import { NovaQuiz } from "./extensions/NovaQuiz";
 import { NavBar } from "solid-mobile";
 import { debounce } from "@/features/shared/utils/debounce";
 import {
@@ -39,10 +31,10 @@ import {
 } from "@/features/shared/services/lecturesUpdates";
 import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
-import { Mermaid } from "./extensions/mermaid";
 
 import "./editor.css";
 import "../../../../public/print/paged-print.css";
+import { extensionsArr } from "./extensions/extensionsArr";
 
 export default function TiptapReviewEditor(props: {
   subjectId: string;
@@ -87,7 +79,6 @@ export default function TiptapReviewEditor(props: {
 
     const json = content.data[0]?.content.raw;
 
-
     editor?.commands.setContent(json, {
       contentType: "json",
     });
@@ -129,19 +120,7 @@ export default function TiptapReviewEditor(props: {
       element: containerRef,
       content: raw(),
       contentType: "markdown",
-      extensions: [
-        StarterKit.configure({ heading: false }), // replaced by NovaHeading below
-        NovaHeading,
-        NovaAdmonition,
-        NovaQuiz,
-        Mermaid.configure({
-          debounceMs: 400,
-        }),
-        TableKit.configure({ table: { resizable: false } }),
-        ImageExt,
-        LinkExt.configure({ openOnClick: false }),
-        Markdown,
-      ],
+      extensions: [...extensionsArr],
       onTransaction: () => setTick((t) => t + 1),
       onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });
