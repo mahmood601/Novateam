@@ -2,17 +2,9 @@
 
 import { onMount, createSignal, Show } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import { TableKit } from "@tiptap/extension-table";
-import ImageExt from "@tiptap/extension-image";
-import LinkExt from "@tiptap/extension-link";
-import DOMPurify from "dompurify";
 
-import { NovaHeading } from "@/features/editor/tiptap/extensions/NovaHeadingExtension";
-import { NovaAdmonition } from "@/features/editor/tiptap/extensions/NovaAdmonition";
-import { NovaQuiz } from "@/features/editor/tiptap/extensions/NovaQuiz";
-import { Mermaid } from "@/features/editor/tiptap/extensions/mermaid";
 import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
+import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
 
 interface Props {
   subjectName: string;
@@ -29,25 +21,16 @@ interface Props {
 // this MUST use the exact same extension set, or print output can
 // silently diverge from what the team actually reviewed.
 async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
+  extensionsArr.pop(); // remove Markdown extension, not needed for print
+  const printExts = extensionsArr;
   const editor = new Editor({
-    extensions: [
-      StarterKit.configure({ heading: false }),
-      NovaHeading,
-      NovaAdmonition,
-      NovaQuiz,
-      Mermaid.configure({
-        debounceMs: 400,
-      }),
-      TableKit.configure({ table: { resizable: false } }),
-      ImageExt,
-      LinkExt.configure({ openOnClick: false }),
-    ],
+    extensions: [...printExts],
     content: content,
     contentType: "json",
   });
 
   let html = await editor.getHTML();
-  
+
   editor.destroy();
 
   return html;
@@ -68,7 +51,7 @@ export default function LecturePrint(props: Props) {
 
     // 2. بناء المستند
     const fullHtml = buildDocument(props, rawHtml);
-    
+
     const parsedDocument = new DOMParser().parseFromString(
       fullHtml,
       "text/html",

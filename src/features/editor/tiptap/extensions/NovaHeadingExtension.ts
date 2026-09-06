@@ -13,7 +13,7 @@ import { NOVA_COLOR_CYCLE, type NovaColor } from "../../types/novaAst";
 // Any node type whose color depends on which section it belongs to.
 // A depth-1 heading starts a new section (and advances the cycle);
 // everything else in this set just inherits the current section color.
-const COLORABLE_TYPES = new Set(["heading", "novaNote", "novaQuiz", "novaDiagram"]);
+const COLORABLE_TYPES = new Set(["heading", "novaNote", "novaQuiz"]);
 
 function colorForIndex(index: number): NovaColor {
   return NOVA_COLOR_CYCLE[index % NOVA_COLOR_CYCLE.length];

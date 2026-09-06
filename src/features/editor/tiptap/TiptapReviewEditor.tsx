@@ -17,6 +17,9 @@ import {
   CloudOff,
   CloudSync,
   FileUp,
+  Image,
+  ImagePlus,
+  Images,
   Italic,
   Printer,
   Save,
@@ -113,6 +116,19 @@ export default function TiptapReviewEditor(props: {
     }
   };
 
+  const addFigure = () => {
+    const url = window.prompt("URL");
+    const caption = window.prompt("caption");
+
+    if (url) {
+      editor
+        ?.chain()
+        .focus()
+        .setImage({ src: url, caption: caption || null })
+        .run();
+    }
+  };
+
   onMount(() => {
     loadLecture();
 
@@ -206,10 +222,26 @@ export default function TiptapReviewEditor(props: {
 
             <button
               type="button"
-              classList={{ active: isActive("italic") }}
+              classList={{ active: isActive("mermaid") }}
               onClick={() => editor?.commands.setMermaid()}
             >
               <Workflow size={18} />
+            </button>
+
+            <button
+              type="button"
+              classList={{ active: isActive("image") }}
+              onClick={addFigure}
+            >
+              <ImagePlus size={18} />
+            </button>
+
+            <button
+              type="button"
+              classList={{ active: isActive("images") }}
+              onClick={() => editor?.commands.setImageGallery()}
+            >
+              <Images size={18} />
             </button>
           </div>
 
