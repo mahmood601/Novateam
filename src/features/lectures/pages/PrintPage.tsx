@@ -15,8 +15,6 @@ export default function PrintPage() {
     getLecture({ subjectId: params.subject, seasonId: params.season }),
   );
 
-
-
   const content = ()=> lecture()?.data?.[0]?.content?.raw
 
   const [seasonName] = createResource(()=> getSeasonNameFromRemote(subjectId, seasonValue))

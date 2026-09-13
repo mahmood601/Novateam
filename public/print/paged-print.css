@@ -574,7 +574,7 @@
   }
 
   /* Table-specific styling */
-  table {
+  /* table {
     border-collapse: collapse;
     margin: 0;
     overflow: hidden;
@@ -622,7 +622,7 @@
       top: 0;
       width: 4px;
     }
-  }
+  } */
 
   .tableWrapper {
     margin: 1.5rem 0;

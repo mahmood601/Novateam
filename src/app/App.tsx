@@ -1,5 +1,4 @@
 import "@/styles/index.css";
-import "solid-mobile/styles.css";
 import "@/styles/rainbow.css";
 import { Router } from "@solidjs/router";
 import Layout from "../features/shared/components/Layout";
@@ -20,29 +19,29 @@ import UpdatePanel from "../features/shared/components/updates/UpdatePanel";
 
 export default function App() {
   const { applyTheme } = useTheme();
+  const handleVisbilityChange = () => {
+    if (document.visibilityState === "visible") {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          if (registration.waiting) {
+            console.log("New version available, refreshing...");
+          }
+        }
+      });
+    }
+  };
 
-  onMount(async () => {
+  onMount(() => {
     applyTheme((localStorage.getItem("theme-color") as any) || "Ola");
     applyStoredFont(); // يطبّق خط التطبيق المخصص إن وُجد (لا يوقف باقي الإقلاع)
-    await checkAndMigrateIfNeeded();
-
-    const handleVisbilityChange = () => {
-      if (document.visibilityState === "visible") {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          for (const registration of registrations) {
-            if (registration.waiting) {
-              console.log("New version available, refreshing...");
-            }
-          }
-        });
-      }
-    };
+    void checkAndMigrateIfNeeded();
 
     document.addEventListener("visibilitychange", handleVisbilityChange);
-    onCleanup(() =>
-      document.removeEventListener("visibilitychange", handleVisbilityChange),
-    );
   });
+
+  onCleanup(() =>
+    document.removeEventListener("visibilitychange", handleVisbilityChange),
+  );
   return (
     <AppErrorBoundary>
       <UserProvider>

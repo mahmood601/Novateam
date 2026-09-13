@@ -1,5 +1,5 @@
 import { useParams } from "@solidjs/router";
-import TiptapReviewEditor from "../tiptap/TiptapReviewEditor";
+import TiptapReviewEditor from "../components/TiptapReviewEditor";
 
 export default function EditorPage() {
   const params = useParams();

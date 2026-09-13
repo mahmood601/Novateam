@@ -33,12 +33,8 @@ export async function renderAllMermaidInContainer(container: HTMLElement) {
 
     for (const element of elements) {
         const code = element.getAttribute("data-content") || element.textContent ||"";
-
-        console.log(element, code);
-
+   
         if(code.trim() === "") continue;
-
-        
 
         const svg = await renderMermaidToSvg(code);
         element.innerHTML = svg;

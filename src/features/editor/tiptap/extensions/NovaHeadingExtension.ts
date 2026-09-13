@@ -9,6 +9,7 @@ import Heading from "@tiptap/extension-heading";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { NOVA_COLOR_CYCLE, type NovaColor } from "../../types/novaAst";
+import { textblockTypeInputRule } from "@tiptap/core";
 
 // Any node type whose color depends on which section it belongs to.
 // A depth-1 heading starts a new section (and advances the cycle);
@@ -20,6 +21,17 @@ function colorForIndex(index: number): NovaColor {
 }
 
 export const NovaHeading = Heading.extend({
+  addInputRules() {
+  return [
+    textblockTypeInputRule({
+      find: /^(#{1,6})\s$/,
+      type: this.type,
+      getAttributes: (match: RegExpMatchArray) => ({
+        level: match[1].length,
+      }),
+    }),
+  ]
+},
   addAttributes() {
     return {
       ...this.parent?.(),

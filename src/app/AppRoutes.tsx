@@ -41,7 +41,7 @@ export default function AppRoutes() {
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
 
-      <Route path="/dashboard" component={AdminGate} >
+      <Route path="/dashboard" /*component={AdminGate} */>
       <Route path="/" component={() => <Suspense><Dashboard /></Suspense>} />
       <Route path="/:subject" component={() => <Suspense><SectionPicker /></Suspense>} />
       <Route path="/:subject/edit-quiz" component={() => <Suspense><QuizEditor /></Suspense>} />
