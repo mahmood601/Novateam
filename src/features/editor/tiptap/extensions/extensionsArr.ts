@@ -1,7 +1,10 @@
-import { TableKit } from "@tiptap/extension-table";
+import {Table} from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import { NovaTableCell, NovaTableHeader } from "./table/TableCellAttributes";
 import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyleKit } from "@tiptap/extension-text-style";
+import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -25,19 +28,28 @@ export const extensionsArr = [
   NovaAdmonition,
   NovaQuiz,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize
+  TextAlign.configure({ types: ["heading", "paragraph"] }),
   Highlight.configure({ multicolor: true }),
   NovaSubscript,
   NovaSuperscript,
   Mermaid.configure({
     debounceMs: 400,
   }),
-  TableKit.configure({
-    table: {
-      resizable: true,
-      lastColumnResizable: true,
-      allowTableNodeSelection: true,
-    },
+  // Table nodes are wired up individually (rather than via TableKit) so
+  // TableCell/TableHeader can be swapped for the alignment-aware variants
+  // below. `handleWidth` is widened past the 5px default so the column
+  // resize handle has a real touch target on Android; `cellMinWidth`
+  // keeps cells from being squeezed unusably thin by a finger drag.
+  Table.configure({
+    resizable: true,
+    lastColumnResizable: true,
+    allowTableNodeSelection: true,
+    handleWidth: 10,
+    cellMinWidth: 40,
   }),
+  TableRow,
+  NovaTableHeader,
+  NovaTableCell,
   ImageWithCaption.configure({
     inline: true,
     HTMLAttributes: {

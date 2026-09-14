@@ -13,9 +13,9 @@ export type MenuSheetItem = {
 };
 
 export default function MenuSheet(props: {
+  title: string;
   onClose: () => void;
   items: MenuSheetItem[];
-  setInsertActive: (active: boolean) => void;
 }) {
   const [activeId, setActiveId] = createSignal<string | null>(null);
 
@@ -40,7 +40,6 @@ export default function MenuSheet(props: {
         transition: "height 0.25s ease",
         display: "flex",
         "flex-direction": "column",
-        "max-height": "80vh",
       }}
     >
       <div
@@ -53,13 +52,10 @@ export default function MenuSheet(props: {
         }}
       >
         {/* Root list */}
-        <div ref={rootRef} class="sheet-panel flex w-full flex-col gap-1 p-2">
+        <div ref={rootRef} class="sheet-panel flex w-full flex-col gap-1 p-2  max-h-[40vh]">
           <div class="border-b-darker-light-1 flex items-center justify-between border-b-2 px-3 py-2">
-            <span>ادراج</span>
-            <X
-              class="cursor-pointer"
-              onClick={() => props.setInsertActive(false)}
-            />
+            <span>{props.title}</span>
+            <X class="cursor-pointer" onClick={() => props.onClose()} />
           </div>
           <div class="overflow-y-scroll">
             <For each={props.items}>

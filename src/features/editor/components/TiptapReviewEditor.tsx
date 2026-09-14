@@ -13,21 +13,41 @@ import {
   Switch,
 } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
+import { Dynamic } from "solid-js/web";
+import { DropdownMenu } from "@kobalte/core/dropdown-menu";
 import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignVerticalJustifyStart,
   ArrowLeft,
   Bold,
   CaseSensitive,
+  Check,
   CloudCheck,
   CloudOff,
   CloudSync,
+  Columns3,
+  Copy,
+  Eraser,
   ImagePlus,
   Images,
+  IndentDecrease,
+  IndentIncrease,
   Italic,
+  List,
+  ListOrdered,
   Plus,
   Redo2,
+  Rows3,
   Save,
   Strikethrough,
   Table2,
+  TableCellsMerge,
+  TableProperties,
   Trash2,
   Underline,
   Undo2,
@@ -50,6 +70,18 @@ import Menu from "./DropdownMenu";
 import { useKeyboardToolbar } from "../hooks/usekeyboardToolbar";
 import MenuSheet, { type MenuSheetItem } from "./MenuSheet";
 import FormatSheet from "./FormatSheet";
+import TableGripOverlay from "../tiptap/extensions/table/TableGripOverlay";
+import {
+  clearSelectedCellsContent,
+  duplicateCurrentColumn,
+  duplicateCurrentRow,
+  setSelectedCellsAttrs,
+} from "../tiptap/extensions/table/tableTransforms";
+import type {
+  CellTextAlign,
+  CellVerticalAlign,
+} from "../tiptap/extensions/table/TableCellAttributes";
+import { TablePickerPanel } from "../tiptap/extensions/table/TableGridPicker";
 
 export default function TiptapReviewEditor(props: {
   subjectId: string;
@@ -66,6 +98,7 @@ export default function TiptapReviewEditor(props: {
 
   const [insertActive, setInsertActive] = createSignal(false);
   const [formatActive, setFormatActive] = createSignal(false);
+  const [tableRowColActive, setTableRowColActive] = createSignal(false);
 
   const params = useParams();
   const subjectId = params.subject ?? "";
@@ -255,59 +288,168 @@ export default function TiptapReviewEditor(props: {
       activeKey: "strike",
       onClick: () => editor?.chain().focus().toggleStrike().run(),
     },
+    {
+      icon: List,
+      title: "Bullet list",
+      activeKey: "bulletList",
+      onClick: () => editor?.chain().focus().toggleBulletList().run(),
+    },
+    {
+      icon: ListOrdered,
+      title: "Numbered list",
+      activeKey: "orderedList",
+      onClick: () => editor?.chain().focus().toggleOrderedList().run(),
+    },
+    {
+      icon: IndentIncrease,
+      title: "Indent (nest list level)",
+      activeKey: "indent",
+      onClick: () => editor?.chain().focus().liftListItem("listItem").run(),
+    },
+    {
+      icon: IndentDecrease,
+      title: "Outdent (lift list level)",
+      activeKey: "outdent",
+      onClick: () => editor?.chain().focus().sinkListItem("listItem").run(),
+    },
   ];
 
-  const tableCommands = [
+  // Document-level text alignment (heading/paragraph), driven by the
+  // @tiptap/extension-text-align extension. Shown as a Kobalte dropdown
+  // in the floating toolbar rather than a row of buttons — same package
+  // already used for the "⋮" menu in DropdownMenu.tsx.
+  const textAlignCommands: {
+    icon: any;
+    label: string;
+    align: "right" | "center" | "left" | "justify";
+  }[] = [
+    { icon: AlignRight, label: "محاذاة يمين", align: "right" },
+    { icon: AlignCenter, label: "محاذاة وسط", align: "center" },
+    { icon: AlignLeft, label: "محاذاة يسار", align: "left" },
+    { icon: AlignJustify, label: "ضبط", align: "justify" },
+  ];
+
+  const isTextAlign = (align: string) => {
+    tick();
+    return editor?.isActive({ textAlign: align }) ?? false;
+  };
+
+  const currentAlignIcon = () =>
+    textAlignCommands.find((item) => isTextAlign(item.align))?.icon ??
+    AlignRight;
+
+  // Row/column edit commands, shown via a dedicated sheet (see tableRowColActive
+  // below) instead of inline in the table context toolbar.
+  const tableCommands: MenuSheetItem[] = [
     {
+      id: "add-row-before",
+      icon: Plus,
       label: "+Row ↑",
-      title: "Add row above",
       onClick: () => editor?.chain().focus().addRowBefore().run(),
     },
     {
+      id: "add-row-after",
+      icon: Plus,
       label: "+Row ↓",
-      title: "Add row below",
       onClick: () => editor?.chain().focus().addRowAfter().run(),
     },
     {
+      id: "delete-row",
+      icon: Trash2,
       label: "−Row",
-      title: "Delete row",
       onClick: () => editor?.chain().focus().deleteRow().run(),
     },
     {
+      id: "add-col-before",
+      icon: Plus,
       label: "+Col ←",
-      title: "Add column before",
       onClick: () => editor?.chain().focus().addColumnBefore().run(),
     },
     {
+      id: "add-col-after",
+      icon: Plus,
       label: "+Col →",
-      title: "Add column after",
       onClick: () => editor?.chain().focus().addColumnAfter().run(),
     },
     {
+      id: "delete-col",
+      icon: Trash2,
       label: "−Col",
-      title: "Delete column",
       onClick: () => editor?.chain().focus().deleteColumn().run(),
     },
     {
+      id: "merge-split",
+      icon: TableCellsMerge,
       label: "Merge/Split",
-      title: "Merge selected cells, or split a merged cell",
       onClick: () => editor?.chain().focus().mergeOrSplit().run(),
     },
     {
+      id: "duplicate-row",
+      icon: Copy,
+      label: "Duplicate row",
+      onClick: () => editor && duplicateCurrentRow(editor),
+    },
+    {
+      id: "duplicate-col",
+      icon: Copy,
+      label: "Duplicate col",
+      onClick: () => editor && duplicateCurrentColumn(editor),
+    },
+    {
+      id: "clear-content",
+      icon: Eraser,
+      label: "Clear content",
+      onClick: () => editor && clearSelectedCellsContent(editor),
+    },
+    {
+      id: "header-row",
+      icon: Rows3,
       label: "Header row",
-      title: "Toggle header row",
       onClick: () => editor?.chain().focus().toggleHeaderRow().run(),
     },
     {
+      id: "header-col",
+      icon: Columns3,
       label: "Header col",
-      title: "Toggle header column",
       onClick: () => editor?.chain().focus().toggleHeaderColumn().run(),
     },
     {
+      id: "header-cell",
+      icon: TableProperties,
       label: "Header cell",
-      title: "Toggle header cell",
       onClick: () => editor?.chain().focus().toggleHeaderCell().run(),
     },
+    {
+      id: "delete-table",
+      icon: Trash2,
+      label: "Delete Table",
+      onClick: () => editor?.chain().focus().deleteTable().run(),
+    },
+  ];
+
+  const cellAlignCommands: {
+    icon: any;
+    title: string;
+    align: CellTextAlign;
+  }[] = [
+    { icon: AlignLeft, title: "Align left", align: "left" },
+    { icon: AlignCenter, title: "Align center", align: "center" },
+    { icon: AlignRight, title: "Align right", align: "right" },
+    { icon: AlignJustify, title: "Justify", align: "justify" },
+  ];
+
+  const cellVerticalAlignCommands: {
+    icon: any;
+    title: string;
+    align: CellVerticalAlign;
+  }[] = [
+    { icon: AlignVerticalJustifyStart, title: "Align top", align: "top" },
+    {
+      icon: AlignVerticalJustifyCenter,
+      title: "Align middle",
+      align: "middle",
+    },
+    { icon: AlignVerticalJustifyEnd, title: "Align bottom", align: "bottom" },
   ];
 
   return (
@@ -317,8 +459,8 @@ export default function TiptapReviewEditor(props: {
         status={status}
         onBack={() => navigate(-1)}
         onSave={saveToSupabase}
-        onUndo={() => editor?.chain().focus().undo()}
-        onRedo={() => editor?.chain().focus().redo()}
+        onUndo={() => editor?.chain().focus().undo().run()}
+        onRedo={() => editor?.chain().focus().redo().run()}
         onInsert={() => setInsertActive(true)}
         subjectId={props.subjectId}
         handleFileUpload={handleFileUpload}
@@ -330,10 +472,10 @@ export default function TiptapReviewEditor(props: {
         </Suspense>
 
         {/* Floating formatting toolbar (hidden while a sheet is open) */}
-        <Show when={!insertActive() && !formatActive()}>
+        <Show when={!insertActive() && !formatActive() && !tableRowColActive()}>
           <div
             style={{ transform: `translate(-50%, -${offset()}px)` }}
-            class="fixed bottom-0 left-1/2 z-50 flex flex-row-reverse gap-2 overflow-visible bg-white px-3 py-2 shadow-md"
+            class="fixed bottom-0 left-1/2 z-50 w-screen flex flex-row-reverse gap-2 overflow-scroll bg-white px-3 py-2 shadow-md"
           >
             <For each={toolbarButtons}>
               {(button) => (
@@ -348,6 +490,58 @@ export default function TiptapReviewEditor(props: {
                 </button>
               )}
             </For>
+
+            {/* Text alignment (heading/paragraph) — Kobalte dropdown, same
+                library as the "⋮" menu in DropdownMenu.tsx */}
+            <DropdownMenu>
+              <DropdownMenu.Trigger
+                type="button"
+                class="hover:bg-darker-light-1 rounded p-2"
+                title="Text alignment"
+              >
+                <Dynamic component={currentAlignIcon()} size={18} />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  class="z-50 min-w-40 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+                  dir="rtl"
+                >
+                  <For each={textAlignCommands}>
+                    {(item) => (
+                      <DropdownMenu.Item
+                        class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-right text-sm text-slate-700 outline-none hover:bg-slate-100 focus:bg-slate-100"
+                        onSelect={() =>
+                          editor
+                            ?.chain()
+                            .focus()
+                            .toggleTextAlign(item.align)
+                            .run()
+                        }
+                      >
+                        <item.icon size={16} />
+                        <span class="flex-1">{item.label}</span>
+                        <Show when={isTextAlign(item.align)}>
+                          <Check size={14} style={{ color: "var(--color-main)" }} />
+                        </Show>
+                      </DropdownMenu.Item>
+                    )}
+                  </For>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu>
+
+            {/* Only shown while the selection is inside a table */}
+            <Show when={isActive("table")}>
+              <button
+                type="button"
+                class="hover:bg-darker-light-1 rounded p-2"
+                title="Rows & columns"
+                classList={{ active: tableRowColActive() }}
+                onClick={() => setTableRowColActive(!tableRowColActive())}
+              >
+                <TableProperties size={18} />
+              </button>
+            </Show>
           </div>
         </Show>
 
@@ -355,9 +549,22 @@ export default function TiptapReviewEditor(props: {
         <Show when={insertActive()}>
           <div class="fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden bg-white pb-1 shadow-lg">
             <MenuSheet
+              title="ادراج"
               onClose={() => setInsertActive(false)}
               items={getInsertItems()}
-              setInsertActive={setInsertActive}
+            />
+          </div>
+        </Show>
+
+        {/* Rows/columns sheet: everything that used to be inline in the
+            table context toolbar below (add/delete row & column, merge,
+            duplicate, clear, header toggles) */}
+        <Show when={tableRowColActive()}>
+          <div class="fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden bg-white pb-1 shadow-lg">
+            <MenuSheet
+              title="صفوف وأعمدة"
+              onClose={() => setTableRowColActive(false)}
+              items={tableCommands}
             />
           </div>
         </Show>
@@ -376,31 +583,64 @@ export default function TiptapReviewEditor(props: {
           </div>
         </Show>
 
-        {/* Table context toolbar */}
+        {/* Table context toolbar: delete table + cell alignment. Row/column
+            add-delete-merge-etc. commands moved to the sheet above,
+            reachable via the "Rows & columns" button. */}
         <Show when={isActive("table")}>
-          <div class="nova-tiptap-table-toolbar mb-2 flex flex-wrap items-center justify-center gap-1 px-3 text-xs">
-            <For each={tableCommands}>
+          <div
+            style={{ transform: `translate(-50%, -${offset() + 50}px)` }}
+            class={`fixed bottom-0 left-1/2  flex items-center justify-center gap-1 px-3 text-xs`}
+          >
+            <For each={cellAlignCommands}>
               {(item) => (
-                <TableCmdButton
-                  label={item.label}
+                <button
+                  type="button"
+                  class="rounded p-1.5 hover:opacity-80"
                   title={item.title}
-                  onClick={item.onClick}
-                />
+                  style={{
+                    "background-color": "var(--color-darker-light-1)",
+                    color: "var(--color-header)",
+                  }}
+                  onClick={() =>
+                    editor &&
+                    setSelectedCellsAttrs(editor, { textAlign: item.align })
+                  }
+                >
+                  <item.icon size={14} />
+                </button>
               )}
             </For>
 
-            <button
-              type="button"
-              class="flex items-center gap-1 rounded px-2 py-1"
-              title="Delete table"
-              style={{ color: "var(--color-warn)" }}
-              onClick={() => editor?.chain().focus().deleteTable().run()}
-            >
-              <Trash2 size={14} />
-              Delete table
-            </button>
+            <For each={cellVerticalAlignCommands}>
+              {(item) => (
+                <button
+                  type="button"
+                  class="rounded p-1.5 hover:opacity-80"
+                  title={item.title}
+                  style={{
+                    "background-color": "var(--color-darker-light-1)",
+                    color: "var(--color-header)",
+                  }}
+                  onClick={() =>
+                    editor &&
+                    setSelectedCellsAttrs(editor, { verticalAlign: item.align })
+                  }
+                >
+                  <item.icon size={14} />
+                </button>
+              )}
+            </For>
           </div>
         </Show>
+
+        {/* Row/column grip overlay: drag to reorder, tap to select */}
+        <TableGripOverlay
+          editor={() => editor}
+          tick={tick}
+          visible={() =>
+            !insertActive() && !formatActive() && !tableRowColActive()
+          }
+        />
       </div>
     </div>
   );
@@ -485,81 +725,5 @@ function EditorHeader(props: {
         </div>
       </div>
     </div>
-  );
-}
-
-/** Self-contained table size picker used as a MenuSheet panel. */
-function TablePickerPanel(props: {
-  maxRows: number;
-  maxCols: number;
-  onSelect: (rows: number, cols: number) => void;
-}) {
-  const [rows, setRows] = createSignal(3);
-  const [cols, setCols] = createSignal(3);
-
-  const clamp = (value: number, min: number, max: number) =>
-    Math.min(max, Math.max(min, value));
-
-  return (
-    <div class="bg-main-light border-darker-light-2 w-full overflow-y-scroll min-w-50 rounded-lg border p-3 shadow-lg">
-      <div class="flex flex-col gap-3">
-        <label class="flex flex-col gap-1 text-sm">
-          <span>صفوف (Rows)</span>
-          <input
-            type="number"
-            min={1}
-            max={props.maxRows}
-            value={rows()}
-            class="border-darker-light-2 rounded border px-2 py-1.5 text-center"
-            onInput={(e) =>
-              setRows(clamp(Number(e.currentTarget.value) || 1, 1, props.maxRows))
-            }
-          />
-        </label>
-
-        <label class="flex flex-col gap-1 text-sm">
-          <span>أعمدة (Columns)</span>
-          <input
-            type="number"
-            min={1}
-            max={props.maxCols}
-            value={cols()}
-            class="border-darker-light-2 rounded border px-2 py-1.5 text-center"
-            onInput={(e) =>
-              setCols(clamp(Number(e.currentTarget.value) || 1, 1, props.maxCols))
-            }
-          />
-        </label>
-
-        <button
-          type="button"
-          class="mt-1 rounded bg-main px-3 py-2 text-sm text-white hover:opacity-90"
-          onClick={() => props.onSelect(rows(), cols())}
-        >
-          إدراج جدول ({rows()} × {cols()})
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TableCmdButton(props: {
-  label: string;
-  title: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      class="rounded px-2 py-1 hover:opacity-80"
-      title={props.title}
-      style={{
-        "background-color": "var(--color-darker-light-1)",
-        color: "var(--color-header)",
-      }}
-      onClick={props.onClick}
-    >
-      {props.label}
-    </button>
   );
 }
