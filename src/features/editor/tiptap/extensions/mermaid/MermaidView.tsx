@@ -40,8 +40,8 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
       if (containerRef) {
         containerRef.innerHTML = `
           <pre style="
-            color: #ef4444;
-            background: #fef2f2;
+            color: var(--destructive);
+            background: color-mix(in srgb, var(--destructive) 12%, var(--card));
             padding: 12px;
             border-radius: 6px;
             font-size: 13px;
@@ -91,8 +91,8 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
       data-drag-handle
       style={{
         "border-radius": "10px",
-        border: props.selected ? "2px solid #3b82f6" : "1px solid #e5e7eb",
-        background: "#fafafa",
+        border: props.selected ? "2px solid var(--primary)" : "1px solid var(--border)",
+        background: "var(--card)",
         margin: "1.25rem 0",
         overflow: "hidden",
         transition: "border-color 0.15s ease",
@@ -105,10 +105,10 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
           "align-items": "center",
           "justify-content": "space-between",
           padding: "8px 12px",
-          background: "#f3f4f6",
-          "border-bottom": "1px solid #e5e7eb",
+          background: "var(--muted)",
+          "border-bottom": "1px solid var(--border)",
           "font-size": "12px",
-          color: "#6b7280",
+          color: "var(--muted-foreground)",
           "user-select": "none",
         }}
       >
@@ -120,8 +120,9 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
               style={{
                 padding: "3px 10px",
                 "font-size": "12px",
-                background: "white",
-                border: "1px solid #d1d5db",
+                background: "var(--card)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
                 "border-radius": "5px",
                 cursor: "pointer",
               }}
@@ -144,11 +145,13 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
               "min-height": "180px",
               "font-size": "13.5px",
               padding: "10px",
-              border: "1px solid #d1d5db",
+              border: "1px solid var(--border)",
               "border-radius": "6px",
               resize: "vertical",
               outline: "none",
               "line-height": "1.5",
+              background: "var(--card)",
+              color: "var(--foreground)",
             }}
             autofocus
           />
@@ -164,8 +167,8 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
               onClick={handleSave}
               style={{
                 padding: "6px 14px",
-                background: "#3b82f6",
-                color: "white",
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
                 border: "none",
                 "border-radius": "6px",
                 cursor: "pointer",
@@ -179,9 +182,9 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
               onClick={() => setIsEditing(false)}
               style={{
                 padding: "6px 14px",
-                background: "#f3f4f6",
-                color: "#374151",
-                border: "1px solid #d1d5db",
+                background: "var(--muted)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
                 "border-radius": "6px",
                 cursor: "pointer",
                 "font-size": "13px",
@@ -189,7 +192,7 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
             >
               إلغاء (Esc)
             </button>
-            <span style={{ "font-size": "12px", color: "#9ca3af" }}>
+            <span style={{ "font-size": "12px", color: "var(--muted-foreground)" }}>
               Cmd/Ctrl + Enter للحفظ
             </span>
           </div>
@@ -213,10 +216,10 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
                 display: "flex",
                 "align-items": "center",
                 "justify-content": "center",
-                background: "rgba(250,250,250,0.7)",
+                background: "color-mix(in srgb, var(--card) 70%, transparent)",
                 "z-index": "1",
                 "font-size": "13px",
-                color: "#6b7280",
+                color: "var(--muted-foreground)",
               }}
             >
               جاري الرسم...
@@ -239,8 +242,8 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
               style={{
                 "margin-top": "10px",
                 padding: "8px 12px",
-                background: "#fef2f2",
-                color: "#b91c1c",
+                background: "color-mix(in srgb, var(--destructive) 12%, var(--card))",
+                color: "var(--destructive)",
                 "border-radius": "6px",
                 "font-size": "13px",
                 "text-align": "right",

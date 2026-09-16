@@ -6,6 +6,7 @@ import {
   onCleanup,
   onMount,
   createSignal,
+  createEffect,
   For,
   Match,
   Show,
@@ -13,6 +14,7 @@ import {
   Switch,
 } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
+import { CellSelection } from "@tiptap/pm/tables";
 import { Dynamic } from "solid-js/web";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
 import {
@@ -33,11 +35,13 @@ import {
   Columns3,
   Copy,
   Eraser,
+  Grid2x2Check,
   ImagePlus,
   Images,
   IndentDecrease,
   IndentIncrease,
   Italic,
+  Link,
   List,
   ListOrdered,
   Plus,
@@ -75,6 +79,8 @@ import {
   clearSelectedCellsContent,
   duplicateCurrentColumn,
   duplicateCurrentRow,
+  findEnclosingCellPos,
+  selectCellRange,
   setSelectedCellsAttrs,
 } from "../tiptap/extensions/table/tableTransforms";
 import type {
@@ -99,6 +105,18 @@ export default function TiptapReviewEditor(props: {
   const [insertActive, setInsertActive] = createSignal(false);
   const [formatActive, setFormatActive] = createSignal(false);
   const [tableRowColActive, setTableRowColActive] = createSignal(false);
+
+  // "Select cells" mode: two-tap alternative to drag-to-select, which
+  // prosemirror-tables only wires up for mouse `mousedown`+drag and
+  // doesn't fire reliably from a touch drag on Android. First tap while
+  // active sets the anchor cell; the next tap on a *different* cell
+  // builds a rectangular CellSelection between them and turns the mode
+  // back off, ready to use (e.g. with the table formatting controls in
+  // FormatSheet).
+  const [cellSelectActive, setCellSelectActive] = createSignal(false);
+  const [cellSelectAnchor, setCellSelectAnchor] = createSignal<number | null>(
+    null,
+  );
 
   const params = useParams();
   const subjectId = params.subject ?? "";
@@ -251,6 +269,39 @@ export default function TiptapReviewEditor(props: {
     return editor?.isActive(name) ?? false;
   };
 
+  // Drives "select cells" mode: runs on every transaction (which
+  // includes plain cursor moves), and only acts while the mode is on.
+  createEffect(() => {
+    tick();
+    if (!cellSelectActive() || !editor) return;
+
+    if (!editor.isActive("table")) {
+      // Selection left the table entirely — bail out of the mode rather
+      // than leave a stale anchor from a different table.
+      setCellSelectActive(false);
+      setCellSelectAnchor(null);
+      return;
+    }
+
+    // Ignore the transaction we ourselves dispatch below when the range
+    // is built — it's already a CellSelection, not a fresh tap.
+    if (editor.state.selection instanceof CellSelection) return;
+
+    const cellPos = findEnclosingCellPos(editor);
+    if (cellPos === null) return;
+
+    const anchor = cellSelectAnchor();
+    if (anchor === null) {
+      setCellSelectAnchor(cellPos);
+      return;
+    }
+    if (cellPos === anchor) return; // tapped the same cell again, keep waiting
+
+    selectCellRange(editor, anchor, cellPos);
+    setCellSelectAnchor(null);
+    setCellSelectActive(false);
+  });
+
   const toolbarButtons = [
     {
       icon: Plus,
@@ -281,6 +332,35 @@ export default function TiptapReviewEditor(props: {
       title: "Underline",
       activeKey: "underline",
       onClick: () => editor?.chain().focus().toggleUnderline().run(),
+    },
+    {
+      icon: Link,
+      title: "link",
+      activeKey: "link",
+      onClick: () => {
+        const previousUrl = editor?.getAttributes("link").href;
+        const url = window.prompt("URL", previousUrl);
+
+        // cancelled
+        if (url === null) {
+          return;
+        }
+
+        // empty
+        if (url === "") {
+          editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+
+          return;
+        }
+
+        // update link
+        editor
+          ?.chain()
+          .focus()
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .run();
+      },
     },
     {
       icon: Strikethrough,
@@ -453,7 +533,7 @@ export default function TiptapReviewEditor(props: {
   ];
 
   return (
-    <div class="relative bg-white">
+    <div class="bg-main-light dark:bg-main-dark relative">
       <EditorHeader
         seasonId={seasonId}
         status={status}
@@ -468,20 +548,23 @@ export default function TiptapReviewEditor(props: {
 
       <div class="nova-tiptap-review mt-6" dir="rtl">
         <Suspense fallback={<div>Loading...</div>}>
-          <div ref={containerRef} class="nova-tiptap-content mb-6" />
+          <div
+            ref={containerRef}
+            class="nova-tiptap-content dark:bg-main-dark dark:text-main-light mb-6"
+          />
         </Suspense>
 
         {/* Floating formatting toolbar (hidden while a sheet is open) */}
         <Show when={!insertActive() && !formatActive() && !tableRowColActive()}>
           <div
             style={{ transform: `translate(-50%, -${offset()}px)` }}
-            class="fixed bottom-0 left-1/2 z-50 w-screen flex flex-row-reverse gap-2 overflow-scroll bg-white px-3 py-2 shadow-md"
+            class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-1/2 z-50 flex w-screen flex-row-reverse gap-2 overflow-scroll px-3 py-2 shadow-md"
           >
             <For each={toolbarButtons}>
               {(button) => (
                 <button
                   type="button"
-                  class="hover:bg-darker-light-1 rounded p-2"
+                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
                   title={button.title}
                   classList={{ active: isActive(button.activeKey) }}
                   onClick={button.onClick}
@@ -496,20 +579,20 @@ export default function TiptapReviewEditor(props: {
             <DropdownMenu>
               <DropdownMenu.Trigger
                 type="button"
-                class="hover:bg-darker-light-1 rounded p-2"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
                 title="Text alignment"
               >
                 <Dynamic component={currentAlignIcon()} size={18} />
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  class="z-50 min-w-40 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+                  class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light dark:bg-lighter-dark-1 text-header dark:text-main-light z-50 min-w-40 rounded-lg border p-1 shadow-lg"
                   dir="rtl"
                 >
                   <For each={textAlignCommands}>
                     {(item) => (
                       <DropdownMenu.Item
-                        class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-right text-sm text-slate-700 outline-none hover:bg-slate-100 focus:bg-slate-100"
+                        class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-right text-sm outline-none"
                         onSelect={() =>
                           editor
                             ?.chain()
@@ -521,7 +604,10 @@ export default function TiptapReviewEditor(props: {
                         <item.icon size={16} />
                         <span class="flex-1">{item.label}</span>
                         <Show when={isTextAlign(item.align)}>
-                          <Check size={14} style={{ color: "var(--color-main)" }} />
+                          <Check
+                            size={14}
+                            style={{ color: "var(--color-main)" }}
+                          />
                         </Show>
                       </DropdownMenu.Item>
                     )}
@@ -534,7 +620,24 @@ export default function TiptapReviewEditor(props: {
             <Show when={isActive("table")}>
               <button
                 type="button"
-                class="hover:bg-darker-light-1 rounded p-2"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
+                title={
+                  cellSelectAnchor() !== null
+                    ? "اضغط الخلية الثانية"
+                    : "تحديد خليتين متجاورتين"
+                }
+                classList={{ active: cellSelectActive() }}
+                onClick={() => {
+                  const next = !cellSelectActive();
+                  setCellSelectActive(next);
+                  setCellSelectAnchor(null);
+                }}
+              >
+                <Grid2x2Check size={18} />
+              </button>
+              <button
+                type="button"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
                 title="Rows & columns"
                 classList={{ active: tableRowColActive() }}
                 onClick={() => setTableRowColActive(!tableRowColActive())}
@@ -545,9 +648,22 @@ export default function TiptapReviewEditor(props: {
           </div>
         </Show>
 
+        {/* Hint shown while waiting for the second tap in "select cells" mode */}
+        <Show when={cellSelectActive() && cellSelectAnchor() !== null}>
+          <div
+            style={{
+              transform: `translate(-50%, -${offset() + 50}px)`,
+              "background-color": "var(--color-main)",
+            }}
+            class="fixed bottom-0 left-1/2 z-50 rounded-full px-3 py-1 text-xs text-white"
+          >
+            اضغط الخلية الثانية لإتمام التحديد
+          </div>
+        </Show>
+
         {/* Insert sheet driven by reusable MenuSheet */}
         <Show when={insertActive()}>
-          <div class="fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden bg-white pb-1 shadow-lg">
+          <div class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg">
             <MenuSheet
               title="ادراج"
               onClose={() => setInsertActive(false)}
@@ -560,7 +676,7 @@ export default function TiptapReviewEditor(props: {
             table context toolbar below (add/delete row & column, merge,
             duplicate, clear, header toggles) */}
         <Show when={tableRowColActive()}>
-          <div class="fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden bg-white pb-1 shadow-lg">
+          <div class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg">
             <MenuSheet
               title="صفوف وأعمدة"
               onClose={() => setTableRowColActive(false)}
@@ -573,7 +689,7 @@ export default function TiptapReviewEditor(props: {
         <Show when={formatActive()}>
           <div
             style={{ transform: `translate(0, -${offset()}px)` }}
-            class="fixed bottom-0 left-0 z-50 flex max-h-[80vh] w-screen flex-col overflow-hidden bg-white pb-1 shadow-lg"
+            class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-50 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg"
           >
             <FormatSheet
               editor={() => editor}
@@ -589,7 +705,7 @@ export default function TiptapReviewEditor(props: {
         <Show when={isActive("table")}>
           <div
             style={{ transform: `translate(-50%, -${offset() + 50}px)` }}
-            class={`fixed bottom-0 left-1/2  flex items-center justify-center gap-1 px-3 text-xs`}
+            class={`fixed bottom-0 left-1/2 flex items-center justify-center gap-1 px-3 text-xs`}
           >
             <For each={cellAlignCommands}>
               {(item) => (
@@ -598,8 +714,8 @@ export default function TiptapReviewEditor(props: {
                   class="rounded p-1.5 hover:opacity-80"
                   title={item.title}
                   style={{
-                    "background-color": "var(--color-darker-light-1)",
-                    color: "var(--color-header)",
+                    "background-color": "var(--editor-chrome-bg)",
+                    color: "var(--editor-chrome-icon)",
                   }}
                   onClick={() =>
                     editor &&
@@ -618,8 +734,8 @@ export default function TiptapReviewEditor(props: {
                   class="rounded p-1.5 hover:opacity-80"
                   title={item.title}
                   style={{
-                    "background-color": "var(--color-darker-light-1)",
-                    color: "var(--color-header)",
+                    "background-color": "var(--editor-chrome-bg)",
+                    color: "var(--editor-chrome-icon)",
                   }}
                   onClick={() =>
                     editor &&
@@ -658,17 +774,17 @@ function EditorHeader(props: {
   handleFileUpload: (event: Event) => void;
 }) {
   return (
-    <div class="border-darker-light-2 fixed top-0 left-0 z-50 w-full border-b bg-white/80 shadow-sm backdrop-blur-sm">
+    <div class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light/80 dark:bg-main-dark fixed top-0 left-0 z-50 w-full border-b shadow-sm backdrop-blur-sm">
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
         <button
-          class="hover:bg-darker-light-1 flex items-center rounded p-2"
+          class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex items-center rounded p-2"
           title="Back"
           onClick={props.onBack}
         >
           <ArrowLeft size={20} />
         </button>
 
-        <div class="text-header flex-1 text-center text-[18px] font-medium">
+        <div class="text-header dark:text-main-light flex-1 text-center text-[18px] font-medium">
           <span>{props.seasonId}</span>
         </div>
 
@@ -695,14 +811,14 @@ function EditorHeader(props: {
           </div>
 
           <button
-            class="hover:bg-darker-light-1 rounded-full p-2"
+            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full p-2"
             title="Undo"
             onClick={props.onUndo}
           >
             <Undo2 size={20} />
           </button>
           <button
-            class="hover:bg-darker-light-1 rounded-full p-2"
+            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full p-2"
             title="Redo"
             onClick={props.onRedo}
           >
@@ -710,7 +826,7 @@ function EditorHeader(props: {
           </button>
 
           <button
-            class="hover:bg-darker-light-1 rounded-full p-2"
+            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full p-2"
             title="Insert"
             onClick={props.onInsert}
           >

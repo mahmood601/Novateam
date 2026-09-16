@@ -183,9 +183,9 @@ export default function TableGripOverlay(props: {
     "border-radius": "6px",
     "background-color": highlighted
       ? "var(--color-main)"
-      : "var(--color-darker-light-1, #f6f6f7)",
-    color: highlighted ? "white" : "var(--color-header)",
-    border: "1px solid var(--color-darker-light-2, #e7e8ec)",
+      : "var(--editor-chrome-bg)",
+    color: highlighted ? "white" : "var(--editor-chrome-icon)",
+    border: "1px solid var(--editor-chrome-border)",
     "z-index": "30",
     cursor: "grab",
   });

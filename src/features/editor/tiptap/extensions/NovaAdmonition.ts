@@ -2,7 +2,6 @@ import {
   Node,
   mergeAttributes,
   createBlockMarkdownSpec,
-  wrappingInputRule,
 } from "@tiptap/core";
 
 export const SUPPORTED_ADMONITION_TYPES = [
@@ -14,7 +13,12 @@ export const SUPPORTED_ADMONITION_TYPES = [
   "important",
 ] as const;
 
-export type AdmonitionType = typeof SUPPORTED_ADMONITION_TYPES[number];
+export type AdmonitionType = (typeof SUPPORTED_ADMONITION_TYPES)[number];
+
+function defaultTitleForType(type: string): string {
+  if (!type) return "Note";
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
 
 export const NovaAdmonition = Node.create({
   name: "novaNote",
@@ -44,32 +48,54 @@ export const NovaAdmonition = Node.create({
     };
   },
 
-  addInputRules() {
-    // Matches: :::note, :::warning Title Here, :::tip Optional Custom Title
-    const typesGroup = SUPPORTED_ADMONITION_TYPES.join("|");
-    const typesRegex = new RegExp(`^:::(${typesGroup})(?:\\s+(.+))?\\s$`);
+  // تم استبدال addInputRules بـ addKeyboardShortcuts
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        const { $from, empty } = selection;
 
-    return [
-      wrappingInputRule({
-        find: typesRegex,
-        type: this.type,
-        getAttributes: (match) => ({
-          type: match[1] as AdmonitionType,
-          title: match[2] || null, // Captures title if provided after :::type
-        }),
-      }),
-    ];
+        // التأكد من أن المؤشر داخل فقرة نصية (paragraph) وأنه لا يوجد تظليل للنص
+        if (!empty || $from.parent.type.name !== "paragraph") {
+          return false;
+        }
+
+        const text = $from.parent.textContent;
+        const typesGroup = SUPPORTED_ADMONITION_TYPES.join("|");
+        // التعبير النمطي الآن لا يشترط مسافة في النهاية، بل يعتمد على نهاية السطر $
+        const regex = new RegExp(`^\\s*:::(${typesGroup})(?:\\s+(.*))?$`);
+        const match = text.match(regex);
+
+        if (match) {
+          const type = match[1] as AdmonitionType;
+          const title = match[2]?.trim() || null;
+
+          editor
+            .chain()
+            .focus()
+            // 1. حذف النص المكتوب (مثل: :::warning انتبه هنا)
+            .deleteRange({ from: $from.start(), to: $from.end() })
+            // 2. تغليف السطر الفارغ الجديد بمكون الملاحظة مع إعطائه الخصائص
+            .wrapIn(this.name, { type, title })
+            .run();
+
+          return true; // تم الاعتراض بنجاح وإيقاف النزول لسطر جديد عادي
+        }
+
+        return false; // إذا لم يطابق Regex، يتم تنفيذ الـ Enter بشكل طبيعي
+      },
+    };
   },
 
   parseHTML() {
     return [{ tag: 'div[data-nova-block="note"]' }];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    const { type, title } = HTMLAttributes;
-    
-    // Capitalize type if no custom title is provided
-    const displayTitle = title || (type ? type.charAt(0).toUpperCase() + type.slice(1) : "Note");
+  renderHTML({ node, HTMLAttributes }) {
+    const type = (node.attrs.type as string) || "note";
+    const title = node.attrs.title as string | null;
+    const displayTitle = title || defaultTitleForType(type);
 
     return [
       "div",
@@ -77,14 +103,12 @@ export const NovaAdmonition = Node.create({
         "data-nova-block": "note",
         class: "nova-note",
       }),
-      // Header element containing Icon + Title (Obsidian style)
       [
         "div",
         { class: "nova-note-header", contenteditable: "false" },
         ["span", { class: "nova-note-icon" }],
         ["span", { class: "nova-note-title" }, displayTitle],
       ],
-      // Editable content area
       ["div", { class: "nova-note-content" }, 0],
     ];
   },
@@ -94,6 +118,6 @@ export const NovaAdmonition = Node.create({
     name: "note",
     content: "block",
     defaultAttributes: { type: "note" },
-    allowedAttributes: ["type", "title"],
+    allowedAttributes: ["type", "title", "color"],
   }),
 });

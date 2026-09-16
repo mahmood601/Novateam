@@ -15,7 +15,7 @@ import { onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "../features/quizzes/services/local/indexeddb/sync";
 import { applyStoredFont } from "../features/shared/services/local/customFont";
 import UpdatePanel from "../features/shared/components/updates/UpdatePanel";
-// import MaintenanceGate from "../features/shared/components/MaintenanceGate";
+import MaintenanceGate from "../features/shared/components/MaintenanceGate";
 
 export default function App() {
   const { applyTheme } = useTheme();
@@ -45,13 +45,13 @@ export default function App() {
   return (
     <AppErrorBoundary>
       <UserProvider>
-        {/* <MaintenanceGate> */}
-        <Toaster />
-        <UpdatePanel />
-        <Router root={Layout as any}>
-          <AppRoutes />
-        </Router>
-        {/* </MaintenanceGate> */}
+        <MaintenanceGate>
+          <Toaster />
+          <UpdatePanel />
+          <Router root={Layout as any}>
+            <AppRoutes />
+          </Router>
+        </MaintenanceGate>
         <PWAProvider />
       </UserProvider>
     </AppErrorBoundary>

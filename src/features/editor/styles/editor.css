@@ -4,6 +4,25 @@
     border: none;
 }
 
+/* Dark-mode-aware role tokens for the editor's own chrome (table
+   borders/headers, toolbar buttons, sheets, grips). Derived from the
+   app's global theme tokens in src/styles/theme.css instead of new
+   colors, so the editor always tracks whichever palette (light/dark,
+   and the active accent theme) is active — the same tokens are read
+   from inline styles in the .tsx files below since Tailwind's `dark:`
+   variant only works on classes, not on style="" values. */
+:root {
+    --editor-chrome-bg: var(--color-darker-light-1);
+    --editor-chrome-border: var(--color-darker-light-2);
+    --editor-chrome-icon: var(--color-header);
+}
+
+.dark {
+    --editor-chrome-bg: var(--color-lighter-dark-1);
+    --editor-chrome-border: var(--color-lighter-dark-2);
+    --editor-chrome-icon: var(--color-main-light);
+}
+
 /* Tailwind's preflight (@import "tailwindcss" in styles/index.css) resets
    list-style/margin/padding to 0 on every <ul>/<ol> globally, so toggling
    a bullet/numbered list produced the right DOM node but no visible
@@ -62,7 +81,7 @@
 
 .tiptap table td,
 .tiptap table th {
-    border: 1px solid var(--color-darker-light-2, #e7e8ec);
+    border: 1px solid var(--editor-chrome-border);
     padding: 6px 10px;
     vertical-align: top;
     box-sizing: border-box;
@@ -71,7 +90,7 @@
 }
 
 .tiptap table th {
-    background-color: var(--color-darker-light-1, #f6f6f7);
+    background-color: var(--editor-chrome-bg);
     font-weight: 600;
     text-align: start;
 }

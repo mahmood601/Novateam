@@ -53,7 +53,7 @@ export default function MenuSheet(props: {
       >
         {/* Root list */}
         <div ref={rootRef} class="sheet-panel flex w-full flex-col gap-1 p-2  max-h-[40vh]">
-          <div class="border-b-darker-light-1 flex items-center justify-between border-b-2 px-3 py-2">
+          <div class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2">
             <span>{props.title}</span>
             <X class="cursor-pointer" onClick={() => props.onClose()} />
           </div>
@@ -62,7 +62,7 @@ export default function MenuSheet(props: {
               {(item) => (
                 <button
                   type="button"
-                  class="hover:bg-darker-light-1 flex w-full items-center gap-3 rounded px-3 py-2 text-sm"
+                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex w-full items-center gap-3 rounded px-3 py-2 text-sm"
                   onClick={() => {
                     if (item.panel) {
                       setActiveId(item.id);
@@ -85,7 +85,7 @@ export default function MenuSheet(props: {
           <Show when={activeItem()}>
             <button
               type="button"
-              class="border-b-darker-light-1 flex w-full items-center justify-between gap-2 border-b-2 px-3 py-2"
+              class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex w-full items-center justify-between gap-2 border-b-2 px-3 py-2"
 
               onClick={() => setActiveId(null)}
             >

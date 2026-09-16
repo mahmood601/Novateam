@@ -129,7 +129,7 @@ export function TableSizeStepper(props: {
           min={1}
           max={props.maxRows}
           value={rows()}
-          class="border-darker-light-2 rounded border px-2 py-1.5 text-center"
+          class="border-darker-light-2 dark:border-lighter-dark-2 dark:bg-main-dark rounded border px-2 py-1.5 text-center"
           onInput={(e) =>
             setRows(clamp(Number(e.currentTarget.value) || 1, 1, props.maxRows))
           }
@@ -143,7 +143,7 @@ export function TableSizeStepper(props: {
           min={1}
           max={props.maxCols}
           value={cols()}
-          class="border-darker-light-2 rounded border px-2 py-1.5 text-center"
+          class="border-darker-light-2 dark:border-lighter-dark-2 dark:bg-main-dark rounded border px-2 py-1.5 text-center"
           onInput={(e) =>
             setCols(clamp(Number(e.currentTarget.value) || 1, 1, props.maxCols))
           }
@@ -168,7 +168,7 @@ export function TablePickerPanel(props: {
   onSelect: (rows: number, cols: number) => void;
 }) {
   return (
-    <div class="bg-main-light border-darker-light-2 max-h-[70vh] w-full min-w-50 overflow-y-auto rounded-lg border p-3 shadow-lg">
+    <div class="bg-main-light dark:bg-lighter-dark-1 border-darker-light-2 dark:border-lighter-dark-2 max-h-[70vh] w-full min-w-50 overflow-y-auto rounded-lg border p-3 shadow-lg">
       <div class="flex flex-col items-center gap-4">
         {/* <TableGridPicker
           maxRows={props.maxRows}
@@ -176,7 +176,7 @@ export function TablePickerPanel(props: {
           onSelect={props.onSelect}
         /> */}
 
-        <div class="border-darker-light-2 w-full border-t pt-3">
+        <div class="border-darker-light-2 dark:border-lighter-dark-2 w-full border-t pt-3">
           <TableSizeStepper
             maxRows={30}
             maxCols={20}

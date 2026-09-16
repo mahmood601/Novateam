@@ -36,6 +36,11 @@ import {
   MAX_FONT_SIZE,
   type ColorSwatch,
 } from "../lib/formatColors";
+import {
+  setSelectedCellsAttrs,
+  setTableAttrs,
+} from "../tiptap/extensions/table/tableTransforms";
+import type { CellBorderStyle, CellBorderWidth } from "../tiptap/extensions/table/TableCellAttributes";
 
 type PanelId =
   | "root"
@@ -43,7 +48,26 @@ type PanelId =
   | "fontFamily"
   | "textColor"
   | "textBackground"
-  | "highlight";
+  | "highlight"
+  | "tableFormat";
+
+type TableScope = "selected" | "table";
+
+const BORDER_STYLE_ITEMS: { value: CellBorderStyle | null; label: string }[] = [
+  { value: null, label: "افتراضي" },
+  { value: "none", label: "بدون" },
+  { value: "solid", label: "متصل" },
+  { value: "dashed", label: "متقطع" },
+  { value: "dotted", label: "منقط" },
+  { value: "double", label: "مزدوج" },
+];
+
+const BORDER_WIDTH_ITEMS: { value: CellBorderWidth | null; label: string }[] = [
+  { value: null, label: "افتراضي" },
+  { value: "thin", label: "رفيع" },
+  { value: "medium", label: "متوسط" },
+  { value: "thick", label: "سميك" },
+];
 
 const TEXT_STYLE_ITEMS: { level: 1 | 2 | 3 | 4 | 5 | 6 | null; label: string; icon: any }[] = [
   { level: null, label: "نص عادي", icon: Pilcrow },
@@ -61,6 +85,7 @@ const LEAF_TITLES: Record<Exclude<PanelId, "root">, string> = {
   textColor: "لون النص",
   textBackground: "لون خلفية النص",
   highlight: "التظليل",
+  tableFormat: "تنسيق الجدول",
 };
 
 export default function FormatSheet(props: {
@@ -69,6 +94,7 @@ export default function FormatSheet(props: {
   onClose: () => void;
 }) {
   const [panel, setPanel] = createSignal<PanelId>("root");
+  const [tableScope, setTableScope] = createSignal<TableScope>("selected");
 
   let wrapperRef: HTMLDivElement | undefined;
   let rootRef: HTMLDivElement | undefined;
@@ -115,6 +141,31 @@ export default function FormatSheet(props: {
 
   const isSubscript = () => ed()?.isActive("subscript") ?? false;
   const isSuperscript = () => ed()?.isActive("superscript") ?? false;
+
+  const isInTable = () => ed()?.isActive("table") ?? false;
+
+  // Reads whichever cell type (data cell or header cell) the selection is
+  // currently anchored in — same fallback getAttributes needs since the
+  // two node types carry the same style attributes independently.
+  const currentCellAttrs = () => {
+    const e = ed();
+    if (!e) return {} as Record<string, unknown>;
+    return e.isActive("tableHeader")
+      ? e.getAttributes("tableHeader")
+      : e.getAttributes("tableCell");
+  };
+
+  const currentCellBackground = () => (currentCellAttrs().backgroundColor as string | undefined) ?? null;
+  const currentBorderStyle = () => (currentCellAttrs().borderStyle as CellBorderStyle | undefined) ?? null;
+  const currentBorderWidth = () => (currentCellAttrs().borderWidth as CellBorderWidth | undefined) ?? null;
+  const currentBorderColor = () => (currentCellAttrs().borderColor as string | undefined) ?? null;
+
+  const applyTableAttrs = (attrs: Record<string, unknown>) => {
+    const e = ed();
+    if (!e) return;
+    if (tableScope() === "table") setTableAttrs(e, attrs);
+    else setSelectedCellsAttrs(e, attrs);
+  };
 
   const setTextStyle = (level: 1 | 2 | 3 | 4 | 5 | 6 | null) => {
     const e = ed();
@@ -163,7 +214,7 @@ export default function FormatSheet(props: {
         "max-height": "80vh",
       }}
     >
-      <div class="border-b-darker-light-1 flex items-center justify-between border-b-2 px-3 py-2" dir="rtl">
+      <div class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2" dir="rtl">
         <span class="font-medium">تنسيق</span>
         <X class="cursor-pointer" onClick={props.onClose} />
       </div>
@@ -199,7 +250,7 @@ export default function FormatSheet(props: {
             onIncrement={() => setFontSize(currentFontSize() + 1)}
           />
 
-          <div class="border-darker-light-2 my-1 border-t" />
+          <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
 
           <FormatRow
             icon={Baseline}
@@ -220,13 +271,23 @@ export default function FormatSheet(props: {
             onClick={() => setPanel("highlight")}
           />
 
-          <div class="border-darker-light-2 my-1 border-t" />
+          <Show when={isInTable()}>
+            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+            <FormatRow
+              icon={PaintBucket}
+              label="تنسيق الجدول"
+              trailingLabel="الخلفية والحدود"
+              onClick={() => setPanel("tableFormat")}
+            />
+          </Show>
+
+          <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
 
           <div class="flex w-full items-center gap-2 px-1 py-1.5">
             <button
               type="button"
-              classList={{ "bg-darker-light-1": isSubscript() }}
-              class="hover:bg-darker-light-1 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
+              classList={{ "bg-darker-light-1 dark:bg-lighter-dark-2": isSubscript() }}
+              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
               title="نص سفلي (Subscript)"
               onClick={() => ed()?.chain().focus().toggleSubscript().run()}
             >
@@ -235,8 +296,8 @@ export default function FormatSheet(props: {
             </button>
             <button
               type="button"
-              classList={{ "bg-darker-light-1": isSuperscript() }}
-              class="hover:bg-darker-light-1 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
+              classList={{ "bg-darker-light-1 dark:bg-lighter-dark-2": isSuperscript() }}
+              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
               title="نص علوي (Superscript)"
               onClick={() => ed()?.chain().focus().toggleSuperscript().run()}
             >
@@ -251,7 +312,7 @@ export default function FormatSheet(props: {
           <Show when={panel() !== "root"}>
             <button
               type="button"
-              class="border-b-darker-light-1 mb-1 flex w-full items-center gap-2 border-b-2 px-3 py-2"
+              class="border-b-darker-light-1 dark:border-b-lighter-dark-2 mb-1 flex w-full items-center gap-2 border-b-2 px-3 py-2"
               onClick={() => setPanel("root")}
             >
               <ArrowRight size={18} />
@@ -312,6 +373,123 @@ export default function FormatSheet(props: {
                   onSelect={(v) => applyColor("highlight", v)}
                 />
               </Match>
+
+              <Match when={panel() === "tableFormat"}>
+                <div class="flex flex-col gap-4 px-1 py-2">
+                  {/* Scope: apply the pickers below to the selected cells
+                      only, or to every cell in the table at once. */}
+                  <div class="bg-darker-light-1 dark:bg-lighter-dark-2 flex items-center gap-1 rounded-full p-1 text-sm">
+                    <button
+                      type="button"
+                      class="flex-1 rounded-full py-1.5"
+                      classList={{ "bg-main-light dark:bg-lighter-dark-1 shadow-sm": tableScope() === "selected" }}
+                      onClick={() => setTableScope("selected")}
+                    >
+                      الخلايا المحددة
+                    </button>
+                    <button
+                      type="button"
+                      class="flex-1 rounded-full py-1.5"
+                      classList={{ "bg-main-light dark:bg-lighter-dark-1 shadow-sm": tableScope() === "table" }}
+                      onClick={() => setTableScope("table")}
+                    >
+                      كل الجدول
+                    </button>
+                  </div>
+
+                  <div>
+                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      خلفية الخلية
+                    </div>
+                    <ColorGrid
+                      current={currentCellBackground()}
+                      resetLabel="بلا لون"
+                      onSelect={(v) => applyTableAttrs({ backgroundColor: v })}
+                    />
+                  </div>
+
+                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                  <div>
+                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      شكل الحدود
+                    </div>
+                    <div class="flex flex-wrap gap-2 px-1">
+                      <For each={BORDER_STYLE_ITEMS}>
+                        {(item) => (
+                          <button
+                            type="button"
+                            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
+                            classList={{
+                              "border-2": currentBorderStyle() === item.value,
+                            }}
+                            style={{
+                              "border-color":
+                                currentBorderStyle() === item.value
+                                  ? "var(--color-main)"
+                                  : "var(--editor-chrome-border)",
+                              color:
+                                currentBorderStyle() === item.value
+                                  ? "var(--color-main)"
+                                  : "inherit",
+                            }}
+                            onClick={() => applyTableAttrs({ borderStyle: item.value })}
+                          >
+                            {item.label}
+                          </button>
+                        )}
+                      </For>
+                    </div>
+                  </div>
+
+                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                  <div>
+                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      حجم الحد
+                    </div>
+                    <div class="flex flex-wrap gap-2 px-1">
+                      <For each={BORDER_WIDTH_ITEMS}>
+                        {(item) => (
+                          <button
+                            type="button"
+                            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
+                            classList={{
+                              "border-2": currentBorderWidth() === item.value,
+                            }}
+                            style={{
+                              "border-color":
+                                currentBorderWidth() === item.value
+                                  ? "var(--color-main)"
+                                  : "var(--editor-chrome-border)",
+                              color:
+                                currentBorderWidth() === item.value
+                                  ? "var(--color-main)"
+                                  : "inherit",
+                            }}
+                            onClick={() => applyTableAttrs({ borderWidth: item.value })}
+                          >
+                            {item.label}
+                          </button>
+                        )}
+                      </For>
+                    </div>
+                  </div>
+
+                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                  <div>
+                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                      لون الحدود
+                    </div>
+                    <ColorGrid
+                      current={currentBorderColor()}
+                      resetLabel="افتراضي"
+                      onSelect={(v) => applyTableAttrs({ borderColor: v })}
+                    />
+                  </div>
+                </div>
+              </Match>
             </Switch>
           </Show>
         </div>
@@ -331,13 +509,13 @@ function FormatRow(props: {
   return (
     <button
       type="button"
-      class="hover:bg-darker-light-1 flex w-full items-center gap-3 rounded px-3 py-2.5 text-sm"
+      class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex w-full items-center gap-3 rounded px-3 py-2.5 text-sm"
       onClick={props.onClick}
     >
-      <props.icon size={18} class="shrink-0" style={{ color: "var(--color-header)" }} />
+      <props.icon size={18} class="shrink-0 text-header dark:text-main-light" />
       <span class="flex-1 text-right">{props.label}</span>
       <Show when={props.trailingLabel}>
-        <span class="text-xs" style={{ color: "var(--color-dark-hover)" }}>
+        <span class="text-xs" style={{ color: "var(--muted-foreground)" }}>
           {props.trailingLabel}
         </span>
       </Show>
@@ -345,12 +523,12 @@ function FormatRow(props: {
         <span
           class="h-5 w-5 shrink-0 rounded-full border"
           style={{
-            "border-color": "var(--color-darker-light-2)",
+            "border-color": "var(--editor-chrome-border)",
             "background-color": props.swatch || "transparent",
           }}
         />
       </Show>
-      <ChevronLeft size={16} class="shrink-0" style={{ color: "var(--color-dark-hover)" }} />
+      <ChevronLeft size={16} class="shrink-0" style={{ color: "var(--muted-foreground)" }} />
     </button>
   );
 }
@@ -365,7 +543,7 @@ function ListItemRow(props: {
   return (
     <button
       type="button"
-      class="hover:bg-darker-light-1 flex w-full items-center gap-3 rounded px-3 py-2.5 text-sm"
+      class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex w-full items-center gap-3 rounded px-3 py-2.5 text-sm"
       onClick={props.onClick}
     >
       <Show when={props.icon}>
@@ -390,12 +568,12 @@ function FontSizeRow(props: {
 }) {
   return (
     <div class="flex w-full items-center gap-3 px-3 py-2.5 text-sm">
-      <props.icon size={18} class="shrink-0" style={{ color: "var(--color-header)" }} />
+      <props.icon size={18} class="shrink-0 text-header dark:text-main-light" />
       <span class="flex-1 text-right">{props.label}</span>
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="hover:bg-darker-light-1 border-darker-light-2 flex h-7 w-7 items-center justify-center rounded-full border"
+          class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 border-darker-light-2 dark:border-lighter-dark-2 flex h-7 w-7 items-center justify-center rounded-full border"
           title="تصغير"
           onClick={props.onDecrement}
         >
@@ -404,7 +582,7 @@ function FontSizeRow(props: {
         <span class="w-7 text-center tabular-nums">{props.value}</span>
         <button
           type="button"
-          class="hover:bg-darker-light-1 border-darker-light-2 flex h-7 w-7 items-center justify-center rounded-full border"
+          class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 border-darker-light-2 dark:border-lighter-dark-2 flex h-7 w-7 items-center justify-center rounded-full border"
           title="تكبير"
           onClick={props.onIncrement}
         >
@@ -426,14 +604,14 @@ function ColorGrid(props: {
     <div class="flex flex-col gap-3 px-1 py-2">
       <button
         type="button"
-        class="hover:bg-darker-light-1 flex items-center gap-3 rounded px-2 py-2 text-sm"
+        class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex items-center gap-3 rounded px-2 py-2 text-sm"
         onClick={() => props.onSelect(null)}
       >
         <span
-          class="border-darker-light-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border"
+          class="border-darker-light-2 dark:border-lighter-dark-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border"
           style={{ "background-color": "transparent" }}
         >
-          <X size={12} style={{ color: "var(--color-dark-hover)" }} />
+          <X size={12} style={{ color: "var(--muted-foreground)" }} />
         </span>
         <span class="flex-1 text-right">{props.resetLabel}</span>
         <Show when={props.current === null}>
@@ -443,13 +621,13 @@ function ColorGrid(props: {
 
       <For each={FORMAT_COLOR_GROUPS}>
         {(group: ColorSwatch[]) => (
-          <div class="grid grid-cols-6 gap-2 justify-items-center">
+          <div class="grid grid-cols-6 gap-2 justify-items-center overflow-scroll firs">
             <For each={group}>
               {(swatch) => (
                 <button
                   type="button"
                   title={swatch.label}
-                  class="border-darker-light-2 relative h-8 w-8 rounded-full border"
+                  class="border-darker-light-2 dark:border-lighter-dark-2 relative h-8 w-8 rounded-full border"
                   style={{ "background-color": swatch.value }}
                   onClick={() => props.onSelect(swatch.value)}
                 >

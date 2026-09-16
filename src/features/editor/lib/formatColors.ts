@@ -5,47 +5,79 @@
 
 export type ColorSwatch = { value: string; label: string };
 
-export const GRAYSCALE_SWATCHES: ColorSwatch[] = [
-  { value: "#000000", label: "أسود" },
-  { value: "#434343", label: "رمادي غامق جدًا" },
-  { value: "#666666", label: "رمادي غامق" },
-  { value: "#999999", label: "رمادي" },
-  { value: "#B7B7B7", label: "رمادي فاتح" },
-  { value: "#D9D9D9", label: "رمادي فاتح جدًا" },
-  { value: "#EFEFEF", label: "رمادي شبه أبيض" },
-  { value: "#FFFFFF", label: "أبيض" },
+export const ROSE_SWATCHES: ColorSwatch[] = [
+  { value: "#d00054", label: "main" },
+  { value: "#a60043", label: "80% color / 20% black" },
+  { value: "#d93376", label: "80% color / 20% white" },
+  { value: "#f1b3cc", label: "30% color / 70% white" },
+  { value: "#fbebf1", label: "8% color / 92% white" },
+  { value: "#fcf0f5", label: " 6% color / 94% white " },
+
 ];
 
-export const STANDARD_SWATCHES: ColorSwatch[] = [
-  { value: "#980000", label: "عنابي" },
-  { value: "#FF0000", label: "أحمر" },
-  { value: "#FF9900", label: "برتقالي" },
-  { value: "#FFFF00", label: "أصفر" },
-  { value: "#00A650", label: "أخضر" },
-  { value: "#00FFFF", label: "سماوي" },
-  { value: "#4A86E8", label: "أزرق فاتح" },
-  { value: "#0000FF", label: "أزرق" },
-  { value: "#9900FF", label: "بنفسجي" },
-  { value: "#FF00FF", label: "وردي فاقع" },
-];
+export const ORANGE_SWATCHES: ColorSwatch[] = [
+  { value: "#ff9933", label: "main" },
+  { value: "#cc7a29", label: "80% color / 20% black" },
+  { value: "#ffad5c", label: "80% color / 20% white" },
+  { value: "#ffe0c2", label: "30% color / 70% white" },
+  { value: "#fff7ef", label: "8% color / 92% white" },
+  { value: "#fff9f3", label: " 6% color / 94% white " },
 
-export const LIGHT_SWATCHES: ColorSwatch[] = [
-  { value: "#E6B8AF", label: "عنابي فاتح" },
-  { value: "#F4CCCC", label: "أحمر فاتح" },
-  { value: "#FCE5CD", label: "برتقالي فاتح" },
-  { value: "#FFF2CC", label: "أصفر فاتح" },
-  { value: "#D9EAD3", label: "أخضر فاتح" },
-  { value: "#D0E0E3", label: "سماوي فاتح" },
-  { value: "#C9DAF8", label: "أزرق فاتح جدًا" },
-  { value: "#CFE2F3", label: "أزرق سماوي فاتح" },
-  { value: "#D9D2E9", label: "بنفسجي فاتح" },
-  { value: "#EAD1DC", label: "وردي فاتح" },
+];
+export const BLUE_SWATCHES: ColorSwatch[] = [
+  { value: "#3399ff", label: "main" },
+  { value: "#297acc", label: "80% color / 20% black" },
+  { value: "#5cadff", label: "80% color / 20% white" },
+  { value: "#c2e0ff", label: "30% color / 70% white" },
+  { value: "#eff7ff", label: "8% color / 92% white" },
+  { value: "#f3f9ff", label: " 6% color / 94% white " },
+
+];
+export const GREEN_SWATCHES: ColorSwatch[] = [
+  { value: "#00b050", label: "main" },
+  { value: "#008d40", label: "80% color / 20% black" },
+  { value: "#33c073", label: "80% color / 20% white" },
+  { value: "#b3e7cb", label: "30% color / 70% white" },
+  { value: "#ebf9f1", label: "8% color / 92% white" },
+  { value: "#f0faf5", label: " 6% color / 94% white " },
+
+];
+export const YELLOW_SWATCHES: ColorSwatch[] = [
+  { value: "#bf8f00", label: "main" },
+  { value: "#997200", label: "80% color / 20% black" },
+  { value: "#cca533", label: "80% color / 20% white" },
+  { value: "#ecddb3", label: "30% color / 70% white" },
+  { value: "#faf6eb", label: "8% color / 92% white" },
+  { value: "#fbf8f0", label: " 6% color / 94% white " },
+
+];
+export const PURPLE_SWATCHES: ColorSwatch[] = [
+  { value: "#cc00ff", label: "main" },
+  { value: "#a300cc", label: "80% color / 20% black" },
+  { value: "#d633ff", label: "80% color / 20% white" },
+  { value: "#f0b3ff", label: "30% color / 70% white" },
+  { value: "#fbebff", label: "8% color / 92% white" },
+  { value: "#fcf0ff", label: " 6% color / 94% white " },
+
+];
+export const PINK_SWATCHES: ColorSwatch[] = [
+  { value: "#ff3bff", label: "main" },
+  { value: "#cc2fcc", label: "80% color / 20% black" },
+  { value: "#ff62ff", label: "80% color / 20% white" },
+  { value: "#ffc4ff", label: "30% color / 70% white" },
+  { value: "#ffefff", label: "8% color / 92% white" },
+  { value: "#fff3ff", label: " 6% color / 94% white " },
+
 ];
 
 export const FORMAT_COLOR_GROUPS: ColorSwatch[][] = [
-  GRAYSCALE_SWATCHES,
-  STANDARD_SWATCHES,
-  LIGHT_SWATCHES,
+  ROSE_SWATCHES,
+  ORANGE_SWATCHES,
+  BLUE_SWATCHES,
+  GREEN_SWATCHES,
+  YELLOW_SWATCHES,
+  PURPLE_SWATCHES,
+  PINK_SWATCHES
 ];
 
 // Web-safe / already-bundled font choices. "Default" leaves the app's

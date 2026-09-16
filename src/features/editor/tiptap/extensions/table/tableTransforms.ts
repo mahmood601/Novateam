@@ -216,6 +216,36 @@ export function clearSelectedCellsContent(editor: Editor): boolean {
   return true;
 }
 
+// Position (in the doc) of the table cell/header enclosing the current
+// selection's anchor, or null if the selection isn't inside a cell.
+export function findEnclosingCellPos(editor: Editor): number | null {
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth > 0; depth--) {
+    const node = $from.node(depth);
+    if (node.type.name === "tableCell" || node.type.name === "tableHeader") {
+      return $from.before(depth);
+    }
+  }
+  return null;
+}
+
+// Build a rectangular CellSelection between two cell positions (as
+// returned by findEnclosingCellPos) and make it the active selection.
+// Used by the two-tap "select cells" mode (see TiptapReviewEditor),
+// since prosemirror-tables' native drag-to-select is driven purely by
+// `mousedown` + mouse drag and isn't reliable on touch — the same
+// reason TableGripOverlay exists for row/column selection.
+export function selectCellRange(editor: Editor, anchorPos: number, headPos: number): boolean {
+  try {
+    const selection = CellSelection.create(editor.state.doc, anchorPos, headPos);
+    editor.view.dispatch(editor.state.tr.setSelection(selection));
+    editor.view.focus();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Merge extra attrs (e.g. textAlign/verticalAlign) into every selected cell. */
 export function setSelectedCellsAttrs(editor: Editor, attrs: Record<string, unknown>): boolean {
   const { selection } = editor.state;
@@ -240,6 +270,35 @@ export function setSelectedCellsAttrs(editor: Editor, attrs: Record<string, unkn
         break;
       }
     }
+  }
+
+  if (!changed) return false;
+  editor.view.dispatch(tr);
+  return true;
+}
+
+/** Merge extra attrs (e.g. backgroundColor/borderStyle) into every cell of
+ *  the enclosing table, regardless of the current selection. Uses
+ *  TableMap so merged cells (which repeat their anchor position across
+ *  their span) are only touched once. */
+export function setTableAttrs(editor: Editor, attrs: Record<string, unknown>): boolean {
+  const table = findTable(editor);
+  if (!table) return false;
+
+  const map = TableMap.get(table.node);
+  const start = table.pos + 1;
+  let tr = editor.state.tr;
+  let changed = false;
+  const seen = new Set<number>();
+
+  for (const relPos of map.map) {
+    if (seen.has(relPos)) continue;
+    seen.add(relPos);
+    const pos = start + relPos;
+    const node = tr.doc.nodeAt(pos);
+    if (!node) continue;
+    tr = tr.setNodeMarkup(tr.mapping.map(pos), undefined, { ...node.attrs, ...attrs });
+    changed = true;
   }
 
   if (!changed) return false;

@@ -1,4 +1,4 @@
-import {Table} from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import { NovaTableCell, NovaTableHeader } from "./table/TableCellAttributes";
 import { Markdown } from "@tiptap/markdown";
@@ -66,7 +66,11 @@ export const extensionsArr = [
     },
   }),
   NovaImageGallery,
-  Link.configure({ openOnClick: false }),
+  Link.configure({
+    openOnClick: false,
+    markdownLinks: true,
+    defaultProtocol: "https",
+  }),
   Markdown.configure({
     indentation: {
       style: "space", // 'space' or 'tab'

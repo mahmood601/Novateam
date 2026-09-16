@@ -14,15 +14,15 @@ export default function Menu(props: {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenu.Trigger class="flex items-center justify-center rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900">
+        <DropdownMenu.Trigger class="text-header dark:text-main-light hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex items-center justify-center rounded-full p-2 transition-colors">
           <EllipsisVertical size={20} />
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            class="z-50 min-w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+            class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light dark:bg-lighter-dark-1 text-header dark:text-main-light z-50 min-w-48 rounded-lg border p-1 shadow-lg"
             dir="rtl"
           >
-            <DropdownMenu.Item class="cursor-pointer list-none rounded-md px-3 py-2 text-right text-sm text-slate-700 transition-colors outline-none hover:bg-slate-100 hover:text-slate-900 focus:bg-slate-100 focus:text-slate-900">
+            <DropdownMenu.Item class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 cursor-pointer list-none rounded-md px-3 py-2 text-right text-sm transition-colors outline-none">
               <button
                 onClick={() => {
                   navigate(
@@ -36,7 +36,7 @@ export default function Menu(props: {
                 طباعة
               </button>
             </DropdownMenu.Item>
-            <DropdownMenu.Item class="cursor-pointer list-none rounded-md px-3 py-2 text-right text-sm text-slate-700 transition-colors outline-none hover:bg-slate-100 hover:text-slate-900 focus:bg-slate-100 focus:text-slate-900">
+            <DropdownMenu.Item class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 cursor-pointer list-none rounded-md px-3 py-2 text-right text-sm transition-colors outline-none">
               <div class="relative">
                 <label
                   dir="rtl"

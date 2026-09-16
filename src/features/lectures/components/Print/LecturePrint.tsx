@@ -179,7 +179,7 @@ function buildDocument(data: Props, contentHtml: string) {
     </div>
 
     <!-- المحتوى -->
-    <article class="lecture-body">
+    <article class="lecture-body text-black">
       ${contentHtml}
     </article>
   `;
