@@ -22,7 +22,7 @@ const isMainPages = () =>
   });
 
   return (
-    <div class="dark:bg-main-dark bg-main-light relative max-h-screen overflow-hidden">
+    <div class="dark:bg-main-dark bg-main-light relative max-h-screen">
       {quizMode() ||
       location().includes("/search") ||
       location().includes("/status") ||

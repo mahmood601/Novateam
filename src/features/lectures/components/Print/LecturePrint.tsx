@@ -21,8 +21,10 @@ interface Props {
 // this MUST use the exact same extension set, or print output can
 // silently diverge from what the team actually reviewed.
 async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
-  extensionsArr.pop(); // remove Markdown extension, not needed for print
-  const printExts = extensionsArr;
+  // .slice() instead of .pop() — pop() mutated the shared extensionsArr
+  // in place, so a second print in the same session (or any other code
+  // relying on that array) would silently lose a different extension.
+  const printExts = extensionsArr.slice(0, -1); // drop Markdown extension, not needed for print
   const editor = new Editor({
     extensions: [...printExts],
     content: content,
@@ -62,14 +64,15 @@ export default function LecturePrint(props: Props) {
       fragment.appendChild(parsedDocument.body.firstChild);
     }
 
-    // 3. تحميل Paged.js
-    await loadPagedJs();
+    // 3. تحميل Paged.js — dynamic import keeps it out of the main bundle
+    //    and avoids Vite's dependency scan trying (and failing) to
+    //    resolve it eagerly at build/scan time.
+    const { Previewer } = await import("pagedjs");
 
     await renderAllMermaidInContainer(fragment as unknown as HTMLElement);
 
     // 4. تشغيل Paged.js
-    // @ts-ignore
-    const paged = new window.Paged.Previewer();
+    const paged = new Previewer();
     const flow = await paged.preview(
       fragment,
       [new URL("/print/paged-print.css", import.meta.url).href],
@@ -86,7 +89,7 @@ export default function LecturePrint(props: Props) {
   });
 
   return (
-    <div>
+    <div class="flex h-full flex-1 flex-col min-h-0 overflow-scroll">
       <Show when={ready()}>
         <div class="fixed top-4 left-4 z-50 flex gap-3 print:hidden">
           <button
@@ -183,21 +186,4 @@ function buildDocument(data: Props, contentHtml: string) {
       ${contentHtml}
     </article>
   `;
-}
-
-function loadPagedJs(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if ((window as any).Paged) return resolve();
-
-    (window as any).PagedConfig = {
-      ...(window as any).PagedConfig,
-      auto: false,
-    };
-
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/pagedjs/dist/paged.polyfill.js";
-    script.onload = () => resolve();
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
 }
