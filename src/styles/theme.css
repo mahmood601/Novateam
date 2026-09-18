@@ -16,7 +16,7 @@
   --color-darker-light-2: #e7e8ec;
 
   /* colors for dark mode like background */
-  --color-main-dark: rgb(35 39 47 / 95%);
+  --color-main-dark: rgb(35, 39, 47);
   --color-lighter-dark-1: #1e293b;
   --color-lighter-dark-2: #2b394f;
 }

@@ -8,8 +8,13 @@ export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
 
   // ─── خط التطبيق المخصص ───────────────────────────────────────────
-  const { fontName, isSaving, error: fontError, uploadFont, resetFont } =
-    useCustomFont();
+  const {
+    fontName,
+    isSaving,
+    error: fontError,
+    uploadFont,
+    resetFont,
+  } = useCustomFont();
   let fontInputRef: HTMLInputElement | undefined;
 
   const onFontFileChange = async (e: Event) => {
@@ -33,14 +38,12 @@ export default function Settings() {
   };
   return (
     <div
-      class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5"
+      class="h-dvh dark:bg-main-dark bg-darker-light-1 flex flex-col overflow-hidden px-5 pt-14"
       dir="rtl"
     >
       {/* Header */}
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold dark:text-white">الاعدادات</h1>
-      </div>
-      <div class="flex w-full flex-col items-center gap-2">
+      <h1 class="py-5 text-2xl font-bold dark:text-white">الاعدادات</h1>
+      <div class="flex w-full flex-1 flex-col items-center gap-2 overflow-y-auto mb-18">
         <div
           class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
           dir="rtl"
@@ -50,7 +53,7 @@ export default function Settings() {
             <h3 class="font-bold">الألوان</h3>
           </div>
           <p class="mb-3 text-xs text-slate-400">خصص الالوان كما تريد </p>
-          <div class="dark:bg-lighter-dark-2 flex flex-wrap justify-between flex-row-reverse rounded-lg p-2">
+          <div class="dark:bg-lighter-dark-2 flex flex-row-reverse flex-wrap justify-between rounded-lg p-2">
             <For each={Object.entries(colors)}>
               {([name, color]) => (
                 <button

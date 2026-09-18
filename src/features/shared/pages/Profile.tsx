@@ -46,73 +46,75 @@ export default function Profile() {
   };
 
   return (
-    <div class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5">
+    <div class="dark:bg-main-dark bg-darker-light-1 flex h-dvh  flex-col overflow-hidden px-5 pt-14">
       <div class="flex w-full items-center justify-center dark:text-white">
-        <h1 class="flex-1 text-right text-2xl font-bold tracking-wide">
+        <h1 class="flex-1 py-5 text-right text-2xl font-bold tracking-wide dark:text-white">
           الملف الشخصي
         </h1>
       </div>
-      <Show
-        when={user()}
-        fallback={
-          <div class="flex w-full flex-col items-center justify-center gap-5 pt-5 dark:text-white">
-            <Li
-              Icon={CalendarSvg()}
-              type="السنة"
-              value={
-                <Show
-                  when={editingYear()}
-                  fallback={
-                    <div class="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingYear(true)}
-                        class="text-main text-xs underline"
+      <div class="mb-16 flex w-full flex-1 flex-col items-center gap-2 overflow-y-auto">
+        <Show
+          when={user()}
+          fallback={
+            <div class="flex w-full flex-col items-center justify-center gap-5 pt-5 dark:text-white">
+              <Li
+                Icon={CalendarSvg()}
+                type="السنة"
+                value={
+                  <Show
+                    when={editingYear()}
+                    fallback={
+                      <div class="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingYear(true)}
+                          class="text-main text-xs underline"
+                        >
+                          تعديل
+                        </button>
+                        <p>{years[yearValue()]?.name ?? "غير محددة"}</p>
+                      </div>
+                    }
+                  >
+                    <div class="flex flex-row-reverse items-center gap-2">
+                      <select
+                        value={yearValue()}
+                        onChange={(e) => setYearValue(e.currentTarget.value)}
+                        aria-placeholder="اختر السنة"
+                        class="text-main-dark focus:ring-main w-auto rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                        dir="rtl"
                       >
-                        تعديل
+                        <For each={Object.entries(years)}>
+                          {([key, data]) => (
+                            <option value={key} selected={yearValue() === key}>
+                              {data.name}
+                            </option>
+                          )}
+                        </For>
+                      </select>
+                      <button
+                        onClick={saveYear}
+                        disabled={saving()}
+                        class="bg-main rounded-full px-3 py-1 text-xs text-white disabled:opacity-50"
+                      >
+                        {saving() ? "..." : "حفظ"}
                       </button>
-                      <p>{years[yearValue()]?.name ?? "غير محددة"}</p>
+                      <button
+                        onClick={() => setEditingYear(false)}
+                        class="text-xs text-slate-400"
+                      >
+                        إلغاء
+                      </button>
                     </div>
-                  }
-                >
-                  <div class="flex flex-row-reverse items-center gap-2">
-                    <select
-                      value={yearValue()}
-                      onChange={(e) => setYearValue(e.currentTarget.value)}
-                      aria-placeholder="اختر السنة"
-                      class="text-main-dark focus:ring-main w-auto rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
-                      dir="rtl"
-                    >
-                      <For each={Object.entries(years)}>
-                        {([key, data]) => (
-                          <option value={key} selected={yearValue() === key}>
-                            {data.name}
-                          </option>
-                        )}
-                      </For>
-                    </select>
-                    <button
-                      onClick={saveYear}
-                      disabled={saving()}
-                      class="bg-main rounded-full px-3 py-1 text-xs text-white disabled:opacity-50"
-                    >
-                      {saving() ? "..." : "حفظ"}
-                    </button>
-                    <button
-                      onClick={() => setEditingYear(false)}
-                      class="text-xs text-slate-400"
-                    >
-                      إلغاء
-                    </button>
-                  </div>
-                </Show>
-              }
-            />
-            <Login />
-          </div>
-        }
-      >
-        <ProfileInfo name={user()?.name} email={user()?.email} />
-      </Show>
+                  </Show>
+                }
+              />
+              <Login />
+            </div>
+          }
+        >
+          <ProfileInfo name={user()?.name} email={user()?.email} />
+        </Show>
+      </div>
     </div>
   );
 }

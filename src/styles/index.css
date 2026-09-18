@@ -36,29 +36,12 @@
   :host {
     -webkit-text-size-adjust: 0 !important;
     text-size-adjust: 0 !important;
+    scroll-behavior: smooth;
   }
 }
 
 button {
   cursor: pointer;
-}
-
-@utility burger-slice {
-  @apply block h-[2px] w-6 bg-black transition-transform duration-300;
-}
-
-@utility special-box {
-  @apply dark:bg-lighter-dark-1 bg-darker-light-1 dark:border-lighter-dark-1 hover:border-main dark:text-main-light border-1 border-black;
-}
-
-@utility border-1 {
-  @apply border-[2px];
-}
-
-@utility dark {
-  & .burger-slice {
-    @apply block h-[2px] w-6 bg-white transition-transform duration-300;
-  }
 }
 
 @utility open {
@@ -315,4 +298,40 @@ li.group:hover .wrapper-content {
   to {
     opacity: 1;
   }
+}
+
+
+/* 1. Global / Container Scrollbar (Modern Standard) */
+.scroll-container {
+  overflow-y: auto;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  /* Mobile momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 2. WebKit / Chromium Browsers (Chrome, Safari, Edge) */
+.scroll-container::-webkit-scrollbar {
+  width: 8px; /* Vertical scrollbar width */
+  height: 8px; /* Horizontal scrollbar height */
+}
+
+/* Track (Background) */
+.scroll-container::-webkit-scrollbar-track {
+  background: var(--nova-color);
+  border-radius: 9999px;
+}
+
+/* Thumb (Movable bar) */
+.scroll-container::-webkit-scrollbar-thumb {
+  background: var(--nova-color);
+  border-radius: 9999px; /* Rounded corners */
+  border: 2px solid transparent; /* Creates padding around the thumb */
+  background-clip: padding-box;
+}
+
+/* Hover state */
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--nova-color);
 }

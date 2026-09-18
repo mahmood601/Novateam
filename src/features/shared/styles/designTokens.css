@@ -1,0 +1,36 @@
+/*
+ * designTokens.css
+ * Base typography scale for `.lecture-body` (the class LectureRender.tsx
+ * wraps injected lecture HTML in). This file was already imported by
+ * LectureRender.tsx but didn't exist in the project — created now so
+ * that component works as originally designed, rather than stripping
+ * the import.
+ *
+ * Scope, on purpose: only paragraph/list text rhythm. Headings (color +
+ * shape) are handled separately in features/lectures/styles/lectureView.css,
+ * and table/scroll behavior is already handled by pageStyles.css —
+ * neither is duplicated here.
+ */
+
+.lecture-body {
+  --lecture-font-size: 1rem;
+  --lecture-line-height: 1.8;
+  --lecture-paragraph-spacing: 1rem;
+
+  font-size: var(--lecture-font-size);
+  line-height: var(--lecture-line-height);
+}
+
+.lecture-body p {
+  margin-block: var(--lecture-paragraph-spacing);
+}
+
+.lecture-body ul,
+.lecture-body ol {
+  margin-block: var(--lecture-paragraph-spacing);
+  padding-inline-start: 1.5rem;
+}
+
+.lecture-body li + li {
+  margin-block-start: 0.35rem;
+}

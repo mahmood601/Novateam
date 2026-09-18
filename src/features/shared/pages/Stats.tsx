@@ -4,7 +4,10 @@ import {
   getFavorites,
   getSubjectsOfflineFirst,
 } from "../../quizzes/services/local/indexeddb";
-import { calcStreak, countActiveDays } from "../../quizzes/services/local/streak";
+import {
+  calcStreak,
+  countActiveDays,
+} from "../../quizzes/services/local/streak";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,7 +79,7 @@ function RingChart(props: { value: number; size?: number }) {
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      style={{ "transform": "rotate(-90deg)" }}
+      style={{ transform: "rotate(-90deg)" }}
     >
       <circle
         cx={size / 2}
@@ -97,7 +100,9 @@ function RingChart(props: { value: number; size?: number }) {
         stroke-width="10"
         stroke-linecap="round"
         stroke-dasharray={`${filled} ${circ}`}
-        style={{ transition: "stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1)" }}
+        style={{
+          transition: "stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1)",
+        }}
       />
     </svg>
   );
@@ -107,13 +112,12 @@ function RingChart(props: { value: number; size?: number }) {
 
 function MiniBar(props: { correct: number; wrong: number }) {
   const total = () => props.correct + props.wrong;
-  const correctPct = () =>
-    total() > 0 ? (props.correct / total()) * 100 : 0;
+  const correctPct = () => (total() > 0 ? (props.correct / total()) * 100 : 0);
 
   return (
-    <div class="h-2 w-full overflow-hidden rounded-full bg-darker-light-2 dark:bg-lighter-dark-2">
+    <div class="bg-darker-light-2 dark:bg-lighter-dark-2 h-2 w-full overflow-hidden rounded-full">
       <div
-        class="h-full rounded-full bg-true transition-all duration-700"
+        class="bg-true h-full rounded-full transition-all duration-700"
         style={{ width: `${correctPct()}%` }}
       />
     </div>
@@ -158,7 +162,7 @@ function SubjectRow(props: { stat: SubjectStat; rank: number }) {
 
   return (
     <div
-      class="dark:bg-lighter-dark-1 cursor-pointer select-none rounded-2xl bg-white shadow-sm transition-all duration-200"
+      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-white shadow-sm transition-all duration-200 select-none"
       classList={{ "ring-2 ring-main/20": open() }}
       onClick={() => setOpen(!open())}
     >
@@ -203,18 +207,20 @@ function SubjectRow(props: { stat: SubjectStat; rank: number }) {
 
       {/* expanded detail */}
       <Show when={open()}>
-        <div class="border-t border-gray-100 px-5 pb-4 pt-3 dark:border-lighter-dark-2">
+        <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-5 pt-3 pb-4">
           <div class="grid grid-cols-3 gap-2 text-center">
             <div>
-              <p class="text-lg font-bold dark:text-white">{props.stat.total}</p>
+              <p class="text-lg font-bold dark:text-white">
+                {props.stat.total}
+              </p>
               <p class="text-xs text-gray-400">إجمالي</p>
             </div>
             <div>
-              <p class="text-lg font-bold text-true">{props.stat.correct}</p>
+              <p class="text-true text-lg font-bold">{props.stat.correct}</p>
               <p class="text-xs text-gray-400">صحيح</p>
             </div>
             <div>
-              <p class="text-lg font-bold text-warn">{props.stat.wrong}</p>
+              <p class="text-warn text-lg font-bold">{props.stat.wrong}</p>
               <p class="text-xs text-gray-400">خطأ</p>
             </div>
           </div>
@@ -243,109 +249,116 @@ export default function StatsPage() {
 
   return (
     <div
-      class="dark:bg-main-dark bg-darker-light-1 min-h-screen px-5 pt-5"
+      class="dark:bg-main-dark bg-darker-light-1 flex h-dvh flex-col overflow-hidden px-5 pt-14"
       dir="rtl"
     >
       {/* Header */}
-      <div class="mb-6">
+      <div class="flex-1 py-5 tracking-wide">
         <h1 class="text-2xl font-bold dark:text-white">إحصائياتك</h1>
         <p class="mt-1 text-sm text-gray-400">تتبع مستوى تقدمك في كل مادة</p>
       </div>
 
       <Suspense
         fallback={
-          <div class="flex items-center justify-center py-20">
+          <div class="flex items-center justify-center py-20 overflow-auto">
             <div class="text-main h-10 w-10 animate-spin rounded-full border-4 border-current border-t-transparent" />
           </div>
         }
       >
-        <Show when={data()} keyed>
-          {(stats) => (
-            <Show when={stats.totalAnswered > 0} fallback={<EmptyState />}>
-              {/* Overall ring */}
-              <div class="dark:bg-lighter-dark-1 mb-4 flex items-center justify-between rounded-3xl bg-white p-5 shadow-sm">
-                <div class="flex-1" dir="rtl">
-                  <p class="text-sm text-gray-400">الدقة الإجمالية</p>
-                  <p class="text-main text-4xl font-bold">
-                    {stats.overallAccuracy}%
-                  </p>
-                  <p class="mt-1 text-xs text-gray-400">
-                    {stats.totalCorrect} صح من {stats.totalAnswered} سؤال
-                  </p>
-                </div>
-                <div class="relative flex items-center justify-center">
-                  <RingChart value={stats.overallAccuracy} size={110} />
-                  <span class="absolute text-sm font-bold dark:text-white">
-                    {stats.overallAccuracy}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Summary grid */}
-              <div class="mb-6 grid grid-cols-2 gap-3">
-                <StatCard
-                  label="أسئلة مجابة"
-                  value={stats.totalAnswered}
-                  icon="✏️"
-                  accent
-                />
-                <StatCard
-                  label="محفوظة"
-                  value={stats.favoritesCount}
-                  icon="❤️"
-                />
-                <StatCard
-                  label="أيام نشاط"
-                  value={stats.activeDays}
-                  icon="📅"
-                />
-                <StatCard
-                  label={stats.streak > 1 ? `${stats.streak} أيام متتالية 🔥` : "سلسلة الأيام"}
-                  value={stats.streak}
-                  icon="🔥"
-                  accent={stats.streak >= 3}
-                />
-              </div>
-
-              {/* Subject list */}
-              <div class="mb-3 flex items-center justify-between">
-                <p class="text-sm font-bold text-gray-400">تفصيل المواد</p>
-                <p class="text-xs text-gray-300">
-                  {stats.subjectStats.length} مادة
-                </p>
-              </div>
-
-              <div class="flex flex-col gap-3">
-                <For each={stats.subjectStats}>
-                  {(s, i) => <SubjectRow stat={s} rank={i() + 1} />}
-                </For>
-              </div>
-
-              {/* Best subject callout */}
-              <Show
-                when={
-                  stats.subjectStats.length > 0 &&
-                  stats.subjectStats.reduce((best, s) =>
-                    s.accuracy > best.accuracy ? s : best,
-                  )
-                }
-                keyed
-              >
-                {(best) => (
-                  <div class="mt-6 rounded-3xl bg-true/10 p-5 text-center">
-                    <p class="text-xs text-gray-400">أفضل مادة</p>
-                    <p class="mt-1 font-bold text-true" dir="rtl">
-                      {best.name}
+        <div class="mb-24 flex w-full flex-col gap-2 overflow-y-auto">
+          {" "}
+          <Show when={data()} keyed>
+            {(stats) => (
+              <Show when={stats.totalAnswered > 0} fallback={<EmptyState />}>
+                {/* Overall ring */}
+                <div class="dark:bg-lighter-dark-1 mb-4 shrink-0 flex items-center justify-between rounded-3xl bg-white p-5 shadow-sm">
+                  <div class="flex-1" dir="rtl">
+                    <p class="text-sm text-gray-400">الدقة الإجمالية</p>
+                    <p class="text-main text-4xl font-bold">
+                      {stats.overallAccuracy}%
                     </p>
-                    <p class="text-2xl font-bold text-true">
-                      {best.accuracy}%
+                    <p class="mt-1 text-xs text-gray-400">
+                      {stats.totalCorrect} صح من {stats.totalAnswered} سؤال
                     </p>
                   </div>
-                )}
+                  <div class="relative flex items-center justify-center">
+                    <RingChart value={stats.overallAccuracy} size={110} />
+                    <span class="absolute text-sm font-bold dark:text-white">
+                      {stats.overallAccuracy}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Summary grid */}
+                <div class="mb-6 grid grid-cols-2 gap-3 shrink-0">
+                  <StatCard
+                    label="أسئلة مجابة"
+                    value={stats.totalAnswered}
+                    icon="✏️"
+                    accent
+                  />
+                  <StatCard
+                    label="محفوظة"
+                    value={stats.favoritesCount}
+                    icon="❤️"
+                  />
+                  <StatCard
+                    label="أيام نشاط"
+                    value={stats.activeDays}
+                    icon="📅"
+                  />
+                  <StatCard
+                    label={
+                      stats.streak > 1
+                        ? `${stats.streak} أيام متتالية 🔥`
+                        : "سلسلة الأيام"
+                    }
+                    value={stats.streak}
+                    icon="🔥"
+                    accent={stats.streak >= 3}
+                  />
+                </div>
+
+                {/* Subject list */}
+                <div class="mb-3 flex items-center justify-between">
+                  <p class="text-sm font-bold text-gray-400">تفصيل المواد</p>
+                  <p class="text-xs text-gray-300">
+                    {stats.subjectStats.length} مادة
+                  </p>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                  <For each={stats.subjectStats}>
+                    {(s, i) => <SubjectRow stat={s} rank={i() + 1} />}
+                  </For>
+                </div>
+
+                {/* Best subject callout */}
+                <Show
+                  when={
+                    stats.subjectStats.length > 0 &&
+                    stats.subjectStats.reduce((best, s) =>
+                      s.accuracy > best.accuracy ? s : best,
+                    )
+                  }
+                  keyed
+                >
+                  {(best) => (
+                    <div class="bg-true/10 mt-6 rounded-3xl p-5 text-center">
+                      <p class="text-xs text-gray-400">أفضل مادة</p>
+                      <p class="text-true mt-1 font-bold" dir="rtl">
+                        {best.name}
+                      </p>
+                      <p class="text-true text-2xl font-bold">
+                        {best.accuracy}%
+                      </p>
+                    </div>
+                  )}
+                </Show>
               </Show>
-            </Show>
-          )}
-        </Show>
+            )}
+          </Show>
+        </div>
       </Suspense>
     </div>
   );

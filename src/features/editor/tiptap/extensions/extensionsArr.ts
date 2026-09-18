@@ -1,4 +1,3 @@
-import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import { NovaTableCell, NovaTableHeader } from "./table/TableCellAttributes";
 import { Markdown } from "@tiptap/markdown";
@@ -15,6 +14,7 @@ import { NovaQuiz } from "./NovaQuiz";
 import Link from "@tiptap/extension-link";
 import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
+import { NovaTable } from "./table/novaTable";
 
 // Sub/superscript don't exclude each other by default, which lets both
 // marks stack on the same text and render nonsense nested offsets — so
@@ -40,7 +40,7 @@ export const extensionsArr = [
   // below. `handleWidth` is widened past the 5px default so the column
   // resize handle has a real touch target on Android; `cellMinWidth`
   // keeps cells from being squeezed unusably thin by a finger drag.
-  Table.configure({
+  NovaTable.configure({
     resizable: true,
     lastColumnResizable: true,
     allowTableNodeSelection: true,

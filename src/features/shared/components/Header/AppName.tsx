@@ -41,7 +41,7 @@ export default function AppName(props: { hide?: Accessor<boolean> }) {
   });
 
   return (
-    <div class={`w-fit py-2 px-4 rounded-full ml-3 text-xl font-bold bg-main-light dark:bg-main-dark`}>
+    <div class={`w-fit py-2 px-4 rounded-full text-xl font-bold bg-main-light dark:bg-main-dark`}>
       <Transition name="slide-fade">
         <Switch>
           <Match

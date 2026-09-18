@@ -9,7 +9,7 @@ import PrintPage from "../features/lectures/pages/PrintPage";
 
 const Dashboard = lazy(() => import("../features/dashboard/pages/Dashboard"));
 const QuizEditor = lazy(() => import("../features/quizzes/pages/QuizEditor"));
-const LectureEditor = lazy(() => import("../features/lectures/pages/LectureEditor"));
+const LectureEditor = lazy(() => import("../features/dashboard/pages/LectureEditor"));
 const SectionPicker = lazy(() => import("../features/dashboard/pages/SubjectHub"));
 const EditorPage = lazy(() => import("../features/editor/pages/EditorPage"));
 
@@ -23,6 +23,8 @@ const Quiz = lazy(() => import("../features/quizzes/pages/Quiz"));
 const FavoritesPage = lazy(() => import("../features/quizzes/pages/Favorites"));
 const WeakQuestionsPage = lazy(() => import("../features/quizzes/pages/WeakQuestions"));
 const Privacy = lazy(() => import("../features/shared/pages/Privacy"));
+const LecturesListPage = lazy(() => import("../features/lectures/pages/LecturesListPage"));
+const LectureViewPage = lazy(() => import("../features/lectures/pages/LectureViewPage"));
 
 export default function AppRoutes() {
   return (
@@ -39,6 +41,8 @@ export default function AppRoutes() {
       <Route path="/:subject" component={() => <Suspense><SelectMenu /></Suspense>} />
       <Route path="/:subject/weak" component={() => <Suspense><WeakQuestionsPage /></Suspense>} />
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
+      <Route path="/:subject/lectures" component={() => <Suspense><LecturesListPage /></Suspense>} />
+      <Route path="/:subject/lectures/:seasonId" component={() => <Suspense><LectureViewPage /></Suspense>} />
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
 
       <Route path="/dashboard" /*component={AdminGate} */>

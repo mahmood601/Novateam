@@ -43,25 +43,18 @@ export default function Box(props: {
   return (
     <A
       href={props.link}
-      class="hover:border-main relative flex h-55 w-80 justify-between rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
+      class="hover:border-main dark:border-lighter-dark-2 w-80 h-45 bg-main-light relative flex justify-between rounded-2xl border p-5 gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
     >
       {/* المعلومات */}
       <div class="flex flex-1 flex-col items-center justify-center gap-2">
         <img
           src={"/subjectsIcons/" + props.subject + ".webp"}
           alt={props.info}
-          class="from-main/30 to-main/10 size-16 rounded-lg bg-gradient-to-br"
+          class="from-main/30 to-main/10 size-16 rounded-lg bg-linear-to-br"
         />
 
-        <p class="text-lg font-bold text-center">{props.info}</p>
+        <p class="text-center text-wrap w-full text-lg font-bold">{props.info}</p>
 
-        <p class="text-muted-foreground text-sm">
-          عدد الأسئلة: {stats()?.qLen}
-        </p>
-
-        <p class="text-muted-foreground text-sm">
-          الإجابات الصحيحة: {stats()?.aLen}
-        </p>
 
         {props.children}
       </div>
@@ -92,7 +85,9 @@ export default function Box(props: {
             if (!props.subject) return;
 
             toast.promise(
-              addQuestionsToFirstDB(props.subject, true, true).then(() => refetch()),
+              addQuestionsToFirstDB(props.subject, true, true).then(() =>
+                refetch(),
+              ),
               {
                 loading: () => {
                   setDownloadStatus("pending");
@@ -105,7 +100,7 @@ export default function Box(props: {
                 error: (e) => <span>{e}</span>,
               },
               {
-                className: "special-box", 
+                className: "special-box",
                 position: "top-right",
                 style: {
                   border: "2px solid var(--color-darker-light-2)",

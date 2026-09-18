@@ -59,15 +59,15 @@ export default function SubjectsPage() {
     <Show
       when={yearKey()}
       fallback={
-        <div class="bg-rainbow-graident fixed z-[100] flex h-screen w-screen items-center justify-center">
-          <div class="bg-main-light items-center flex h-fit w-11/12 flex-col rounded-md p-10 text-center">
-            <div class=" p-2 flex w-fit flex-row-reverse items-center justify-center gap-2 rounded-md bg-darker-light-1">
+        <div class="bg-rainbow-graident fixed z-100 flex h-screen w-screen items-center justify-center">
+          <div class="bg-main-light flex h-fit w-11/12 flex-col items-center rounded-md p-10 text-center">
+            <div class="bg-darker-light-1 flex w-fit flex-row-reverse items-center justify-center gap-2 rounded-md p-2">
               <label dir="rtl" class="text-main-dark font-bold" for="year">
                 اختر السنة:
               </label>
               <select
                 dir="rtl"
-                class="text-main-dark bg-transparent border-main-dark rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-main"
+                class="text-main-dark border-main-dark focus:ring-main rounded-md bg-transparent p-2 focus:ring-2 focus:outline-none"
                 id="year"
                 onInput={(e) => {
                   const val = e.currentTarget.value;
@@ -91,24 +91,30 @@ export default function SubjectsPage() {
         </div>
       }
     >
-      <div
-        class="dark:bg-main-dark bg-main-light relative flex flex-wrap items-center justify-center gap-5 py-22"
-        dir="rtl"
-      >
-        <Show
-          when={!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0}
-          fallback={
-            <div class="py-10 text-center text-gray-400">
-              لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
-            </div>
-          }
+      <div class="dark:bg-main-dark bg-darker-light-1 flex h-dvh flex-col overflow-hidden px-5 pt-18">
+        <div
+          class="dark:bg-main-dark bg-darker-light-1 mb-24 flex flex-wrap p-2 items-center justify-center gap-4 overflow-y-auto"
+          dir="rtl"
         >
-          <For each={yearSubjects()}>
-            {(subject) => (
-              <Box subject={subject.id} info={subject.name} link={subject.id} />
-            )}
-          </For>
-        </Show>
+          <Show
+            when={!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0}
+            fallback={
+              <div class="py-10 text-center text-gray-400">
+                لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
+              </div>
+            }
+          >
+            <For each={yearSubjects()}>
+              {(subject) => (
+                <Box
+                  subject={subject.id}
+                  info={subject.name}
+                  link={subject.id}
+                />
+              )}
+            </For>
+          </Show>
+        </div>
       </div>
     </Show>
   );

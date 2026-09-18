@@ -7,7 +7,13 @@ import { Links } from "./Header/Links";
 export default function Layout(props: { children: JSX.Element }) {
   const location = () => useLocation().pathname;
   const quizMode = () =>
-    (location().includes("season") || location().includes("year"));
+    location().includes("season") || location().includes("year");
+const isMainPages = () =>
+      location().includes("/stats") ||
+      location().includes("/settings") ||
+      location().includes("/dashboard") ||
+      location().includes("/profile") 
+
 
   const { theme, applyTheme } = useTheme();
 
@@ -16,12 +22,9 @@ export default function Layout(props: { children: JSX.Element }) {
   });
 
   return (
-    <div class="dark:bg-main-dark bg-main-light relative flex h-screen flex-col">
+    <div class="dark:bg-main-dark bg-main-light relative max-h-screen overflow-hidden">
       {quizMode() ||
       location().includes("/search") ||
-      location().includes("/profile") ||
-      location().includes("/stats") ||
-      location().includes("/settings") ||
       location().includes("/status") ||
       location().includes("/weak") ||
       location().includes("/editor") ||
@@ -29,7 +32,7 @@ export default function Layout(props: { children: JSX.Element }) {
       location().includes("/favorite") ? null : (
         <>
           <Header />
-          <Links />
+          {location() === "/" || isMainPages() ? <Links /> : null}
         </>
       )}
       {props.children}

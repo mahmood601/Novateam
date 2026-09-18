@@ -533,7 +533,7 @@ export default function TiptapReviewEditor(props: {
   ];
 
   return (
-    <div class="bg-main-light dark:bg-main-dark relative">
+    <div class="bg-main-light dark:bg-main-dark relative flex h-dvh w-full flex-1 flex-col overflow-hidden">
       <EditorHeader
         seasonId={seasonId}
         status={status}
@@ -546,11 +546,11 @@ export default function TiptapReviewEditor(props: {
         handleFileUpload={handleFileUpload}
       />
 
-      <div class="nova-tiptap-review mt-6" dir="rtl">
+      <div class="nova-tiptap-review flex flex-1 min-h-0 w-full flex-col pt-12" dir="rtl">
         <Suspense fallback={<div>Loading...</div>}>
           <div
             ref={containerRef}
-            class="nova-tiptap-content dark:bg-main-dark dark:text-main-light mb-6"
+            class="nova-tiptap-content dark:bg-main-dark dark:text-main-light mb-6 min-h-0 flex-1 overflow-auto"
           />
         </Suspense>
 

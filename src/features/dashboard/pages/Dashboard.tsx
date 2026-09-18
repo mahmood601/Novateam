@@ -11,29 +11,25 @@ const YEARS = [
 
 export default function Dashboard() {
   const [yearKey, setYearKey] = createSignal<string>("second");
-  const [subjects] = createResource(() => yearKey(), (year) => getSubjectsOfflineFirst(year));
+  const [subjects] = createResource(
+    () => yearKey(),
+    (year) => getSubjectsOfflineFirst(year),
+  );
 
   return (
-    <div class="h-screen bg-[#f8fafc] px-5 pt-22 dark:bg-[#0f172a]" dir="rtl">
-      <div class="mx-auto max-w-lg pb-22">
-        <div class="mb-8 text-center">
-          <div class="mb-3 flex justify-center">
-            <span class="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-cyan-400 to-fuchsia-500 text-3xl shadow-lg">
-              🎛️
-            </span>
-          </div>
-          <h1 class="text-2xl font-black text-slate-800 dark:text-white">لوحة الإدارة</h1>
-          <p class="mt-1 text-sm text-slate-400">اختر المادة التي تريد إدارتها</p>
-        </div>
-
-        <div class="mb-4 rounded-[2rem] bg-white p-4 shadow-sm dark:bg-slate-800">
+    <div class="h-dvh bg-[#f8fafc] px-5 dark:bg-[#0f172a]" dir="rtl">
+      {/* أضفنا mx-auto لضبط المحاذاة */}
+      <div class="mx-auto flex h-full max-w-lg flex-col overflow-hidden pt-22 pb-22">
+        
+        {/* شريط اختيار السنة */}
+        <div class="mb-4 shrink-0 rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
           <p class="mb-3 text-xs font-bold text-slate-400">📅 السنة الدراسية</p>
-          <div class="flex flex-wrap gap-2 justify-around">
+          <div class="flex flex-wrap justify-around gap-1">
             <For each={YEARS}>
               {(y) => (
                 <button
                   onClick={() => setYearKey(y.id)}
-                  class={`rounded-2xl p-2 w-17 text-sm font-bold transition-all ${
+                  class={`w-15 rounded-2xl p-2 text-xs font-bold transition-all ${
                     yearKey() === y.id
                       ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md"
                       : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
@@ -46,17 +42,30 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div class="rounded-[2rem] bg-white p-4 shadow-sm dark:bg-slate-800">
-          <p class="mb-3 text-xs font-bold text-slate-400">📚 المواد</p>
+        {/* بطاقة المواد: overflow-hidden هنا لمنع انكسار الحواف المنحنية rounded-4xl */}
+        <div class="flex flex-1 min-h-0 flex-col overflow-hidden rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
+          <p class="mb-3 shrink-0 text-xs font-bold text-slate-400">
+            📚 المواد
+          </p>
+          
           <Show
             when={!subjects.loading}
-            fallback={<div class="animate-pulse py-8 text-center text-slate-400">جاري التحميل... ⏳</div>}
+            fallback={
+              <div class="animate-pulse py-8 text-center text-slate-400">
+                جاري التحميل... ⏳
+              </div>
+            }
           >
             <Show
               when={(subjects() ?? []).length > 0}
-              fallback={<p class="py-8 text-center text-slate-400">لا توجد مواد لهذه السنة 📭</p>}
+              fallback={
+                <p class="py-8 text-center text-slate-400">
+                  لا توجد مواد لهذه السنة 📭
+                </p>
+              }
             >
-              <div class="grid gap-2">
+              {/* التعديل الجوهري: نقل overflow-y-auto إلى الحاوية المباشرة لعناصر قائمة SolidJS */}
+              <div class="flex flex-1 min-h-0 flex-col gap-2 overflow-y-auto pl-1">
                 <For each={subjects()}>
                   {(sub) => (
                     <A
@@ -67,7 +76,9 @@ export default function Dashboard() {
                         {sub.name.charAt(0)}
                       </span>
                       <div class="flex-1">
-                        <p class="font-bold text-slate-700 dark:text-slate-200">{sub.name}</p>
+                        <p class="font-bold text-slate-700 dark:text-slate-200">
+                          {sub.name}
+                        </p>
                         <p class="text-[11px] text-slate-400">{sub.id}</p>
                       </div>
                       <span class="text-slate-300 dark:text-slate-600">←</span>

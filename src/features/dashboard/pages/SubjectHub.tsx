@@ -6,9 +6,9 @@ export default function SubjectHub() {
   const subjectId = () => params.subject!;
 
   return (
-    <div class="flex min-h-screen flex-col items-center justify-center bg-[#f8fafc] px-5 pt-22 pb-10 dark:bg-[#0f172a]" dir="rtl">
+    <div class="flex min-h-dvh flex-col items-center justify-center bg-[#f8fafc] px-5 pb-10 dark:bg-[#0f172a]" dir="rtl">
       <div class="mx-auto w-full max-w-sm">
-        <div class="mb-8 text-center">
+        <div class="mb-4 text-center">
           <p class="mb-1 text-sm text-slate-400">المادة</p>
           <h1 class="text-2xl font-black text-slate-800 dark:text-white">
             {subjectId()}

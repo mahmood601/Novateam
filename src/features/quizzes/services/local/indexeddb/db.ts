@@ -9,6 +9,10 @@ import type {
   Passage,
   Question,
 } from "../../../types";
+import type {
+  CachedLecture,
+  CachedLectureContent,
+} from "../../../../lectures/types/cached-lecture";
 export type {
   Answer,
   AppFont,
@@ -19,6 +23,10 @@ export type {
   Passage,
   Question,
 } from "../../../types";
+export type {
+  CachedLecture,
+  CachedLectureContent,
+} from "../../../../lectures/types/cached-lecture";
 
 export const SCHEMA_VERSION = 6;
 export const SCHEMA_KEY = "db_schema_version";
@@ -34,6 +42,8 @@ class AppDB extends Dexie {
   years!: Table<CachedYear, string>;
   passages!: Table<Passage, string>;
   appFont!: Table<AppFont, string>;
+  lectures!: Table<CachedLecture, string>;
+  lectureContents!: Table<CachedLectureContent, string>;
 
   constructor() {
     super("db");
@@ -109,6 +119,20 @@ class AppDB extends Dexie {
 
     this.version(6).stores({
       appFont: `id`,
+    });
+
+    // Lecture metadata (list) is synced in bulk per subject; content is
+    // kept in its own store so opening the lectures list never pulls the
+    // full JSON body of every lecture with it (see lectures.ts).
+    this.version(7).stores({
+      lectures: `
+        id,
+        subject_id,
+        season_id,
+        status,
+        [subject_id+season_id]
+      `,
+      lectureContents: `id`,
     });
   }
 }
