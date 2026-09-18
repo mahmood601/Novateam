@@ -1,0 +1,28 @@
+@font-face {
+  font-family: "OoredooArabic-Heavy";
+  src: url("/print/fonts/OoredooArabic-Heavy.ttf")
+    format("truetype");
+  font-weight: bold;
+  ascent-override: 90%;
+  descent-override: 20%;
+}
+
+/* الخط الإنجليزي - يغطي فقط حروف لاتينية */
+@font-face {
+  font-family: 'NovaHeading';
+  src: url("/print/fonts/OoredooArabic-Heavy.ttf")
+    format("truetype");
+  font-weight: bold;
+  ascent-override: 90%;
+  descent-override: 20%;
+}
+
+/* الخط العربي - يغطي فقط نطاقات الحروف العربية */
+@font-face {
+  font-family: 'NovaHeading';
+  src: url("/print/fonts/SourceSans3-Bold.ttf")
+    format("truetype");
+  font-weight: bold;
+  ascent-override: 90%;
+  descent-override: 20%;
+}

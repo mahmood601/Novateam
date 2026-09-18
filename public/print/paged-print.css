@@ -1,0 +1,951 @@
+/* =========================================
+   Paged.js Print Styles - Nova Lectures
+   A4 + Cover + TOC + Running Header/Footer
+   ========================================= */
+
+.paged-output * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  orphans: 2;
+}
+
+@print {
+  [data-nova-block="note"] {
+    display: none;
+  }
+}
+
+
+.pagedjs_pagebox {
+  background-color: #fff;
+}
+
+/* ---------- إعداد الصفحة ---------- */
+@page {
+  size: A4;
+  margin: 1cm 1cm;
+}
+
+/* ---------- الغلاف ---------- */
+.cover {
+  page: cover;
+  width: 21cm;
+  height: 29.7cm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@page cover {
+  size: A4;
+  margin: 0;
+}
+
+.cover-header {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  background-color: #d6ebff;
+  width: 218.8mm;
+  height: 100.9mm;
+  border-radius: 70%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.header-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 184.7mm;
+  height: 35.1mm;
+  position: relative;
+  margin-top: -10mm;
+}
+
+.logos-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nova-logo {
+  width: 60mm;
+  height: 19.5mm;
+  margin-right: 20px;
+}
+
+.team-box {
+  height: 0.98cm;
+  width: 7.63cm;
+  background-color: #ffdf7f;
+  border: 1.5pt solid #604700;
+  font-family: "Recompense", sans-serif;
+  font-size: 16pt;
+  padding: 2pt 5pt;
+  border-radius: 5pt;
+  font-weight: bold;
+  letter-spacing: 3pt;
+  margin-top: 1pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+.tartous-logo {
+  width: 39mm;
+  height: 35mm;
+}
+
+.cover-circle {
+  width: 13cm;
+  height: 13cm;
+  border-radius: 100%;
+  border: 6pt solid #991f60;
+}
+
+.cover-lecture-title {
+  width: 13cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  color: white;
+  border-radius: 10pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28pt;
+  position: relative;
+  top: -60pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  padding: 10pt 15pt;
+  text-align: center;
+  z-index: 10;
+}
+
+.cover-footer {
+  position: absolute;
+  bottom: 40pt;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.footer-box {
+  width: 17cm;
+  height: 5.7cm;
+  border: 4.5pt solid #991f60;
+  border-radius: 28pt;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to right, #991f60 10%, #ec008c 30%);
+  position: relative;
+}
+
+.footer-box .footer-info {
+  width: 13cm;
+  height: 5.7cm;
+  font-size: 18pt;
+  border-radius: 30pt;
+  border: 4.5pt solid #991f60;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: absolute;
+  right: -7pt;
+  background: white;
+  padding: 15pt 25pt 15pt 15pt;
+  list-style: none;
+}
+
+.footer-box .footer-info * {
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  color: #000;
+}
+
+.footer-box .footer-pages-number {
+  display: flex;
+  flex-direction: column;
+  width: 4cm;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: "OoredooArabic-Heavy";
+}
+
+.footer-box .footer-pages-text {
+  font-size: 12pt;
+  width: 75%;
+  font-family: "OoredooArabic-Heavy";
+}
+
+.footer-box .footer-pages-count {
+  font-size: 48pt;
+  line-height: 1;
+  font-family: "OoredooArabic-Heavy";
+}
+
+/* ---------- جدول المحتويات ---------- */
+.toc {
+  page: toc;
+  width: 21cm;
+  height: 29.7cm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #000;
+}
+
+.running-header,
+.running-footer {
+  page: main;
+}
+
+@page toc {
+  size: A4;
+  margin: 0;
+}
+
+.toc .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.toc .table-header {
+  width: 13cm;
+  height: 2.54cm;
+  font-size: 28pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  color: white;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  text-align: center;
+  border-radius: 10pt;
+  padding-top: 16pt;
+  margin-bottom: -1.26cm;
+  z-index: 10;
+}
+
+.toc .toc-box {
+  background-color: #d6ebff;
+  padding: 2cm 0.5cm 0.25cm;
+  border-radius: 15pt;
+  border: 3pt solid #991f60;
+  width: 17cm;
+}
+
+.toc .description {
+  font-size: 13pt;
+  margin-bottom: 10pt;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+}
+
+.toc table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+}
+
+.toc th,
+.toc td {
+  border: 2.25pt solid #991f60;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 12pt;
+  padding: 10pt;
+}
+
+/* ---------- Running Header & Footer ---------- */
+.running-header {
+  position: running(header);
+  width: 100%;
+}
+
+.header-flex-content,
+.footer-flex-content {
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+}
+
+.running-header img {
+  height: 0.6cm;
+}
+
+.running-header .title-bar {
+  height: 0.6cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 10pt;
+  flex: 1;
+  padding: 3pt 10pt;
+  border-radius: 5pt;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.running-footer {
+  position: running(footer);
+  width: 100%;
+}
+
+.running-footer .number {
+  height: 1.5cm;
+  width: 1.5cm;
+  background: url("/print/footer-l.png") center / 80% no-repeat;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.running-footer .number::after {
+  content: counter(page);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "OoredooArabic-Heavy";
+  font-size: 14pt;
+  color: #000;
+}
+
+.running-footer .info-bar {
+  height: 0.6cm;
+  background: linear-gradient(to right, #ec008c, #991f60);
+  font-family: "OoredooArabic-Heavy";
+  font-size: 10pt;
+  flex: 1;
+  padding: 3pt 10pt;
+  border-radius: 5pt;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- صفحات المحتوى ---------- */
+.lecture-body {
+  page: main;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 12pt;
+  line-height: 1.7;
+  direction: rtl;
+  background-color: #fff;
+}
+
+@page main {
+  size: A4;
+  margin: 1.5cm 0.8cm 1.8cm 0.8cm;
+
+  @top-center {
+    content: element(header);
+    width: 100%;
+  }
+
+  @bottom-center {
+    content: element(footer);
+    width: 100%;
+  }
+}
+
+/* عكس الاتجاه في الصفحات الزوجية إن أمكن */
+.pagedjs_left_page .header-flex-content,
+.pagedjs_left_page .footer-flex-content {
+  flex-direction: row-reverse;
+}
+
+.pagedjs_left_page .header-flex-content .title-bar,
+.pagedjs_left_page .footer-flex-content .info-bar {
+  background: linear-gradient(to left, #ec008c, #991f60);
+  display: flex;
+  justify-content: flex-end; /* Aligns content to the right edge */
+  align-items: center;
+}
+
+/* =========================================================
+   Nova color tokens — precomputed static hex only.
+   No color-mix() anywhere below: Paged.js does not resolve it
+   correctly during pagination/reflow (confirmed empirically).
+   Defined on bare [data-color], not scoped to a specific ancestor
+   class, so the same rule works in the live Tiptap editor
+   (.nova-tiptap-content) AND inside Paged.js print output
+   (.pagedjs_pages / .tiptap) without duplicating the token block.
+   ========================================================= */
+
+[data-color="rose"] {
+  --nova-color: #d00054;
+  --nova-border: #a60043; /* 80% color / 20% black */
+  --nova-bg-strong: #d93376; /* 80% color / 20% white */
+  --nova-bg-light: #f1b3cc; /* 30% color / 70% white */
+  --nova-bg-tint: #fbebf1; /* 8% color / 92% white */
+  --nova-bg-tint-quiz: #fcf0f5; /* 6% color / 94% white */
+}
+[data-color="orange"] {
+  --nova-color: #ff9933;
+  --nova-border: #cc7a29;
+  --nova-bg-strong: #ffad5c;
+  --nova-bg-light: #ffe0c2;
+  --nova-bg-tint: #fff7ef;
+  --nova-bg-tint-quiz: #fff9f3;
+}
+[data-color="blue"] {
+  --nova-color: #3399ff;
+  --nova-border: #297acc;
+  --nova-bg-strong: #5cadff;
+  --nova-bg-light: #c2e0ff;
+  --nova-bg-tint: #eff7ff;
+  --nova-bg-tint-quiz: #f3f9ff;
+}
+[data-color="green"] {
+  --nova-color: #00b050;
+  --nova-border: #008d40;
+  --nova-bg-strong: #33c073;
+  --nova-bg-light: #b3e7cb;
+  --nova-bg-tint: #ebf9f1;
+  --nova-bg-tint-quiz: #f0faf5;
+}
+[data-color="yellow"] {
+  --nova-color: #bf8f00;
+  --nova-border: #997200;
+  --nova-bg-strong: #cca533;
+  --nova-bg-light: #ecddb3;
+  --nova-bg-tint: #faf6eb;
+  --nova-bg-tint-quiz: #fbf8f0;
+}
+[data-color="purple"] {
+  --nova-color: #cc00ff;
+  --nova-border: #a300cc;
+  --nova-bg-strong: #d633ff;
+  --nova-bg-light: #f0b3ff;
+  --nova-bg-tint: #fbebff;
+  --nova-bg-tint-quiz: #fcf0ff;
+}
+[data-color="pink"] {
+  --nova-color: #ff3bff;
+  --nova-border: #cc2fcc;
+  --nova-bg-strong: #ff62ff;
+  --nova-bg-light: #ffc4ff;
+  --nova-bg-tint: #ffefff;
+  --nova-bg-tint-quiz: #fff3ff;
+}
+
+/* ---------- headings — dark background / white text (confirmed direction) ---------- */
+.pagedjs_pages,
+.tiptap {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-align: right;
+    font-family: "NovaHeading";
+    padding: 0.3em;
+    color: #fff;
+    border: 5px solid var(--nova-border);
+    background-color: var(--nova-bg-strong);
+    margin-top: 1em;
+    margin-bottom: 0.6em;
+  }
+
+  h1 {
+    font-size: 1.9em;
+    font-weight: 700;
+    text-align: center;
+  }
+  h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+  }
+  h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    text-align: center;
+    color: var(--nova-color);
+    background: var(--nova-bg-light);
+  }
+  h4,
+  h5,
+  h6 {
+    font-size: 1.05em;
+    font-weight: 600;
+    opacity: 0.9;
+    background: var(--nova-bg-light);
+  }
+  h4 {
+    border-top: none;
+    border-bottom: none;
+    color: var(--nova-color) !important;
+    text-align: center;
+  }
+  h5 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    color: var(--nova-color) !important;
+  }
+  h6 {
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-right-width: 2px;
+    color: black !important;
+  }
+
+  /* ---------- الصناديق (InfoBox) — نمط Obsidian callout ---------- */
+  /* بالماركداون: >[!note] عنوان الصندوق
+     يقابل :::note بصياغة نوفا AST */
+  .callout {
+    --callout-color: var(--nova-color);
+    border-right: 4px solid var(--callout-color);
+    border-radius: 8px;
+    background-color: var(--nova-bg-tint);
+    padding: 0.9em 1.1em;
+    margin: 1em 0;
+    direction: rtl;
+    text-align: right;
+    color: black;
+  }
+
+  .callout-title {
+    color: var(--callout-color);
+    font-weight: 700;
+    font-family: var(--nova-font-ar, "OoredooArabic-Heavy", sans-serif);
+  }
+
+  .callout-icon {
+    color: var(--callout-color);
+  }
+
+  /* صندوق كويز placeholder — يقابل :::quiz {id="..."} */
+  .callout[data-callout="quiz"] {
+    border-style: dashed;
+    background-color: var(--nova-bg-tint-quiz);
+  }
+
+  /* ---------- الاقتباسات ---------- */
+  blockquote {
+    border-right: 4px solid var(--nova-color, #999);
+    padding-right: 1em;
+    margin-right: 0;
+    direction: rtl;
+    color: var(--nova-ink, #1a1a1a);
+    opacity: 0.85;
+  }
+
+  /* ---------- الكود ---------- */
+  code {
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+
+  .mermaid-rendered {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  pre {
+    border-right: 4px solid var(--nova-color, #999);
+    border-radius: 6px;
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ---------- الروابط ---------- */
+  a {
+    color: var(--nova-color, #0563c1);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+  }
+
+  /* ---------- القوائم ---------- */
+  ul li::marker,
+  ol li::marker {
+    color: var(--nova-color);
+  }
+
+  /* Table-specific styling */
+  /* table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+    text-align: center;
+
+    td,
+    th {
+      border: 1px solid var(--gray-3);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 3px;
+      position: relative;
+      vertical-align: top;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      background-color: var(--gray-1);
+      font-weight: bold;
+    }
+
+    .selectedCell:after {
+      background: var(--gray-2);
+      content: "";
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: var(--purple);
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+  } */
+
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  &.resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
+
+  img {
+    display: block;
+  }
+
+  .image-caption {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--nova-color) !important;
+    margin-top: 0.5em;
+    width: 100%;
+  }
+
+  .image-with-caption {
+    width: fit-content;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: center;
+  }
+
+  [data-resize-container] {
+    flex-direction: column;
+  }
+
+  [data-resize-handle] {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    /* Corner handles */
+    &[data-resize-handle="top-left"],
+    &[data-resize-handle="top-right"],
+    &[data-resize-handle="bottom-left"],
+    &[data-resize-handle="bottom-right"] {
+      width: 8px;
+      height: 8px;
+    }
+
+    &[data-resize-handle="top-left"] {
+      top: -4px;
+      left: -4px;
+      cursor: nwse-resize;
+    }
+
+    &[data-resize-handle="top-right"] {
+      top: -4px;
+      right: -4px;
+      cursor: nesw-resize;
+    }
+
+    &[data-resize-handle="bottom-left"] {
+      bottom: -4px;
+      left: -4px;
+      cursor: nesw-resize;
+    }
+
+    &[data-resize-handle="bottom-right"] {
+      bottom: -4px;
+      right: -4px;
+      cursor: nwse-resize;
+    }
+
+    /* Edge handles */
+    &[data-resize-handle="top"],
+    &[data-resize-handle="bottom"] {
+      height: 6px;
+      left: 8px;
+      right: 8px;
+    }
+
+    &[data-resize-handle="top"] {
+      top: -3px;
+      cursor: ns-resize;
+    }
+
+    &[data-resize-handle="bottom"] {
+      bottom: -3px;
+      cursor: ns-resize;
+    }
+
+    &[data-resize-handle="left"],
+    &[data-resize-handle="right"] {
+      width: 6px;
+      top: 8px;
+      bottom: 8px;
+    }
+
+    &[data-resize-handle="left"] {
+      left: -3px;
+      cursor: ew-resize;
+    }
+
+    &[data-resize-handle="right"] {
+      right: -3px;
+      cursor: ew-resize;
+    }
+  }
+
+  [data-resize-state="true"] [data-resize-wrapper] {
+    outline: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 0.125rem;
+  }
+
+  .nova-image-gallery {
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .nova-image-gallery > .nova-image-wrapper,
+  .nova-image-gallery > .nova-figure {
+    flex: 1 1 200px; /* grow, shrink, base width before wrapping */
+    max-width: 100%;
+  }
+
+  .nova-image-gallery > .nova-image-wrapper img,
+  .nova-image-gallery > .nova-figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.tiptap {
+  .nova-image-gallery {
+    background: #ddd;
+  }
+}
+
+/* ---------- placeholder الكويز خارج نطاق .callout (NovaQuiz atom node) ---------- */
+.nova-quiz-placeholder[data-color] {
+  border: 2px dashed var(--nova-color);
+  color: var(--nova-color);
+  border-radius: 4px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Admonitions */
+/* Base Callout */
+.nova-note {
+  --callout-color: #64748b;
+  --callout-bg: rgba(100, 116, 139, 0.08);
+
+  break-inside: avoid;
+  position: relative;
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem 1rem 1.15rem;
+  border-radius: 0.65rem;
+  border-right: 4px solid var(--callout-color);
+  background: linear-gradient(
+    135deg,
+    var(--callout-bg) 0%,
+    color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
+  );
+}
+
+.nova-note::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.12),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Header */
+.nova-note-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  color: var(--callout-color);
+  user-select: none;
+  line-height: 1.3;
+}
+
+.nova-note-title {
+  text-transform: capitalize;
+}
+
+/* Icon */
+.nova-note-icon {
+  flex-shrink: 0;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-block;
+  background: var(--icon-url) no-repeat center / contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+/* Content cleanup */
+.nova-note p:last-child {
+  margin-bottom: 0;
+}
+.nova-note > :first-child {
+  margin-top: 0;
+}
+
+/* ========== Rainbow Color Mapping ========== */
+
+/* Note → Blue */
+.nova-note[data-type="note"] {
+  --callout-color: #3b82f6; /* Blue */
+  --callout-bg: rgba(59, 130, 246, 0.12);
+}
+.nova-note[data-type="note"] .nova-note-icon {
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
+}
+
+/* Tip → Green */
+.nova-note[data-type="tip"] {
+  --callout-color: #22c55e; /* Green */
+  --callout-bg: rgba(34, 197, 94, 0.12);
+}
+.nova-note[data-type="tip"] .nova-note-icon {
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+}
+
+/* Warning → Orange / Amber */
+.nova-note[data-type="warning"] {
+  --callout-color: #f59e0b; /* Amber / Orange */
+  --callout-bg: rgba(245, 158, 11, 0.12);
+}
+.nova-note[data-type="warning"] .nova-note-icon {
+ --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+}
+
+/* Danger → Red */
+.nova-note[data-type="danger"] {
+  --callout-color: #ef4444; /* Red */
+  --callout-bg: rgba(239, 68, 68, 0.12);
+}
+.nova-note[data-type="danger"] .nova-note-icon {
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m15 9-6 6'/%3E%3Cpath d='m9 9 6 6'/%3E%3C/svg%3E");
+}
+
+/* Info → Cyan / Sky */
+.nova-note[data-type="info"] {
+  --callout-color: #06b6d4; /* Cyan */
+  --callout-bg: rgba(6, 182, 212, 0.12);
+}
+.nova-note[data-type="info"] .nova-note-icon {
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+}
+
+/* Important → Violet / Purple */
+.nova-note[data-type="important"] {
+  --callout-color: #a855f7; /* Violet */
+  --callout-bg: rgba(168, 85, 247, 0.12);
+}
+.nova-note[data-type="important"] .nova-note-icon {
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E");
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .nova-note::before {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.06),
+      transparent 45%
+    );
+  }
+
+  .nova-note[data-type="note"] {
+    --callout-bg: rgba(59, 130, 246, 0.18);
+  }
+  .nova-note[data-type="tip"] {
+    --callout-bg: rgba(34, 197, 94, 0.18);
+  }
+  .nova-note[data-type="warning"] {
+    --callout-bg: rgba(245, 158, 11, 0.18);
+  }
+  .nova-note[data-type="danger"] {
+    --callout-bg: rgba(239, 68, 68, 0.18);
+  }
+  .nova-note[data-type="info"] {
+    --callout-bg: rgba(6, 182, 212, 0.18);
+  }
+  .nova-note[data-type="important"] {
+    --callout-bg: rgba(168, 85, 247, 0.18);
+  }
+}
