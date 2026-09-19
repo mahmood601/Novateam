@@ -440,7 +440,8 @@
 
 /* ---------- headings — dark background / white text (confirmed direction) ---------- */
 .pagedjs_pages,
-.tiptap {
+.tiptap,
+.lecture-content {
   h1,
   h2,
   h3,

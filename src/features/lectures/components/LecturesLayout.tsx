@@ -1,6 +1,5 @@
 import { JSX } from "solid-js";
 import LectureBreadcrumb, { type BreadcrumbItem } from "./LectureBreadcrumb";
-import '../styles/lectureView.css'
 
 interface Props {
   breadcrumb: BreadcrumbItem[];

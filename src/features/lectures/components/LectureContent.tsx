@@ -7,12 +7,17 @@ import {
   type LectureTocEntry,
 } from "../lib/lectureContentHtml";
 import { cacheLectureImages } from "../services/imageCache";
+import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
 
 interface Props {
   subjectId: string;
   seasonId: number;
   onToc?: (toc: LectureTocEntry[]) => void;
+  // Set when arriving from a search result — the exact text to jump to
+  // and highlight once the content is rendered. Left undefined for a
+  // normal (non-search) visit.
+  highlightQuery?: string;
 }
 
 export default function LectureContent(props: Props) {
@@ -49,6 +54,19 @@ export default function LectureContent(props: Props) {
     props.onToc?.(toc);
 
     void cacheLectureImages(containerEl);
+
+    // Jump to the search term, once, after this render. Re-runs if the
+    // query itself changes (e.g. user taps a different result for the
+    // same lecture without navigating away), but not on every unrelated
+    // re-render since `highlightQuery` is read at the end of the effect
+    // via the same reactive scope.
+    const query = props.highlightQuery;
+    if (query && containerEl) {
+      // Wait a frame so layout has settled (images etc. can shift height).
+      requestAnimationFrame(() => {
+        if (containerEl) highlightInLecture(containerEl, query);
+      });
+    }
   });
 
   return (

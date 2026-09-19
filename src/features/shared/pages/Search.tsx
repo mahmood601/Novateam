@@ -6,6 +6,7 @@ import {
   onMount,
   createResource,
 } from "solid-js";
+import { useNavigate } from "@solidjs/router";
 import {
   type Question,
   type CachedSection,
@@ -14,6 +15,13 @@ import {
   getPassageById,
   syncPassagesOfflineFirst,
 } from "../../quizzes/services/local/indexeddb";
+import {
+  ensureLectureSearchIndex,
+  searchLectures,
+  getUncachedLectureCount,
+  buildSnippet,
+  type LectureSearchResult,
+} from "../../lectures/lib/lectureSearchIndex";
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 
@@ -55,7 +63,7 @@ function Highlight(props: { text: string; query: string }) {
   );
 }
 
-// ─── Result Card ──────────────────────────────────────────────────────────────
+// ─── Result Card (questions) ───────────────────────────────────────────────────
 
 function ResultCard(props: {
   question: Question;
@@ -243,6 +251,63 @@ function ResultCard(props: {
   );
 }
 
+// ─── Result Card (lectures) ────────────────────────────────────────────────────
+
+function LectureResultCard(props: {
+  result: LectureSearchResult;
+  query: string;
+  index: number;
+  subjectMap: Record<string, string>;
+  sectionMap: Record<number, string>;
+}) {
+  const navigate = useNavigate();
+  const subjectName = () =>
+    props.subjectMap[props.result.subjectId] ?? props.result.subjectId;
+  const seasonName = () =>
+    props.sectionMap[props.result.seasonId] ?? `الفصل ${props.result.seasonId}`;
+  const snippet = () => buildSnippet(props.result.text, props.query);
+
+  const openInLecture = () => {
+    navigate(
+      `/${props.result.subjectId}/lectures/${props.result.seasonId}?q=${encodeURIComponent(props.query)}`,
+    );
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={openInLecture}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openInLecture();
+        }
+      }}
+      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-white p-4 text-right shadow-sm transition-all duration-200 hover:ring-2 hover:ring-main/20"
+    >
+      <div class="mb-2 flex flex-wrap justify-end gap-1.5">
+        <span class="bg-main/10 text-main rounded-full px-2 py-0.5 text-[10px] font-bold">
+          {subjectName()}
+        </span>
+        <span class="bg-secondary/10 text-secondary rounded-full px-2 py-0.5 text-[10px] font-bold">
+          {seasonName()}
+        </span>
+      </div>
+
+      <Show when={props.result.headingText}>
+        <p class="mb-1 text-[11px] font-bold text-gray-400">
+          {props.result.headingText}
+        </p>
+      </Show>
+
+      <p class="text-sm leading-relaxed dark:text-gray-200">
+        <Highlight text={snippet()} query={props.query} />
+      </p>
+    </div>
+  );
+}
+
 // ─── FilterChip ───────────────────────────────────────────────────────────────
 
 function FilterChip(props: {
@@ -267,6 +332,7 @@ function FilterChip(props: {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type SortMode = "relevance" | "newest" | "oldest";
+type ResultTab = "questions" | "lectures";
 
 export default function SearchPage() {
   let inputRef!: HTMLInputElement;
@@ -278,6 +344,7 @@ export default function SearchPage() {
   const [sortMode, setSortMode] = createSignal<SortMode>("relevance");
   const [showFilters, setShowFilters] = createSignal(false);
   const [showAll, setShowAll] = createSignal(false);
+  const [tab, setTab] = createSignal<ResultTab>("questions");
 
   const [allQuestions] = createResource(getAllQuestions);
   const [allSections] = createResource(getAllSections);
@@ -286,11 +353,35 @@ export default function SearchPage() {
     return year ? getSubjectsOfflineFirst(year) : [];
   });
 
+  // يُبنى مرة عند فتح صفحة البحث، ويُعاد بناؤه (refetch يدوي أسفل) كل
+  // مرة يدخل فيها المستخدم تبويب "المحاضرات" — رخيص لأن حجم البيانات
+  // صغير أصلاً (محاضرات مفتوحة مسبقاً فقط، انظر التعليق في
+  // lectureSearchIndex.ts)، ويضمن أن أي محاضرة فُتحت حديثاً بهذه
+  // الجلسة تظهر بالبحث فوراً. `lectureIndexReady()` نفسه يُقرأ داخل
+  // lectureResults() فقط ليسجّل كـ dependency ويُعيد حساب النتائج بعد
+  // اكتمال إعادة البناء.
+  const [lectureIndexReady, { refetch: refetchLectureIndex }] = createResource(
+    async () => {
+      await ensureLectureSearchIndex(true);
+      return true;
+    },
+  );
+  const [uncachedCount] = createResource(
+    () => [tab(), activeSubject()] as const,
+    ([, subj]) => getUncachedLectureCount(subj ?? undefined),
+  );
+
   const subjectMap = createMemo(() => {
     const list = subjects();
     return list
       ? Object.fromEntries(list.map((s) => [s.id, s.name]))
       : {};
+  });
+
+  const sectionMap = createMemo(() => {
+    const secs = allSections();
+    if (!secs) return {} as Record<number, string>;
+    return Object.fromEntries(secs.map((s) => [s.id, s.name]));
   });
 
   // فلاتر الفصل والسنة — تتغير حسب المادة المختارة
@@ -331,7 +422,7 @@ export default function SearchPage() {
     setShowAll(false);
   };
 
-  // ─── منطق البحث ──────────────────────────────────────────────────────────
+  // ─── منطق بحث الأسئلة ────────────────────────────────────────────────────
 
   const results = createMemo(() => {
     const qs = allQuestions();
@@ -384,11 +475,42 @@ export default function SearchPage() {
     showAll() ? results() : results().slice(0, 20),
   );
 
+  // ─── منطق بحث المحاضرات ──────────────────────────────────────────────────
+
+  const lectureResults = createMemo(() => {
+    lectureIndexReady(); // dependency: recompute once a (re)build finishes
+    const q = query().trim();
+    if (!q) return [];
+
+    const subj = activeSubject();
+    const season = activeSeason();
+
+    let filtered = searchLectures(q, 200).filter((r) => {
+      if (subj && r.subjectId !== subj) return false;
+      if (season && r.seasonId !== season) return false;
+      return true;
+    });
+
+    // relevance = ترتيب FlexSearch كما هو (مرتب أصلاً حسب الصلة)
+    return filtered;
+  });
+
+  const visibleLectureResults = createMemo(() =>
+    showAll() ? lectureResults() : lectureResults().slice(0, 20),
+  );
+
+  // ─── حالة عامة (مشتركة بين التبويبين) ────────────────────────────────────
+
+  const activeResultsCount = () =>
+    tab() === "questions" ? results().length : lectureResults().length;
+
   const isEmpty = () =>
     !query().trim() && !activeSubject() && !activeSeason() && !activeYear();
 
   const noResults = () =>
-    !isEmpty() && results().length === 0 && !allQuestions.loading;
+    !isEmpty() &&
+    activeResultsCount() === 0 &&
+    !(tab() === "questions" ? allQuestions.loading : false);
 
   // ─── JSX ─────────────────────────────────────────────────────────────────
 
@@ -412,7 +534,11 @@ export default function SearchPage() {
             <input
               ref={inputRef}
               type="search"
-              placeholder="ابحث في الأسئلة، الخيارات، الشرح..."
+              placeholder={
+                tab() === "questions"
+                  ? "ابحث في الأسئلة، الخيارات، الشرح..."
+                  : "ابحث داخل نص المحاضرات..."
+              }
               value={query()}
               onInput={(e) => {
                 setQuery(e.currentTarget.value);
@@ -449,6 +575,30 @@ export default function SearchPage() {
                 {activeFilterCount()}
               </span>
             </Show>
+          </button>
+        </div>
+
+        {/* التبويبات */}
+        <div class="flex gap-1 px-4 pb-2">
+          <button
+            onClick={() => { setTab("questions"); setShowAll(false); }}
+            class="flex-1 rounded-xl py-2 text-xs font-bold transition-colors"
+            classList={{
+              "bg-main text-white": tab() === "questions",
+              "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300": tab() !== "questions",
+            }}
+          >
+            الأسئلة
+          </button>
+          <button
+            onClick={() => { setTab("lectures"); setShowAll(false); void refetchLectureIndex(); }}
+            class="flex-1 rounded-xl py-2 text-xs font-bold transition-colors"
+            classList={{
+              "bg-main text-white": tab() === "lectures",
+              "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300": tab() !== "lectures",
+            }}
+          >
+            المحاضرات
           </button>
         </div>
 
@@ -510,7 +660,8 @@ export default function SearchPage() {
                   </div>
                 </Show>
 
-                <Show when={years().length > 0}>
+                {/* السنة — فلتر خاص بالأسئلة فقط (المحاضرات لا تُصنَّف بسنة) */}
+                <Show when={years().length > 0 && tab() === "questions"}>
                   <div>
                     <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">السنة</p>
                     <div class="flex gap-1.5 overflow-x-auto pb-1">
@@ -537,25 +688,27 @@ export default function SearchPage() {
               </div>
             </Show>
 
-            {/* الترتيب */}
-            <div>
-              <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">الترتيب</p>
-              <div class="flex gap-2">
-                {(
-                  [
-                    { value: "relevance", label: "الأكثر صلة" },
-                    { value: "newest", label: "الأحدث" },
-                    { value: "oldest", label: "الأقدم" },
-                  ] as { value: SortMode; label: string }[]
-                ).map((opt) => (
-                  <FilterChip
-                    label={opt.label}
-                    active={sortMode() === opt.value}
-                    onClick={() => { setSortMode(opt.value); setShowAll(false); }}
-                  />
-                ))}
+            {/* الترتيب — للأسئلة فقط، ترتيب المحاضرات دايماً حسب الصلة */}
+            <Show when={tab() === "questions"}>
+              <div>
+                <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">الترتيب</p>
+                <div class="flex gap-2">
+                  {(
+                    [
+                      { value: "relevance", label: "الأكثر صلة" },
+                      { value: "newest", label: "الأحدث" },
+                      { value: "oldest", label: "الأقدم" },
+                    ] as { value: SortMode; label: string }[]
+                  ).map((opt) => (
+                    <FilterChip
+                      label={opt.label}
+                      active={sortMode() === opt.value}
+                      onClick={() => { setSortMode(opt.value); setShowAll(false); }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </Show>
 
             {/* إعادة ضبط */}
             <Show when={activeFilterCount() > 0}>
@@ -573,23 +726,40 @@ export default function SearchPage() {
       {/* ─── Content ─── */}
       <div class="px-4 py-4">
 
+        {/* شارة المحاضرات غير المحملة — تبويب المحاضرات فقط */}
+        <Show when={tab() === "lectures" && (uncachedCount() ?? 0) > 0}>
+          <div class="mb-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+            <span>🔒</span>
+            <span>
+              {(uncachedCount() ?? 0).toLocaleString("ar")} محاضرة غير محمّلة بعد — افتحها
+              مرة واحدة ليشملها البحث لاحقاً حتى بدون إنترنت
+            </span>
+          </div>
+        </Show>
+
         {/* Loading */}
-        <Show when={allQuestions.loading}>
+        <Show when={tab() === "questions" ? allQuestions.loading : false}>
           <div class="flex items-center justify-center py-20">
             <div class="text-main h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent" />
           </div>
         </Show>
 
         {/* Empty state */}
-        <Show when={isEmpty() && !allQuestions.loading}>
+        <Show when={isEmpty() && !(tab() === "questions" && allQuestions.loading)}>
           <div class="flex flex-col items-center justify-center py-20 text-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="text-main/30 mb-4 h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <p class="text-base font-bold text-gray-400">ابحث في الأسئلة</p>
-            <p class="mt-1 text-sm text-gray-300">يبحث في السؤال، الخيارات، والشرح</p>
-            <Show when={allQuestions()}>
+            <p class="text-base font-bold text-gray-400">
+              {tab() === "questions" ? "ابحث في الأسئلة" : "ابحث داخل المحاضرات"}
+            </p>
+            <p class="mt-1 text-sm text-gray-300">
+              {tab() === "questions"
+                ? "يبحث في السؤال، الخيارات، والشرح"
+                : "يبحث في نص المحاضرات المفتوحة مسبقاً على هذا الجهاز"}
+            </p>
+            <Show when={tab() === "questions" && allQuestions()}>
               <p class="dark:bg-lighter-dark-2 mt-3 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-400">
                 {allQuestions()!.length.toLocaleString("ar")} سؤال محلي
               </p>
@@ -614,9 +784,8 @@ export default function SearchPage() {
           </div>
         </Show>
 
-        {/* Results */}
-        <Show when={results().length > 0}>
-          {/* شريط الإحصائيات */}
+        {/* Results — الأسئلة */}
+        <Show when={tab() === "questions" && results().length > 0}>
           <div class="mb-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <p class="text-xs text-gray-400">
@@ -660,6 +829,56 @@ export default function SearchPage() {
               class="border-main/30 text-main hover:bg-main/5 mt-4 w-full rounded-2xl border-2 py-3 text-sm font-bold transition-colors"
             >
               عرض باقي {(results().length - 20).toLocaleString("ar")} نتيجة
+            </button>
+          </Show>
+        </Show>
+
+        {/* Results — المحاضرات */}
+        <Show when={tab() === "lectures" && lectureResults().length > 0}>
+          <div class="mb-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <p class="text-xs text-gray-400">
+                <span class="font-bold text-gray-600 dark:text-gray-300">
+                  {lectureResults().length.toLocaleString("ar")}
+                </span>{" "}
+                نتيجة
+                <Show when={!showAll() && lectureResults().length > 20}>
+                  {" "}— يُعرض أول 20
+                </Show>
+              </p>
+              <Show when={activeFilterCount() > 0}>
+                <span class="bg-main/10 text-main rounded-full px-2 py-0.5 text-[10px] font-bold">
+                  {activeFilterCount()} فلتر نشط
+                </span>
+              </Show>
+            </div>
+            <Show when={query().trim()}>
+              <p class="text-main max-w-[120px] truncate text-xs font-bold">
+                "{query()}"
+              </p>
+            </Show>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <For each={visibleLectureResults()}>
+              {(r, i) => (
+                <LectureResultCard
+                  result={r}
+                  query={query()}
+                  index={i()}
+                  subjectMap={subjectMap()}
+                  sectionMap={sectionMap()}
+                />
+              )}
+            </For>
+          </div>
+
+          <Show when={!showAll() && lectureResults().length > 20}>
+            <button
+              onClick={() => setShowAll(true)}
+              class="border-main/30 text-main hover:bg-main/5 mt-4 w-full rounded-2xl border-2 py-3 text-sm font-bold transition-colors"
+            >
+              عرض باقي {(lectureResults().length - 20).toLocaleString("ar")} نتيجة
             </button>
           </Show>
         </Show>

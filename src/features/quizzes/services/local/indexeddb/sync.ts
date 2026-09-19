@@ -44,7 +44,6 @@ export async function clearAllSyncKeys(): Promise<boolean> {
 
 export async function clearDBAfterChangeYear() {
   try {
-    await clearAnswers();
     await clearQuestions();
     await clearSections();
     await clearSubjects();

@@ -1,0 +1,30 @@
+/* Import this from lectureView.css (or wherever LectureRender's styles
+   are bundled) — kept separate so it's obvious this is only for the
+   search "jump to word" feature, not general content styling. */
+
+mark.nova-search-highlight {
+  background-color: color-mix(in srgb, var(--color-main) 35%, transparent);
+  color: inherit;
+  border-radius: 0.2em;
+  padding: 0 0.15em;
+  transition: background-color 1s ease;
+}
+
+mark.nova-search-highlight--fade {
+  background-color: transparent;
+}
+
+/* Fallback path (block-level, no exact Range match) highlights the whole
+   paragraph/heading instead of a mark around the exact text. */
+p.nova-search-highlight,
+h1.nova-search-highlight,
+h2.nova-search-highlight,
+h3.nova-search-highlight,
+li.nova-search-highlight,
+blockquote.nova-search-highlight,
+td.nova-search-highlight,
+th.nova-search-highlight {
+  background-color: color-mix(in srgb, var(--color-main) 12%, transparent);
+  border-radius: 0.4em;
+  transition: background-color 1s ease;
+}

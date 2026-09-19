@@ -13,7 +13,7 @@ interface Props {
 
 export default function LectureBreadcrumb(props: Props) {
   return (
-    <nav dir="rtl" class="text-main" aria-label="مسار التصفح" class="lecture-breadcrumb">
+    <nav dir="rtl" aria-label="مسار التصفح" class="lecture-breadcrumb text-main overflow-x-hidden">
       <For each={props.items}>
         {(item, index) => (
           <>
@@ -24,7 +24,7 @@ export default function LectureBreadcrumb(props: Props) {
               when={item.href}
               fallback={<span class="lecture-breadcrumb__current">{item.label}</span>}
             >
-              <A href={item.href!} class="lecture-breadcrumb__link">
+              <A href={item.href!} class="lecture-breadcrumb__link shrink-0 text-nowrap w-fit">
                 {item.label}
               </A>
             </Show>
