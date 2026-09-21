@@ -9,6 +9,7 @@ import {
 import { cacheLectureImages } from "../services/imageCache";
 import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
+import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
 
 interface Props {
   subjectId: string;
@@ -68,6 +69,29 @@ export default function LectureContent(props: Props) {
       });
     }
   });
+
+
+createEffect(() => {
+  const rendered = html();
+  if (!containerEl) return;
+
+  containerEl.innerHTML = rendered;
+
+  const toc = annotateHeadingsWithIds(containerEl);
+  props.onToc?.(toc);
+
+  void cacheLectureImages(containerEl);
+
+  // ← هذا السطر الناقص
+  void renderAllMermaidInContainer(containerEl);
+
+  const query = props.highlightQuery;
+  if (query && containerEl) {
+    requestAnimationFrame(() => {
+      if (containerEl) highlightInLecture(containerEl, query);
+    });
+  }
+});
 
   return (
     <Show

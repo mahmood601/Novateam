@@ -9,9 +9,9 @@ interface Props {
 export default function LecturesLayout(props: Props) {
   return (
     <div class="lecture-view pt-15">
-      <div class="lecture-breadcrumb-bar">
+      {/* <div class="lecture-breadcrumb-bar">
         <LectureBreadcrumb items={props.breadcrumb} />
-      </div>
+      </div> */}
 
       <main class="lecture-content" dir="rtl">
         {props.children}

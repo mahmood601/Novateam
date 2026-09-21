@@ -1,4 +1,4 @@
-// src/extensions/mermaid/MermaidExtension.ts
+// src/features/editor/tiptap/extensions/mermaid/MermaidExtension.ts
 import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
 import { SolidNodeViewRenderer } from "tiptap-solid";
 import MermaidView from "./MermaidView";
@@ -11,6 +11,9 @@ export const Mermaid = Node.create<MermaidOptions>({
   atom: true,
   draggable: true,
   selectable: true,
+
+  // أولوية أعلى من CodeBlock حتى يُفحص أولاً
+  priority: 1000,
 
   addOptions() {
     return {
@@ -46,12 +49,12 @@ export const Mermaid = Node.create<MermaidOptions>({
         getAttrs: (node) => {
           if (typeof node === "string") return false;
 
-          const code = node.querySelector("code");
+          const code = (node as HTMLElement).querySelector("code");
           const lang = code?.getAttribute("class") || "";
 
           if (lang.includes("language-mermaid") || lang.includes("mermaid")) {
             return {
-              content: code?.textContent || node.textContent,
+              content: code?.textContent || (node as HTMLElement).textContent,
             };
           }
 
@@ -70,21 +73,48 @@ export const Mermaid = Node.create<MermaidOptions>({
     ];
   },
 
-  markdownTokenName: "mermaid",
+  // ─────────────────────────────────────────────
+  // Markdown support
+  // ─────────────────────────────────────────────
+
+  // Tokenizer مخصص يلتقط ```mermaid ... ``` قبل أن يصل إلى CodeBlock
+  markdownTokenizer: {
+    name: "mermaid",
+    level: "block" as const,
+    start(src: string) {
+      const match = src.match(/^```(?:mermaid|mmd)\s*\n/m);
+      return match ? (match.index ?? -1) : -1;
+    },
+    tokenize(src: string, _tokens: any, _lexer: any) {
+      const rule =
+        /^```(?:mermaid|mmd)[ \t]*\n([\s\S]*?)(?:\n```[ \t]*\n?|\n```[ \t]*$)/;
+      const match = rule.exec(src);
+
+      if (!match) return undefined;
+
+      return {
+        type: "mermaid",
+        raw: match[0],
+        text: match[1] ?? "",
+        content: match[1] ?? "",
+      };
+    },
+  },
+
+  parseMarkdown: (token, helpers) => {
+    return helpers.createNode("mermaid", {
+      content: token.content || token.text || "",
+    });
+  },
 
   renderMarkdown: (node) => {
     const code = node?.attrs?.content || "";
     return `\`\`\`mermaid\n${code.trim()}\n\`\`\``;
   },
 
-  parseMarkdown: (tokens, helpers) => {
-    if (tokens.type === "code" && (tokens.lang === "mermaid" || tokens.lang === "mmd")) {
-      return helpers.createNode('mermaid', {
-          content: tokens.content,
-      })
-    }
-    return []
-  },
+  // ─────────────────────────────────────────────
+  // NodeView + Commands + InputRules
+  // ─────────────────────────────────────────────
 
   addNodeView() {
     return SolidNodeViewRenderer(MermaidView);

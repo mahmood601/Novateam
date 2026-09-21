@@ -24,7 +24,7 @@ export default function LectureBreadcrumb(props: Props) {
               when={item.href}
               fallback={<span class="lecture-breadcrumb__current">{item.label}</span>}
             >
-              <A href={item.href!} class="lecture-breadcrumb__link shrink-0 text-nowrap w-fit">
+              <A href={item.href!} class="lecture-breadcrumb__link shrink-0 text-nowrap overflow-hidden w-1/8">
                 {item.label}
               </A>
             </Show>

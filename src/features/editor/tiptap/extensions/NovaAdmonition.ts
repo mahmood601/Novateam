@@ -113,11 +113,52 @@ export const NovaAdmonition = Node.create({
     ];
   },
 
-  ...createBlockMarkdownSpec({
-    nodeName: "novaNote",
-    name: "note",
-    content: "block",
-    defaultAttributes: { type: "note" },
-    allowedAttributes: ["type", "title", "color"],
-  }),
+ // بدلاً من createBlockMarkdownSpec الحالي، استخدم Tokenizer مخصص
+markdownTokenizer: {
+  name: "novaNote",
+  level: "block" as const,
+  start(src) {
+    const match = src.match(/^:::(note|warning|tip|danger|info|important)/m);
+    return match ? (match.index ?? -1) : -1;
+  },
+  tokenize(src, _tokens, lexer) {
+    const match = /^:::(note|warning|tip|danger|info|important)(?:\s+\{([^}]*)\})?(?:\s+(.+))?\n([\s\S]*?)\n:::/.exec(src);
+    if (!match) return undefined;
+
+    const type = match[1];
+    const attrsStr = match[2] || "";
+    const titleFromText = match[3]?.trim() || null;
+    const content = match[4] || "";
+
+    // تحليل الـ attributes إن وجدت
+    const attrs: Record<string, string> = { type };
+    if (attrsStr) {
+      attrsStr.split(/\s+/).forEach((pair) => {
+        const [k, v] = pair.replace(/"/g, "").split("=");
+        if (k && v) attrs[k] = v;
+      });
+    }
+    if (titleFromText && !attrs.title) attrs.title = titleFromText;
+
+    return {
+      type: "novaNote",
+      raw: match[0],
+      attrs,
+      tokens: lexer.blockTokens(content),
+    };
+  },
+},
+
+parseMarkdown: (token, helpers) => {
+  return helpers.createNode("novaNote", token.attrs ||  { type: "note" }, helpers.parseChildren(token.tokens || []));
+},
+
+renderMarkdown: (node, helpers) => {
+  let type = node.attrs?.type || "note";
+  let title = node.attrs?.title;
+  const content = helpers.renderChildren(node.content || [], "\n\n");
+  const attrParts = [type="${type}"];
+  if (title) attrParts.push(title="${title}");
+  return ` :::note {\( {attrParts.join(" ")}}\n \){content}\n:::`;
+},
 });
