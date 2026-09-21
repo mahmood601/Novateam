@@ -63,6 +63,7 @@ import { debounce } from "@/features/shared/utils/debounce";
 import {
   getLecture,
   upsertLecture,
+  updateDoctorName,
 } from "@/features/shared/services/lecturesUpdates";
 import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
@@ -142,6 +143,18 @@ export default function TiptapReviewEditor(props: {
       };
       setRaw(editor?.getJSON() || null);
       reader.readAsText(file);
+    }
+  };
+
+  const handleEditDoctorName = async (event: Event) => {
+    const newName = window.prompt("ادخل اسم الدكتور :");
+    if (newName) {
+      await updateDoctorName(
+        props.subjectId,
+        props.seasonId,
+        newName,
+        user()?.id,
+      );
     }
   };
 
@@ -544,9 +557,13 @@ export default function TiptapReviewEditor(props: {
         onInsert={() => setInsertActive(true)}
         subjectId={props.subjectId}
         handleFileUpload={handleFileUpload}
+        handleEditDoctorName={handleEditDoctorName}
       />
 
-      <div class="nova-tiptap-review flex flex-1 min-h-0 w-full flex-col pt-12" dir="rtl">
+      <div
+        class="nova-tiptap-review flex min-h-0 w-full flex-1 flex-col pt-12"
+        dir="rtl"
+      >
         <Suspense fallback={<div>Loading...</div>}>
           <div
             ref={containerRef}
@@ -772,6 +789,7 @@ function EditorHeader(props: {
   onInsert: () => void;
   subjectId: string;
   handleFileUpload: (event: Event) => void;
+  handleEditDoctorName: (event: Event) => void;
 }) {
   return (
     <div class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light/80 dark:bg-main-dark fixed top-0 left-0 z-50 w-full border-b shadow-sm backdrop-blur-sm">
@@ -837,6 +855,7 @@ function EditorHeader(props: {
             subjectId={props.subjectId}
             seasonId={props.seasonId}
             handleFileUpload={props.handleFileUpload}
+            handleEditDoctorName={props.handleEditDoctorName}
           />
         </div>
       </div>

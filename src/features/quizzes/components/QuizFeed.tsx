@@ -11,6 +11,7 @@ type FeedProps = {
   subject: string;
   subjectName: string;
   answeredMap: Map<string, { selectedIndex: number; isCorrect: boolean }>;
+  weakAttemptsMap?: Map<string, number>;
   startIndex: number;
   onSelect: (q: Question, optIdx: number, content: string) => void;
   onIndexChange: (idx: number) => void;
@@ -73,6 +74,24 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
     ),
   );
 
+  // إصلاح: بعد أي refetch (تعديل سؤال من الأدمن، أو تغيير فلتر) بترجع
+  // getQuestionsWithFilters كائنات Question جديدة كلياً حتى لو نفس
+  // البيانات — فـ<For> بيهدم كل الشرائح ويبنيها من جديد (مش بس يحدّث
+  // محتواها)، وهاد بيصفّر scrollTop للحاوية فيبين وكأنك رجعت للسؤال
+  // الأول. نعيد الscroll يدوياً لنفس الموضع الحالي (startIndex) بعد كل
+  // مرة تتغير فيها مصفوفة الأسئلة نفسها (مو بس طولها). defer:true عشان
+  // ما تشتغل زيادة عن onMount بالتحميل الأول.
+  createEffect(
+    on(
+      () => props.questions,
+      () => {
+        setupObserver();
+        requestAnimationFrame(() => scrollToIndex(props.startIndex, false));
+      },
+      { defer: true },
+    ),
+  );
+
   const handleSelect = (
     q: Question,
     optIdx: number,
@@ -124,6 +143,7 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
                     handleSelect(qq, optIdx, content, i())
                   }
                   passage={passageFor(q)}
+                  weakAttempts={props.weakAttemptsMap?.get(q.$id)}
                 />
               </div>
             </div>

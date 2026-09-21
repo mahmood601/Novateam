@@ -10,7 +10,7 @@ import { Transition } from "solid-transition-group";
 import Atom from "../Icons/Atom";
 
 export default function AppName(props: { hide?: Accessor<boolean> }) {
-  const [connectionState, setConnectionState] = createSignal(
+  const [connectionState, setConnectionState] = createSignal<"online" | "offline">(
     navigator.onLine ? "online" : "offline",
   );
   const [showAppname, setShowAppname] = createSignal(navigator.onLine);

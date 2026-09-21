@@ -18,9 +18,9 @@ export default function QuizBox(props: any) {
 
   return (
     <div class="bg-main-light dark:bg-main-dark">
-      {/* شارة الفصل والسنة + زر الاقتراح */}
+      {/* شارة الفصل والسنة + بادج "صعب" + زر الاقتراح */}
       <Show when={props.currentQuestion}>
-        <div class="mb-2 flex items-center flex-row-reverse">
+        <div class="mb-2 flex items-center flex-row-reverse gap-2">
           <div class="text-xs border-secondary flex w-fit rounded-full h-fit border-2 font-bold ml-2">
             <Show when={seasonName()}>
               <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-2">
@@ -33,6 +33,16 @@ export default function QuizBox(props: any) {
               </p>
             </Show>
           </div>
+
+          {/* بادج عدد مرات الإخطاء — يظهر لأي سؤال أخطأ فيه المستخدم قبل، مو بس بوضع فلتر "الصعبة" */}
+          <Show when={props.weakAttempts}>
+            <span
+              dir="rtl"
+              class="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+            >
+              ⚠️ أخطأت {props.weakAttempts} {props.weakAttempts === 1 ? "مرة" : "مرات"}
+            </span>
+          </Show>
 
           {/* زر اقتراح الفصل */}
           <SuggestSection

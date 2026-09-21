@@ -1,6 +1,6 @@
 // features/lectures/components/Print/LecturePrint.tsx
 
-import { onMount, createSignal, Show } from "solid-js";
+import { onMount, onCleanup, createSignal, Show } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
 
 import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
@@ -21,9 +21,6 @@ interface Props {
 // this MUST use the exact same extension set, or print output can
 // silently diverge from what the team actually reviewed.
 async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
-  // .slice() instead of .pop() — pop() mutated the shared extensionsArr
-  // in place, so a second print in the same session (or any other code
-  // relying on that array) would silently lose a different extension.
   const printExts = extensionsArr.slice(0, -1); // drop Markdown extension, not needed for print
   const editor = new Editor({
     extensions: [...printExts],
@@ -38,40 +35,94 @@ async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
   return html;
 }
 
+// ============================================
+// جدول المحتويات من عناوين H1
+// ============================================
+function buildTocFromContent(html: string): { html: string; tocRows: string } {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const headings = Array.from(doc.querySelectorAll("h1"));
+
+  const usedIds = new Set<string>();
+  const rows: string[] = [];
+
+  headings.forEach((h, i) => {
+    const text = h.textContent?.trim() ?? "";
+    if (!text) return;
+
+    const baseSlug =
+      text
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\p{L}\p{N}-]/gu, "")
+        .slice(0, 60) || `section-${i}`;
+
+    let id = baseSlug;
+    let n = 1;
+    while (usedIds.has(id)) id = `${baseSlug}-${n++}`;
+    usedIds.add(id);
+
+    h.id = id;
+
+    rows.push(`
+      <tr>
+        <td class="toc-page"><a class="toc-page-num" href="#${id}"></a></td>
+        <td dir="rtl" class="toc-title"><a href="#${id}">${text}</a></td>
+      </tr>
+    `);
+  });
+
+  return { html: doc.body.innerHTML, tocRows: rows.join("") };
+}
+
 export default function LecturePrint(props: Props) {
   const [ready, setReady] = createSignal(false);
   let outputEl: HTMLDivElement | undefined;
+  let naturalPageWidth = 0; // يُعاد قياسه بعد كل إعادة رندر لأن الـDOM بينبنى من جديد كامل
 
-  onMount(async () => {
-    // 1. تحويل Markdown عبر نفس محرك Tiptap يلي بمحرر المراجعة
-    //    (بدل marked — عشان يطلع data-color و classes نوفا صح)
-    const rawHtml = await jsonToPrintHtml(props.content);
+  // نص المحتوى (بعد توليد الـTOC) — ثابت، ما بيتغيّر بإعادة الرندر
+  // لتحرير الوصف/اسم الدكتور (jsonToPrintHtml/buildTocFromContent
+  // مكلفين شوي، مافي داعي نعيدهم كل مرة يعدّل فيها المستخدم حقل نصي).
+  let cachedContentWithIds = "";
+  let cachedTocRows = "";
 
-    // commented because it case mermaid to not render
-    // const safeHtml = DOMPurify.sanitize(rawHtml);
-    // console.log(safeHtml);
+  // القيم القابلة للتعديل من داخل المعاينة نفسها — بدون أي عمود
+  // جديد بقاعدة البيانات: نفس فكرة contenteditable الموجودة أصلاً
+  // لاسم الدكتور، موسّعة لصندوق الوصف كمان.
+  const [doctorName, setDoctorName] = createSignal(props.doctorName);
+  const [description, setDescription] = createSignal("");
 
-    // 2. بناء المستند
-    const fullHtml = buildDocument(props, rawHtml);
-
-    const parsedDocument = new DOMParser().parseFromString(
-      fullHtml,
-      "text/html",
+  // ============================================
+  // إعادة رندر كاملة عبر Paged.js
+  // ============================================
+  // هاي هي نقطة الإصلاح الفعلية: Paged.js بيسوي التصفيح (pagination)
+  // مرة وحدة وقت ما تستدعي paged.preview() — أي تعديل لاحق بمحتوى
+  // contenteditable ما بيخلي Paged.js "يحس" فيه أو يعيد حساب أبعاد
+  // الصندوق/فواصل الصفحات (هو مش محرك layout حي مستمر، هو بيقص
+  // المحتوى لصفحات ثابتة مرة وحدة وخلص). فبدل ما نعتمد إن الصندوق
+  // "يتمدد" لوحده، منعيد تشغيل paged.preview() بالكامل بعد كل تعديل
+  // (onblur) — أبطأ شوي من تعديل حي، لكنه الطريقة الوحيدة يلي بتضمن
+  // إن حجم الصندوق وترقيم الصفحات يصير صحيح مع المحتوى الجديد فعلياً
+  // (حتى لو صار طويل لدرجة يحتاج صفحة إضافية).
+  async function renderDocument() {
+    const fullHtml = buildDocument(
+      props,
+      cachedContentWithIds,
+      cachedTocRows,
+      doctorName(),
+      description(),
     );
-    const fragment = document.createDocumentFragment();
 
+    const parsedDocument = new DOMParser().parseFromString(fullHtml, "text/html");
+    const fragment = document.createDocumentFragment();
     while (parsedDocument.body.firstChild) {
       fragment.appendChild(parsedDocument.body.firstChild);
     }
 
-    // 3. تحميل Paged.js — dynamic import keeps it out of the main bundle
-    //    and avoids Vite's dependency scan trying (and failing) to
-    //    resolve it eagerly at build/scan time.
     const { Previewer } = await import("pagedjs");
-
     await renderAllMermaidInContainer(fragment as unknown as HTMLElement);
 
-    // 4. تشغيل Paged.js
+    if (outputEl) outputEl.innerHTML = ""; // رندر نظيف قبل كل إعادة تصفيح
+
     const paged = new Previewer();
     const flow = await paged.preview(
       fragment,
@@ -80,16 +131,97 @@ export default function LecturePrint(props: Props) {
     );
 
     const pageCount = flow.total;
-    const pageCountElements = outputEl?.querySelectorAll(".footer-pages-count");
-    pageCountElements?.forEach((el) => {
+    outputEl?.querySelectorAll(".footer-pages-count").forEach((el) => {
       el.textContent = pageCount.toString();
     });
 
+    attachEditableHandlers();
+
     setReady(true);
+    naturalPageWidth = 0; // الـDOM اتبنى من جديد كامل، لازم نعيد القياس
+    requestAnimationFrame(applyResponsiveScale);
+  }
+
+  // نربط onblur لكل حقل قابل للتعديل بعد كل رندر (العناصر نفسها
+  // بتنعمل من جديد كل مرة، فلازم نعيد ربط الأحداث في كل مرة).
+  function attachEditableHandlers() {
+    const doctorEl = outputEl?.querySelector<HTMLElement>('[data-field="doctorName"]');
+    const descEl = outputEl?.querySelector<HTMLElement>('[data-field="description"]');
+
+    doctorEl?.addEventListener("blur", () => {
+      const text = doctorEl.textContent?.trim() ?? "";
+      if (text === doctorName()) return; // ما تغيّر شي، ما في داعي لإعادة رندر
+      setDoctorName(text);
+      renderDocument();
+    });
+
+    descEl?.addEventListener("blur", () => {
+      const text = descEl.textContent?.trim() ?? "";
+      if (text === description()) return;
+      setDescription(text);
+      renderDocument();
+    });
+  }
+
+  // ============================================
+  // تصغير الصفحة لتملأ الشاشات الصغيرة — بدون تكبيرها أبداً فوق حجم
+  // A4 الحقيقي بالشاشات الكبيرة (max scale = 1). عبر JS مو CSS بس،
+  // عشان نقدر نلغي الـtransform وقت الطباعة الفعلية (beforeprint).
+  // ============================================
+  function applyResponsiveScale() {
+    if (!outputEl) return;
+    const pagesEl = outputEl.querySelector<HTMLElement>(".pagedjs_pages");
+    const pageEl = outputEl.querySelector<HTMLElement>(".pagedjs_page");
+    if (!pagesEl || !pageEl) return;
+
+    if (!naturalPageWidth) {
+      naturalPageWidth = pageEl.getBoundingClientRect().width;
+    }
+    if (!naturalPageWidth) return;
+
+    const available = outputEl.clientWidth;
+    const scale = Math.min(1, available / naturalPageWidth);
+
+    pagesEl.style.transformOrigin = "top center";
+    pagesEl.style.transform = `scale(${scale})`;
+    pagesEl.style.marginInline = "auto";
+
+    const naturalHeight = pagesEl.scrollHeight;
+    pagesEl.style.marginBottom = `${-(naturalHeight * (1 - scale))}px`;
+  }
+
+  function resetScaleForPrint() {
+    const pagesEl = outputEl?.querySelector<HTMLElement>(".pagedjs_pages");
+    if (!pagesEl) return;
+    pagesEl.style.transform = "none";
+    pagesEl.style.marginBottom = "0";
+  }
+
+  onMount(async () => {
+    // 1. تحويل Markdown عبر نفس محرك Tiptap يلي بمحرر المراجعة
+    const rawHtml = await jsonToPrintHtml(props.content);
+
+    // 2. توليد جدول المحتويات + id لكل h1 — مرة وحدة بس، محفوظة
+    //    بمتغيّرات الclosure فوق، ومو معاد حسابها بكل renderDocument
+    const { html, tocRows } = buildTocFromContent(rawHtml);
+    cachedContentWithIds = html;
+    cachedTocRows = tocRows;
+
+    await renderDocument();
+
+    window.addEventListener("resize", applyResponsiveScale);
+    window.addEventListener("beforeprint", resetScaleForPrint);
+    window.addEventListener("afterprint", applyResponsiveScale);
+  });
+
+  onCleanup(() => {
+    window.removeEventListener("resize", applyResponsiveScale);
+    window.removeEventListener("beforeprint", resetScaleForPrint);
+    window.removeEventListener("afterprint", applyResponsiveScale);
   });
 
   return (
-    <div class="flex h-full flex-1 flex-col min-h-0 overflow-scroll">
+    <div class="flex flex-1 flex-col h-fit overflow-scroll">
       <Show when={ready()}>
         <div class="fixed top-4 left-4 z-50 flex gap-3 print:hidden">
           <button
@@ -108,12 +240,18 @@ export default function LecturePrint(props: Props) {
         </div>
       </Show>
 
-      <div ref={(el) => (outputEl = el)} id="paged-output" />
+      <div ref={(el) => (outputEl = el)} class="flex-1 flex justify-center p-0 m-0" id="paged-output" />
     </div>
   );
 }
 
-function buildDocument(data: Props, contentHtml: string) {
+function buildDocument(
+  data: Props,
+  contentHtml: string,
+  tocRows: string,
+  doctorName: string,
+  description: string,
+) {
   return `
     <!-- الغلاف -->
     <section class="cover">
@@ -140,7 +278,7 @@ function buildDocument(data: Props, contentHtml: string) {
           </div>
           <ul class="footer-info" dir="rtl">
             <li>${data.lectureNumber || ""}. ${data.lectureTitle}</li>
-            <li contenteditable="true">د. ${data.doctorName}</li>
+            <li>د. <span contenteditable="true" data-field="doctorName">${doctorName}</span></li>
             <li>السنة ${data.year}ة – الفصل ${data.semester}</li>
           </ul>
         </div>
@@ -152,12 +290,19 @@ function buildDocument(data: Props, contentHtml: string) {
       <div class="container">
         <div class="table-header">${data.lectureTitle}</div>
         <div class="toc-box">
-          <div class="description" dir="rtl">mms dm,s dm,s dm, sm, v,mz ,</div>
+          <div
+            class="description"
+            contenteditable="true"
+            data-field="description"
+            data-placeholder="اكتب وصفاً مختصراً للمحاضرة هنا..."
+            dir="rtl"
+          >${description}</div>
           <table>
             <tr>
               <th>الصفحة</th>
               <th>المضمون</th>
             </tr>
+            ${tocRows}
           </table>
         </div>
       </div>
@@ -175,7 +320,7 @@ function buildDocument(data: Props, contentHtml: string) {
         <div class="footer-flex-content">
       <div class="number"></div>
       <div class="info-bar" dir="rtl">
-        ${data.lectureNumber || ""} ${data.lectureTitle} - د. ${data.doctorName} – السنة ${data.year}ة الفصل ${data.semester}
+        ${data.lectureNumber || ""} ${data.lectureTitle} - د. ${doctorName} – السنة ${data.year}ة الفصل ${data.semester}
       </div>
     </div>
 

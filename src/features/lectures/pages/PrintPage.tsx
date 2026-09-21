@@ -24,13 +24,14 @@ export default function PrintPage() {
     <Suspense fallback={<div>جار التحميل...</div>}>
     <Show when={lecture()?.data && content()} fallback={<div>جار التحميل...</div>}>
       {(data) => {
+        console.log("lecture data", lecture());
         return (
           <LecturePrint
             subjectName={subjectInfo()?.name ?? ""}
             lectureNumber={params.season}
             subjectId={params.subject}
             seasonName={seasonName() ?? ""}
-            doctorName={data()?.doctorName || ""}
+            doctorName={lecture()?.data?.[0].doctor_name || ""}
             content={content() ?? ""}
             lectureTitle={seasonName()}
             year={subjectInfo()?.year_key }

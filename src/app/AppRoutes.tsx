@@ -43,6 +43,12 @@ export default function AppRoutes() {
       <Route path="/:subject/favorite" component={() => <Suspense><FavoritesPage /></Suspense>} />
       <Route path="/:subject/lectures" component={() => <Suspense><LecturesListPage /></Suspense>} />
       <Route path="/:subject/lectures/:seasonId" component={() => <Suspense><LectureViewPage /></Suspense>} />
+      {/* الدخول الافتراضي الجديد: بدون فلتر بالـ URL — كل الفصول + كل
+          السنين، والفلترة كلها صارت داخل الكويز نفسه (شوف QuizFilterSheet).
+          لازم تكون قبل الـ catch-all تحت عشان "quiz" ما تتفسّر كـ section. */}
+      <Route path="/:subject/quiz" component={() => <Suspense><Quiz /></Suspense>} />
+      {/* يبقى للتوافق الرجعي مع أي روابط قديمة محفوظة (season_id-N /
+          year_id-N) — Quiz.tsx بيحوّلها لفلتر ابتدائي عبر filtersFromLegacySection. */}
       <Route path="/:subject/:section" component={() => <Suspense><Quiz /></Suspense>} />
 
       <Route path="/dashboard" /*component={AdminGate} */>

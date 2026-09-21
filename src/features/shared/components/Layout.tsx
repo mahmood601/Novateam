@@ -6,14 +6,12 @@ import { Links } from "./Header/Links";
 
 export default function Layout(props: { children: JSX.Element }) {
   const location = () => useLocation().pathname;
-  const quizMode = () =>
-    location().includes("season") || location().includes("year");
-const isMainPages = () =>
-      location().includes("/stats") ||
-      location().includes("/settings") ||
-      location().includes("/dashboard") ||
-      location().includes("/profile") 
-
+  const quizMode = () => location().includes("quiz");
+  const isMainPages = () =>
+    location().includes("/stats") ||
+    location().includes("/settings") ||
+    location().includes("/dashboard") ||
+    location().includes("/profile");
 
   const { theme, applyTheme } = useTheme();
 

@@ -1,5 +1,3 @@
-
-
 /* Dark-mode-aware role tokens for the editor's own chrome (table
    borders/headers, toolbar buttons, sheets, grips). Derived from the
    app's global theme tokens in src/styles/theme.css instead of new
@@ -163,80 +161,7 @@
     display: block;
   }
 
-  ul,
-  ol {
-    padding-inline-start: 1.5rem;
-    margin: 0.25rem 0;
-  }
 
-  ul {
-    list-style-type: disc;
-  }
-
-  ol {
-    list-style-type: decimal;
-  }
-
-  li {
-    margin: 0.15rem 0;
-  }
-
-  li p {
-    margin: 0;
-  }
-
-  /* Nested lists (via the indent/outdent toolbar buttons) cycle marker
-   style per depth, same convention Word/Google Docs use so levels stay
-   visually distinguishable from one another. */
-  ul ul {
-    list-style-type: circle;
-  }
-
-  ul ul ul {
-    list-style-type: square;
-  }
-
-  ol ol {
-    list-style-type: lower-alpha;
-  }
-
-  ol ol ol {
-    list-style-type: lower-roman;
-  }
-
-  /* Table Kit styling — driven by the active --color-main / --color-* theme */
-  .tableWrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 1em 0;
-  }
-
-  table {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-collapse: collapse;
-}
-  table td,
-  table th {
-    border: 1px solid var(--nova-color);
-    padding: 6px 10px;
-    vertical-align: top;
-    box-sizing: border-box;
-    position: relative;
-    min-width: 1em;
-  }
-
-  table th {
-    background-color: var(--nova-color);
-    font-weight: 600;
-    text-align: start;
-    color: #fff;
-  }
 
   .resize-cursor {
     cursor: col-resize;

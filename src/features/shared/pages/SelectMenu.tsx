@@ -1,26 +1,16 @@
-import { useParams, A, useNavigate } from "@solidjs/router";
-import {
-  createEffect,
-  createResource,
-  createSignal,
-  For,
-  Show,
-} from "solid-js";
+import { useParams, A } from "@solidjs/router";
+import { createResource, createSignal, For, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
-import { setQuizType } from "../../quizzes/stores/quizType";
-import {
-  deleteAnswersWithFilter,
-  getFavorites,
-  getQuestionsOrAnswersWithFilter,
-  syncAndGetSections,
-} from "../../quizzes/services/local/indexeddb";
+import { getFavorites, syncAndGetSections } from "../../quizzes/services/local/indexeddb";
 import { Tabs } from "@kobalte/core/tabs";
 import { CirclePlay } from "lucide-solid";
 
 export default function SelectMenu() {
   const subject = `${useParams<{ subject: string }>().subject}`;
 
-  // sections من Supabase (تحتوي على id حقيقي)
+  // sections من Supabase (تحتوي على id حقيقي) — لسه محتاجينها لتبويب
+  // "المحاضرات" (اختيار فصل محدد)، مو لأسئلة الدورات بعد ما صارت
+  // الفلترة (فصل/سنة/مفضلة/صعبة) كلها داخل الكويز نفسه.
   const [sections] = createResource(async () => syncAndGetSections(subject));
   const [favorites] = createResource(() => getFavorites(subject));
 
@@ -28,10 +18,6 @@ export default function SelectMenu() {
     sections()
       ?.filter((s) => s.type === "season")
       .sort((a, b) => +a.value - +b.value) ?? [];
-  const years = () =>
-    sections()
-      ?.filter((s) => s.type === "year")
-      .sort((a, b) => +b.value - +a.value) ?? [];
 
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
 
@@ -51,50 +37,21 @@ export default function SelectMenu() {
           class="flex min-h-0 w-screen flex-1 flex-col items-center justify-center gap-5 overflow-y-auto px-5"
           value="quizzes"
         >
-          {/* السنوات */}
+          {/* الدخول الافتراضي: كل الفصول + كل السنين مع بعض — الفلترة
+              (فصل/سنة/مفضلة/صعبة، تعدد اختيار) صارت من داخل الكويز نفسه */}
           <SectionBox
-            text="السنوات"
+            text="ابدأ الاختبار"
             index={0}
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
-            dropdown={true}
-          >
-            <For each={years()}>
-              {(y) => (
-                <ItemRow
-                  label={y.name}
-                  href={`year_id-${y.id}`}
-                  subject={subject}
-                  sectionType="year_id"
-                  sectionId={y.id}
-                />
-              )}
-            </For>
-          </SectionBox>
-          {/* الفصول */}
-          <SectionBox
-            text="الفصول"
-            index={1}
-            activeIndex={activeIndex}
-            setActiveIndex={setActiveIndex}
-            dropdown={true}
-          >
-            <For each={seasons()}>
-              {(s) => (
-                <ItemRow
-                  label={s.name}
-                  href={`season_id-${s.id}`}
-                  subject={subject}
-                  sectionType="season_id"
-                  sectionId={s.id}
-                />
-              )}
-            </For>
-          </SectionBox>
+            dropdown={false}
+            link="quiz"
+          ></SectionBox>
+
           {/* المفضلة */}
           <SectionBox
             text="المفضلة"
-            index={2}
+            index={1}
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
             dropdown={true}
@@ -118,10 +75,11 @@ export default function SelectMenu() {
               </div>
             </Show>
           </SectionBox>
+
           {/* الاسئلة الصعبة */}
           <SectionBox
             text="الاسئلة الصعبة"
-            index={3}
+            index={2}
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
             dropdown={false}
@@ -201,68 +159,6 @@ function SectionBox(props: {
           <p class="text-center text-lg font-bold">{props.text}</p>
         </A>
       </Show>
-    </div>
-  );
-}
-
-// ─── ItemRow ──────────────────────────────────────────────────────────────────
-
-function ItemRow(props: {
-  label: string;
-  href: string;
-  subject: string;
-  sectionType: "season_id" | "year_id";
-  sectionId: number;
-}) {
-  const navigate = useNavigate();
-  const route = () => `/${props.subject}/${props.href}`;
-  const sessionKey = () =>
-    `quiz_index_${props.subject}_${props.sectionType}_${props.sectionId}`;
-
-  const startFromBeginning = async () => {
-    setQuizType("restart");
-    sessionStorage.removeItem(sessionKey());
-    await deleteAnswersWithFilter(
-      props.subject,
-      props.sectionType,
-      props.sectionId,
-    );
-  };
-
-  const handleClick = async (event: MouseEvent) => {
-    event.preventDefault();
-
-    const savedAnswers = await getQuestionsOrAnswersWithFilter(
-      props.subject,
-      "answers",
-      props.sectionType,
-      props.sectionId,
-    );
-
-    // if (savedAnswers.length > 0) {
-    //   if (window.confirm("هل تريد الإكمال من حيث توقفت سابقا؟")) {
-    //     setQuizType("continue");
-    //   } else {
-    //     await startFromBeginning();
-    //   }
-    // } else {
-    //   setQuizType("continue");
-    // }
-
-    await startFromBeginning();
-
-    navigate(route());
-  };
-
-  return (
-    <div class="flex w-full items-center gap-2">
-      <A
-        href={props.href}
-        onClick={handleClick}
-        class="bg-main m-2 flex-1 rounded-md p-2 text-center"
-      >
-        {props.label}
-      </A>
     </div>
   );
 }

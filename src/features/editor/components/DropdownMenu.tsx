@@ -8,6 +8,7 @@ export default function Menu(props: {
   seasonId: string;
   children?: JSX.Element;
   handleFileUpload: (event: Event) => void;
+  handleEditDoctorName: (event: Event) => void;
 }) {
   const navigate = useNavigate();
 
@@ -53,6 +54,11 @@ export default function Menu(props: {
                   accept=".md"
                 />
               </div>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 cursor-pointer list-none rounded-md px-3 py-2 text-right text-sm transition-colors outline-none">
+              <button onClick={props.handleEditDoctorName}>
+                تعديل اسم الدكتور
+              </button>
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>

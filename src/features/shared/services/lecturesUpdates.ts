@@ -8,7 +8,6 @@ export async function upsertLecture({
   seasonId,
   rawContent,
   userId,
-  doctorName
 }) {
   const { data, error } = await supabase
     .from("formatted_lectures")
@@ -17,7 +16,6 @@ export async function upsertLecture({
         subject_id: subjectId,
         season_id: seasonId,
         content: { raw: rawContent },
-        doctor_name: doctorName, 
         status: "published", // يمكنك تعديل الحالة حسب الحاجة
         created_by: userId,
         updated_at: new Date().toISOString(),
@@ -29,6 +27,36 @@ export async function upsertLecture({
 
   if (error) {
     console.error("[createLecture] فشل الإنشاء:", error.message);
+    return { data: null, error: mapError(error) };
+  }
+
+  return { data, error: null };
+}
+
+export async function updateDoctorName(subjectId, seasonId, doctorName, userId) {
+  const trimmed = (doctorName ?? "").trim();
+
+  if (!trimmed) {
+    return {
+      data: null,
+      error: { message: "اسم الدكتور لا يمكن أن يكون فارغاً", code: "invalid_doctor_name" },
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("formatted_lectures")
+    .update({
+      doctor_name: trimmed,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("subject_id", subjectId)
+    .eq("season_id", seasonId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("[updateDoctorName] فشل التحديث:", error.message);
     return { data: null, error: mapError(error) };
   }
 

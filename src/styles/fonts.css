@@ -26,3 +26,12 @@
   ascent-override: 90%;
   descent-override: 20%;
 }
+
+@font-face {
+  font-family: 'Hacen Tunisia';
+  src: url("/print/fonts/Hacen\ Tunisia\ Lt.ttf")
+    format("truetype");
+  font-weight: regular;
+  ascent-override: 90%;
+  descent-override: 20%;
+}
