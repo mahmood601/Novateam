@@ -16,6 +16,10 @@
   [data-nova-block="note"] {
     display: none;
   }
+  .pagedjs_page {
+    margin: 0;
+    box-shadow: none;
+  }
 }
 
 .pagedjs_pagebox {
@@ -285,7 +289,6 @@
   content: target-counter(attr(href), page);
 }
 
-
 .toc .toc-page {
   width: 3em;
   text-align: center;
@@ -322,8 +325,6 @@
     outline-offset: 2px;
   }
 }
-
-
 
 .toc th,
 .toc td {
@@ -564,6 +565,40 @@
   }
 }
 
+
+.lecture-content table,
+.nova-tiptap-content table,
+.lecture-body table,
+.print-area table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.lecture-content table td,
+.lecture-content table th,
+.nova-tiptap-content table td,
+.nova-tiptap-content table th,
+.lecture-body table td,
+.lecture-body table th,
+.print-area table td,
+.print-area table th {
+  border: 1px solid var(--editor-chrome-border, #d1d5db);
+  padding: 6px 10px;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+.lecture-content table th,
+.nova-tiptap-content table th,
+.lecture-body table th,
+.print-area table th {
+  background-color: var(--editor-chrome-bg, #f3f4f6);
+  font-weight: 600;
+  text-align: start;
+}
+
 .lecture-body,
 .tiptap,
 .lecture-content {
@@ -582,6 +617,7 @@
     box-sizing: border-box;
     position: relative;
     min-width: 1em;
+    text-align: center;
   }
 
   table th {
@@ -1016,7 +1052,7 @@
 
 .nova-note-title {
   text-transform: capitalize;
-  font-family: 'OoredooArabic-Heavy', sans-serif;
+  font-family: "OoredooArabic-Heavy", sans-serif;
 }
 
 /* Icon */

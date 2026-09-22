@@ -79,6 +79,19 @@
     overflow: hidden;
 }
 
+.tiptap table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;          /* الافتراضي */
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+/* إذا حدد المستخدم عرضاً مختلفاً */
+.tiptap table[style*="width"] {
+  /* يحترم الـ style المضمّن */
+}
+
 .tiptap table td,
 .tiptap table th {
     border: 1px solid var(--editor-chrome-border);
