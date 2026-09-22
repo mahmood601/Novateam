@@ -26,7 +26,15 @@ import {
   X,
   ChevronLeft,
 } from "lucide-solid";
-import { createEffect, For, createSignal, Show, Switch, Match, JSX } from "solid-js";
+import {
+  createEffect,
+  For,
+  createSignal,
+  Show,
+  Switch,
+  Match,
+  JSX,
+} from "solid-js";
 import type { Editor } from "@tiptap/core";
 import {
   FORMAT_COLOR_GROUPS,
@@ -40,7 +48,11 @@ import {
   setSelectedCellsAttrs,
   setTableAttrs,
 } from "../tiptap/extensions/table/tableTransforms";
-import type { CellBorderStyle, CellBorderWidth } from "../tiptap/extensions/table/TableCellAttributes";
+import type {
+  CellBorderStyle,
+  CellBorderWidth,
+} from "../tiptap/extensions/table/TableCellAttributes";
+import BoxStylePanel from "./BoxStylePanel";
 
 type PanelId =
   | "root"
@@ -49,7 +61,8 @@ type PanelId =
   | "textColor"
   | "textBackground"
   | "highlight"
-  | "tableFormat";
+  | "tableFormat"
+  | "boxFormat";
 
 type TableScope = "selected" | "table";
 
@@ -69,7 +82,11 @@ const BORDER_WIDTH_ITEMS: { value: CellBorderWidth | null; label: string }[] = [
   { value: "thick", label: "سميك" },
 ];
 
-const TEXT_STYLE_ITEMS: { level: 1 | 2 | 3 | 4 | 5 | 6 | null; label: string; icon: any }[] = [
+const TEXT_STYLE_ITEMS: {
+  level: 1 | 2 | 3 | 4 | 5 | 6 | null;
+  label: string;
+  icon: any;
+}[] = [
   { level: null, label: "نص عادي", icon: Pilcrow },
   { level: 1, label: "عنوان 1", icon: Heading1 },
   { level: 2, label: "عنوان 2", icon: Heading2 },
@@ -86,6 +103,7 @@ const LEAF_TITLES: Record<Exclude<PanelId, "root">, string> = {
   textBackground: "لون خلفية النص",
   highlight: "التظليل",
   tableFormat: "تنسيق الجدول",
+  boxFormat: "تنسيق الصندوق",
 };
 
 export default function FormatSheet(props: {
@@ -95,6 +113,7 @@ export default function FormatSheet(props: {
 }) {
   const [panel, setPanel] = createSignal<PanelId>("root");
   const [tableScope, setTableScope] = createSignal<TableScope>("selected");
+  const [boxPanelOpen, setBoxPanelOpen] = createSignal(true);
 
   let wrapperRef: HTMLDivElement | undefined;
   let rootRef: HTMLDivElement | undefined;
@@ -125,9 +144,11 @@ export default function FormatSheet(props: {
     return active?.label ?? TEXT_STYLE_ITEMS[0].label;
   };
 
-  const currentFontFamily = () => (ed()?.getAttributes("textStyle").fontFamily as string | undefined) ?? null;
+  const currentFontFamily = () =>
+    (ed()?.getAttributes("textStyle").fontFamily as string | undefined) ?? null;
   const currentFontFamilyLabel = () =>
-    FONT_FAMILY_CHOICES.find((f) => f.value === currentFontFamily())?.label ?? FONT_FAMILY_CHOICES[0].label;
+    FONT_FAMILY_CHOICES.find((f) => f.value === currentFontFamily())?.label ??
+    FONT_FAMILY_CHOICES[0].label;
 
   const currentFontSize = () => {
     const raw = ed()?.getAttributes("textStyle").fontSize as string | undefined;
@@ -135,14 +156,20 @@ export default function FormatSheet(props: {
     return Number.isFinite(parsed) ? parsed : DEFAULT_FONT_SIZE;
   };
 
-  const currentColor = () => (ed()?.getAttributes("textStyle").color as string | undefined) ?? null;
-  const currentBackground = () => (ed()?.getAttributes("textStyle").backgroundColor as string | undefined) ?? null;
-  const currentHighlight = () => (ed()?.getAttributes("highlight").color as string | undefined) ?? null;
+  const currentColor = () =>
+    (ed()?.getAttributes("textStyle").color as string | undefined) ?? null;
+  const currentBackground = () =>
+    (ed()?.getAttributes("textStyle").backgroundColor as string | undefined) ??
+    null;
+  const currentHighlight = () =>
+    (ed()?.getAttributes("highlight").color as string | undefined) ?? null;
 
   const isSubscript = () => ed()?.isActive("subscript") ?? false;
   const isSuperscript = () => ed()?.isActive("superscript") ?? false;
 
   const isInTable = () => ed()?.isActive("table") ?? false;
+
+  const isInBox = () => ed()?.isActive("novaBox") ?? false;
 
   // Reads whichever cell type (data cell or header cell) the selection is
   // currently anchored in — same fallback getAttributes needs since the
@@ -155,10 +182,14 @@ export default function FormatSheet(props: {
       : e.getAttributes("tableCell");
   };
 
-  const currentCellBackground = () => (currentCellAttrs().backgroundColor as string | undefined) ?? null;
-  const currentBorderStyle = () => (currentCellAttrs().borderStyle as CellBorderStyle | undefined) ?? null;
-  const currentBorderWidth = () => (currentCellAttrs().borderWidth as CellBorderWidth | undefined) ?? null;
-  const currentBorderColor = () => (currentCellAttrs().borderColor as string | undefined) ?? null;
+  const currentCellBackground = () =>
+    (currentCellAttrs().backgroundColor as string | undefined) ?? null;
+  const currentBorderStyle = () =>
+    (currentCellAttrs().borderStyle as CellBorderStyle | undefined) ?? null;
+  const currentBorderWidth = () =>
+    (currentCellAttrs().borderWidth as CellBorderWidth | undefined) ?? null;
+  const currentBorderColor = () =>
+    (currentCellAttrs().borderColor as string | undefined) ?? null;
 
   const applyTableAttrs = (attrs: Record<string, unknown>) => {
     const e = ed();
@@ -188,13 +219,20 @@ export default function FormatSheet(props: {
     ed()?.chain().focus().setFontSize(`${clamped}px`).run();
   };
 
-  const applyColor = (target: "textColor" | "textBackground" | "highlight", value: string | null) => {
+  const applyColor = (
+    target: "textColor" | "textBackground" | "highlight",
+    value: string | null,
+  ) => {
     const e = ed();
     if (!e) return;
     if (target === "textColor") {
-      value ? e.chain().focus().setColor(value).run() : e.chain().focus().unsetColor().run();
+      value
+        ? e.chain().focus().setColor(value).run()
+        : e.chain().focus().unsetColor().run();
     } else if (target === "textBackground") {
-      value ? e.chain().focus().setBackgroundColor(value).run() : e.chain().focus().unsetBackgroundColor().run();
+      value
+        ? e.chain().focus().setBackgroundColor(value).run()
+        : e.chain().focus().unsetBackgroundColor().run();
     } else {
       value
         ? e.chain().focus().toggleHighlight({ color: value }).run()
@@ -206,7 +244,7 @@ export default function FormatSheet(props: {
   return (
     <div
       ref={wrapperRef}
-      class="format-sheet grow shrink-0"
+      class="format-sheet shrink-0 grow"
       style={{
         transition: "height 0.2s ease",
         display: "flex",
@@ -214,7 +252,10 @@ export default function FormatSheet(props: {
         "max-height": "80vh",
       }}
     >
-      <div class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2" dir="rtl">
+      <div
+        class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2"
+        dir="rtl"
+      >
         <span class="font-medium">تنسيق</span>
         <X class="cursor-pointer" onClick={props.onClose} />
       </div>
@@ -229,7 +270,11 @@ export default function FormatSheet(props: {
         }}
       >
         {/* ROOT PANEL */}
-        <div ref={rootRef} class="flex w-full flex-col gap-0.5 overflow-y-scroll p-2" dir="rtl">
+        <div
+          ref={rootRef}
+          class="flex w-full flex-col gap-0.5 overflow-y-scroll p-2"
+          dir="rtl"
+        >
           <FormatRow
             icon={Heading}
             label="نوع النص"
@@ -281,12 +326,24 @@ export default function FormatSheet(props: {
             />
           </Show>
 
+          <Show when={isInBox()}>
+            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+            <FormatRow
+              icon={PaintBucket}
+              label="تنسيق الصندوق"
+              trailingLabel="الخلفية والحدود"
+              onClick={() => setPanel("boxFormat")}
+            />
+          </Show>
+
           <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
 
           <div class="flex w-full items-center gap-2 px-1 py-1.5">
             <button
               type="button"
-              classList={{ "bg-darker-light-1 dark:bg-lighter-dark-2": isSubscript() }}
+              classList={{
+                "bg-darker-light-1 dark:bg-lighter-dark-2": isSubscript(),
+              }}
               class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
               title="نص سفلي (Subscript)"
               onClick={() => ed()?.chain().focus().toggleSubscript().run()}
@@ -296,7 +353,9 @@ export default function FormatSheet(props: {
             </button>
             <button
               type="button"
-              classList={{ "bg-darker-light-1 dark:bg-lighter-dark-2": isSuperscript() }}
+              classList={{
+                "bg-darker-light-1 dark:bg-lighter-dark-2": isSuperscript(),
+              }}
               class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
               title="نص علوي (Superscript)"
               onClick={() => ed()?.chain().focus().toggleSuperscript().run()}
@@ -308,7 +367,11 @@ export default function FormatSheet(props: {
         </div>
 
         {/* LEAF PANEL */}
-        <div ref={leafRef} class="flex w-full flex-col overflow-y-auto p-2" dir="rtl">
+        <div
+          ref={leafRef}
+          class="flex w-full flex-col overflow-y-auto p-2"
+          dir="rtl"
+        >
           <Show when={panel() !== "root"}>
             <button
               type="button"
@@ -316,7 +379,9 @@ export default function FormatSheet(props: {
               onClick={() => setPanel("root")}
             >
               <ArrowRight size={18} />
-              <span class="flex-1 text-right">{LEAF_TITLES[panel() as Exclude<PanelId, "root">]}</span>
+              <span class="flex-1 text-right">
+                {LEAF_TITLES[panel() as Exclude<PanelId, "root">]}
+              </span>
             </button>
 
             <Switch>
@@ -329,7 +394,8 @@ export default function FormatSheet(props: {
                       active={
                         item.level === null
                           ? (ed()?.isActive("paragraph") ?? false)
-                          : (ed()?.isActive("heading", { level: item.level }) ?? false)
+                          : (ed()?.isActive("heading", { level: item.level }) ??
+                            false)
                       }
                       onClick={() => setTextStyle(item.level)}
                     />
@@ -358,6 +424,14 @@ export default function FormatSheet(props: {
                 />
               </Match>
 
+              <Match when={panel() === "boxFormat"}>
+                <BoxStylePanel
+                  editor={ed()!}
+                  open={boxPanelOpen()}
+                  onClose={() => setBoxPanelOpen(false)}
+                />
+              </Match>
+
               <Match when={panel() === "textBackground"}>
                 <ColorGrid
                   current={currentBackground()}
@@ -382,7 +456,10 @@ export default function FormatSheet(props: {
                     <button
                       type="button"
                       class="flex-1 rounded-full py-1.5"
-                      classList={{ "bg-main-light dark:bg-lighter-dark-1 shadow-sm": tableScope() === "selected" }}
+                      classList={{
+                        "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
+                          tableScope() === "selected",
+                      }}
                       onClick={() => setTableScope("selected")}
                     >
                       الخلايا المحددة
@@ -390,7 +467,10 @@ export default function FormatSheet(props: {
                     <button
                       type="button"
                       class="flex-1 rounded-full py-1.5"
-                      classList={{ "bg-main-light dark:bg-lighter-dark-1 shadow-sm": tableScope() === "table" }}
+                      classList={{
+                        "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
+                          tableScope() === "table",
+                      }}
                       onClick={() => setTableScope("table")}
                     >
                       كل الجدول
@@ -398,7 +478,10 @@ export default function FormatSheet(props: {
                   </div>
 
                   <div>
-                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <div
+                      class="mb-1 px-1 text-xs"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
                       خلفية الخلية
                     </div>
                     <ColorGrid
@@ -411,7 +494,10 @@ export default function FormatSheet(props: {
                   <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
 
                   <div>
-                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <div
+                      class="mb-1 px-1 text-xs"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
                       شكل الحدود
                     </div>
                     <div class="flex flex-wrap gap-2 px-1">
@@ -433,7 +519,9 @@ export default function FormatSheet(props: {
                                   ? "var(--color-main)"
                                   : "inherit",
                             }}
-                            onClick={() => applyTableAttrs({ borderStyle: item.value })}
+                            onClick={() =>
+                              applyTableAttrs({ borderStyle: item.value })
+                            }
                           >
                             {item.label}
                           </button>
@@ -445,7 +533,10 @@ export default function FormatSheet(props: {
                   <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
 
                   <div>
-                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <div
+                      class="mb-1 px-1 text-xs"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
                       حجم الحد
                     </div>
                     <div class="flex flex-wrap gap-2 px-1">
@@ -467,7 +558,9 @@ export default function FormatSheet(props: {
                                   ? "var(--color-main)"
                                   : "inherit",
                             }}
-                            onClick={() => applyTableAttrs({ borderWidth: item.value })}
+                            onClick={() =>
+                              applyTableAttrs({ borderWidth: item.value })
+                            }
                           >
                             {item.label}
                           </button>
@@ -479,7 +572,10 @@ export default function FormatSheet(props: {
                   <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
 
                   <div>
-                    <div class="mb-1 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <div
+                      class="mb-1 px-1 text-xs"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
                       لون الحدود
                     </div>
                     <ColorGrid
@@ -512,7 +608,7 @@ function FormatRow(props: {
       class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex w-full items-center gap-3 rounded px-3 py-2.5 text-sm"
       onClick={props.onClick}
     >
-      <props.icon size={18} class="shrink-0 text-header dark:text-main-light" />
+      <props.icon size={18} class="text-header dark:text-main-light shrink-0" />
       <span class="flex-1 text-right">{props.label}</span>
       <Show when={props.trailingLabel}>
         <span class="text-xs" style={{ color: "var(--muted-foreground)" }}>
@@ -528,7 +624,11 @@ function FormatRow(props: {
           }}
         />
       </Show>
-      <ChevronLeft size={16} class="shrink-0" style={{ color: "var(--muted-foreground)" }} />
+      <ChevronLeft
+        size={16}
+        class="shrink-0"
+        style={{ color: "var(--muted-foreground)" }}
+      />
     </button>
   );
 }
@@ -553,7 +653,11 @@ function ListItemRow(props: {
         {props.label}
       </span>
       <Show when={props.active}>
-        <Check size={16} class="shrink-0" style={{ color: "var(--color-main)" }} />
+        <Check
+          size={16}
+          class="shrink-0"
+          style={{ color: "var(--color-main)" }}
+        />
       </Show>
     </button>
   );
@@ -568,7 +672,7 @@ function FontSizeRow(props: {
 }) {
   return (
     <div class="flex w-full items-center gap-3 px-3 py-2.5 text-sm">
-      <props.icon size={18} class="shrink-0 text-header dark:text-main-light" />
+      <props.icon size={18} class="text-header dark:text-main-light shrink-0" />
       <span class="flex-1 text-right">{props.label}</span>
       <div class="flex items-center gap-1">
         <button
@@ -598,7 +702,8 @@ function ColorGrid(props: {
   resetLabel: string;
   onSelect: (value: string | null) => void;
 }) {
-  const isCurrent = (value: string) => (props.current ?? "").toLowerCase() === value.toLowerCase();
+  const isCurrent = (value: string) =>
+    (props.current ?? "").toLowerCase() === value.toLowerCase();
 
   return (
     <div class="flex flex-col gap-3 px-1 py-2">
@@ -621,7 +726,7 @@ function ColorGrid(props: {
 
       <For each={FORMAT_COLOR_GROUPS}>
         {(group: ColorSwatch[]) => (
-          <div class="grid grid-cols-6 gap-2 justify-items-center overflow-scroll firs">
+          <div class="firs grid grid-cols-6 justify-items-center gap-2 overflow-scroll">
             <For each={group}>
               {(swatch) => (
                 <button
@@ -636,7 +741,11 @@ function ColorGrid(props: {
                       size={14}
                       class="absolute inset-0 m-auto"
                       style={{
-                        color: swatch.value === "#FFFFFF" || swatch.value === "#FFFF00" ? "#000" : "#fff",
+                        color:
+                          swatch.value === "#FFFFFF" ||
+                          swatch.value === "#FFFF00"
+                            ? "#000"
+                            : "#fff",
                       }}
                     />
                   </Show>

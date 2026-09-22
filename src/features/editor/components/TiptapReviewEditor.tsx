@@ -179,7 +179,6 @@ export default function TiptapReviewEditor(props: {
       seasonId: props.seasonId,
       rawContent: raw(),
       userId: user()?.id,
-      doctorName: "",
     });
 
     if (error) {
@@ -258,6 +257,14 @@ export default function TiptapReviewEditor(props: {
           }}
         />
       ),
+    },
+    {
+      id: "box",
+      label: "صندوق",
+      icon: TableProperties,
+      onClick: () => {
+        editor?.chain().focus().setBox().run();
+      }
     },
   ];
 

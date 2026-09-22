@@ -56,6 +56,7 @@ export const NovaTable = Table.extend({
 
       const tbody = document.createElement("tbody");
       table.appendChild(tbody);
+      table.classList.add("w-full"); // تعيين العرض على 100% بشكل افتراضي
       wrapper.appendChild(table);
 
       return {

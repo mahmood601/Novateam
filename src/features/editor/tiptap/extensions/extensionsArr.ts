@@ -14,6 +14,7 @@ import { NovaQuiz } from "./NovaQuiz";
 import Link from "@tiptap/extension-link";
 import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
+import { NovaBox } from "./NovaBox";
 import { NovaTable } from "./table/novaTable";
 
 // Sub/superscript don't exclude each other by default, which lets both
@@ -66,6 +67,7 @@ export const extensionsArr = [
     },
   }),
   NovaImageGallery,
+  NovaBox,
   Link.configure({
     openOnClick: false,
     markdownLinks: true,

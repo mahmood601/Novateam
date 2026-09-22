@@ -565,7 +565,6 @@
   }
 }
 
-
 .lecture-content table,
 .nova-tiptap-content table,
 .lecture-body table,
@@ -574,6 +573,13 @@
   table-layout: fixed;
   width: 100%;
   margin: 1rem 0;
+}
+
+.lecture-content table tbody,
+.nova-tiptap-content  table tbody,
+.lecture-body table tbody,
+.print-area table tbody {
+  width: 100%;
 }
 
 .lecture-content table td,
@@ -603,12 +609,17 @@
 .tiptap,
 .lecture-content {
   table {
-    display: block;
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
+    table-layout: fixed;
   }
+
+  table tbody {
+    width: 100%;
+  }
+
   table td,
   table th {
     border: 1px solid var(--nova-color);
@@ -616,7 +627,6 @@
     vertical-align: top;
     box-sizing: border-box;
     position: relative;
-    min-width: 1em;
     text-align: center;
   }
 
@@ -804,10 +814,8 @@
   /* Table Kit styling — driven by the active --color-main / --color-* theme */
   .tableWrapper {
     width: 100%;
-    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 1em 0;
   }
 
   ul,
@@ -1020,6 +1028,10 @@
     var(--callout-bg) 0%,
     color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
   );
+   ul li::marker,
+  ol li::marker {
+    color: var(--callout-color);
+  }
 }
 
 .nova-note::before {
@@ -1061,11 +1073,16 @@
   width: 1.15rem;
   height: 1.15rem;
   display: inline-block;
-  background: var(--icon-url) no-repeat center / contain;
+  -webkit-mask-image: var(--icon-url);
+  mask-image: var(--icon-url);
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
+
 
 /* Content cleanup */
 .nova-note p:last-child {
@@ -1079,11 +1096,12 @@
 
 /* Note → Blue */
 .nova-note[data-type="note"] {
-  --callout-color: #3b82f6; /* Blue */
-  --callout-bg: rgba(59, 130, 246, 0.12);
+  --callout-color: var(--nova-color); /* Blue */
+  --callout-bg: var(--nova-color);
+
 }
 .nova-note[data-type="note"] .nova-note-icon {
-  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
+  --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
 }
 
 /* Tip → Green */
@@ -1131,6 +1149,13 @@
   --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E");
 }
 
+.nova-note[data-type="note"] .nova-note-icon {
+  background-color: var(--nova-color); /* ← هون التحكم الفعلي باللون */
+}
+.nova-note:not([data-type="note"]) .nova-note-icon {
+  background-color: var(--callout-color); /* ← هون التحكم الفعلي باللون */
+}
+
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   .nova-note::before {
@@ -1142,7 +1167,7 @@
   }
 
   .nova-note[data-type="note"] {
-    --callout-bg: rgba(59, 130, 246, 0.18);
+    --callout-bg: #eee;
   }
   .nova-note[data-type="tip"] {
     --callout-bg: rgba(34, 197, 94, 0.18);
@@ -1159,4 +1184,15 @@
   .nova-note[data-type="important"] {
     --callout-bg: rgba(168, 85, 247, 0.18);
   }
+}
+
+/* أضف هذا لملف الستايلات الخاص بالمحرر (نفس مكان .nova-note,
+   .nova-image-gallery إلخ — على الأغلب lectureView.css أو ستايل
+   TiptapReviewEditor). */
+
+/* Base — تنطبق بكل مكان (المحرر، المعاينة، المطبوع): مجرد reset بسيط،
+   الشكل الفعلي (خلفية، padding...) كله جاي من inline style الصندوق
+   نفسه. */
+.nova-box {
+  display: block; /* يتلغى تلقائياً إذا الصندوق نفسه display:flex عبر inline style */
 }

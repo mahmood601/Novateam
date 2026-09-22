@@ -168,3 +168,26 @@
     background-color: color-mix(in srgb, var(--color-main) 16%, transparent);
     color: var(--color-main);
 }
+
+
+/* Editor-only: outline متقطع خفيف حتى يبين حدود الصندوق وهو فاضي أو
+   بدون خلفية — بدون هيك ما رح تعرف وين تضغط تختاره. ما بينطبق على
+   المعاينة/المطبوع لأنه مقيّد بصنف جذر المحرر (نفس الأسلوب المستخدم
+   أصلاً لـ.nova-tiptap-review button.active). عدّل الselector هون لو
+   صنف جذر المحرر عندك مختلف. */
+.nova-tiptap-review .nova-box {
+  outline: 1px dashed color-mix(in srgb, var(--color-main) 40%, transparent);
+  outline-offset: 2px;
+  min-height: 1.5em;
+}
+
+.nova-tiptap-review .nova-box:hover {
+  outline-color: var(--color-main);
+}
+
+/* الصندوق المتداخل جوا صندوق تاني — نفرّق شوي بلون الoutline حتى
+   يبين التداخل بالمحرر */
+.nova-tiptap-review .nova-box .nova-box {
+  outline-style: dashed;
+  outline-color: color-mix(in srgb, var(--color-secondary, orange) 40%, transparent);
+}
