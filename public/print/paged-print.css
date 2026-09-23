@@ -392,11 +392,11 @@
   padding: 1rem 1.25rem 1rem 1.15rem;
   border-radius: 0.65rem;
   border-right: 4px solid var(--callout-color);
-  background: linear-gradient(
+  /* background: linear-gradient(
     135deg,
     var(--callout-bg) 0%,
     color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
-  );
+  ); */
 }
 
 .nova-note::before {
@@ -1097,7 +1097,7 @@
 /* Note → Blue */
 .nova-note[data-type="note"] {
   --callout-color: var(--nova-color); /* Blue */
-  --callout-bg: var(--nova-color);
+  --callout-bg: var(--callout-bg); /* Light Blue Background */
 
 }
 .nova-note[data-type="note"] .nova-note-icon {
@@ -1195,4 +1195,6 @@
    نفسه. */
 .nova-box {
   display: block; /* يتلغى تلقائياً إذا الصندوق نفسه display:flex عبر inline style */
+  border-radius: 0.65rem;
+  break-inside: avoid;
 }
