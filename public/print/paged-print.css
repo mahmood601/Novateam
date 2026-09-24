@@ -1098,6 +1098,7 @@
 .nova-note[data-type="note"] {
   --callout-color: var(--nova-color); /* Blue */
   --callout-bg: var(--callout-bg); /* Light Blue Background */
+  box-shadow:  -3px 5px 10px 0px #999;
 
 }
 .nova-note[data-type="note"] .nova-note-icon {

@@ -47,7 +47,7 @@ export default function AppName(props: { hide?: Accessor<boolean> }) {
           <Match
             when={connectionState() === "online" && showAppname() === true}
           >
-            <p class="dark:text-main-light text-main-dark text-xl font-bold">
+            <p class="dark:text-main-light text-main-dark text-xl font-bold font-sora">
               Nova
             </p>
           </Match>

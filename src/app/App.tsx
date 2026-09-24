@@ -3,6 +3,7 @@ import "@/styles/rainbow.css";
 import { Router } from "@solidjs/router";
 import Layout from "../features/shared/components/Layout";
 import "@fontsource-variable/readex-pro/wght.css";
+import "@fontsource/cairo";
 import { UserProvider } from "../features/shared/context/user";
 import { Toaster } from "solid-toast";
 // import "solid-devtools";

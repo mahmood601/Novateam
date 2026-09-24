@@ -25,6 +25,7 @@ export default function Layout(props: { children: JSX.Element }) {
       location().includes("/search") ||
       location().includes("/status") ||
       location().includes("/weak") ||
+      location().includes("/landing") ||
       location().includes("/editor") ||
       location().includes("/print") ||
       location().includes("/favorite") ? null : (

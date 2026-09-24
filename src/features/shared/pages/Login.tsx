@@ -36,7 +36,7 @@ function Oauth(props: { name: string; provider: any; imageSrc: string }) {
 
   createEffect(()=>{
     if (user()) {
-      navigate("/profile", {replace: true})
+      navigate("/", {replace: true})
     }
   })
 

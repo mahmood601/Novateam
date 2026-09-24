@@ -16,6 +16,7 @@ import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
 import { NovaBox } from "./NovaBox";
 import { NovaTable } from "./table/novaTable";
+import { NovaBulletList } from "./NovaBulletList";
 
 // Sub/superscript don't exclude each other by default, which lets both
 // marks stack on the same text and render nonsense nested offsets — so
@@ -24,8 +25,9 @@ const NovaSubscript = Subscript.extend({ excludes: "superscript" });
 const NovaSuperscript = Superscript.extend({ excludes: "subscript" });
 
 export const extensionsArr = [
-  StarterKit.configure({ heading: false, link: false }), // replaced by NovaHeading/Link below
+  StarterKit.configure({ heading: false, link: false, bulletList: false }), // replaced by NovaHeading/Link below
   NovaHeading,
+  NovaBulletList,
   NovaAdmonition,
   NovaQuiz,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize

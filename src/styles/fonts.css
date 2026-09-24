@@ -35,3 +35,10 @@
   ascent-override: 90%;
   descent-override: 20%;
 }
+
+@font-face {
+  font-family: 'Sora';
+  src: url("/print/fonts/Sora-Bold.ttf")
+    format("truetype");
+  font-weight: bold;
+}
