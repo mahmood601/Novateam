@@ -19,7 +19,7 @@ export default function AuthGate(props: Props) {
 
   return (
     <Show
-      when={!isLoading()}
+      when={user() || !isLoading()}
       fallback={
         <div class="flex h-screen items-center justify-center">
           <p class="text-main-dark dark:text-white">جاري التحميل...</p>

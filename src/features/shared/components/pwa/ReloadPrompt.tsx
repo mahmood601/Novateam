@@ -46,8 +46,7 @@ const ReloadPrompt: Component = () => {
           <Show when={needRefresh()}>
             <button
               class="bg-main rounded-md px-3 py-1 font-semibold"
-              onClick={() =>{ updateServiceWorker(false)
-                setNeedRefresh(false)
+              onClick={() =>{ updateServiceWorker()
                 toast.dismiss(t.id)
               }}
             >

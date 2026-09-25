@@ -109,8 +109,10 @@ export function UserProvider(props: any) {
     await supabase.auth.signOut();
   };
 
-  const fetchUser = async () => {
-    setIsLoading(true);
+  const fetchUser = async (opts?:{silent?: boolean}) => {
+    const silent = opts?.silent || !!user();
+    if(!silent) setIsLoading(true);
+
     try {
       const {
         data: { session },
@@ -159,13 +161,13 @@ export function UserProvider(props: any) {
   };
 
   onMount(() => {
-  fetchUser();
+  fetchUser({silent: !!user()});
 
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'TOKEN_REFRESHED') return;
+    if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
 
     if (session?.user) {
-      fetchUser();
+      fetchUser({silent: true});
     } else {
       setUser(null);
       localStorage.removeItem("user");
