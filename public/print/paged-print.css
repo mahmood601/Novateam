@@ -331,7 +331,7 @@
   border: 2.25pt solid #991f60 !important;
   font-family: "OoredooArabic-Heavy", sans-serif;
   font-size: 12pt;
-  padding: 10pt;
+  padding: 5pt;
   color: #000 !important;
   text-align: center;
 }
@@ -570,9 +570,10 @@
 .lecture-body table,
 .print-area table {
   border-collapse: collapse;
-  table-layout: fixed;
-  width: 100%;
+  table-layout: auto;
+  width: max-content;
   margin: 1rem 0;
+  min-width: 100%;
 }
 
 .lecture-content table tbody,
@@ -592,8 +593,11 @@
 .print-area table th {
   border: 1px solid var(--editor-chrome-border, #d1d5db);
   padding: 6px 10px;
-  vertical-align: top;
+  vertical-align: center;
   box-sizing: border-box;
+  width: 10rem;
+  width: fit-content;
+  white-space: normal;
 }
 
 .lecture-content table th,
@@ -609,22 +613,20 @@
 .tiptap,
 .lecture-content {
   table {
-    width: 100%;
+    max-width: 18cm;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
   }
 
-  table tbody {
-    width: 100%;
-  }
+
 
   table td,
   table th {
     border: 1px solid var(--nova-color);
     padding: 6px 10px;
-    vertical-align: top;
+    vertical-align: center;
     box-sizing: border-box;
     position: relative;
     text-align: center;
@@ -733,37 +735,6 @@
     color: black !important;
   }
 
-  /* ---------- الصناديق (InfoBox) — نمط Obsidian callout ---------- */
-  /* بالماركداون: >[!note] عنوان الصندوق
-     يقابل :::note بصياغة نوفا AST */
-  .callout {
-    --callout-color: var(--nova-color);
-    border-right: 4px solid var(--callout-color);
-    border-radius: 8px;
-    background-color: var(--nova-bg-tint);
-    padding: 0.9em 1.1em;
-    margin: 1em 0;
-    direction: rtl;
-    text-align: right;
-    color: black;
-  }
-
-  .callout-title {
-    color: var(--callout-color);
-    font-weight: 700;
-    font-family: var(--nova-font-ar, "OoredooArabic-Heavy", sans-serif);
-  }
-
-  .callout-icon {
-    color: var(--callout-color);
-  }
-
-  /* صندوق كويز placeholder — يقابل :::quiz {id="..."} */
-  .callout[data-callout="quiz"] {
-    border-style: dashed;
-    background-color: var(--nova-bg-tint-quiz);
-  }
-
   /* ---------- الاقتباسات ---------- */
   blockquote {
     border-right: 4px solid var(--nova-color, #999);
@@ -790,6 +761,16 @@
     display: flex;
     justify-content: center;
   }
+
+  /* FIXED: Prevent large images from overflowing page height */
+.lecture-body img,
+.lecture-body svg,
+.pagedjs_page img {
+  max-height: 23cm !important; /* Leaves room for headers & footers */
+  width: auto;
+  object-fit: contain;
+}
+
 
   pre {
     border-right: 4px solid var(--nova-color, #999);

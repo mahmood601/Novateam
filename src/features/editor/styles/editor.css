@@ -81,10 +81,10 @@
 
 .tiptap table {
   border-collapse: collapse;
-  table-layout: fixed;
-  width: 100%;          /* الافتراضي */
+  table-layout: auto; /* auto so column widths can be set by the user */
+  width: max-content;          /* الافتراضي */
+  min-width: 100%;          /* يملأ الصندوق */
   margin: 1rem 0;
-  overflow: hidden;
 }
 
 /* إذا حدد المستخدم عرضاً مختلفاً */
@@ -144,6 +144,8 @@
 }
 
 .tiptap .tableWrapper {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     position: relative;
