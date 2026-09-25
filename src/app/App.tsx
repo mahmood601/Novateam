@@ -32,7 +32,6 @@ export default function App() {
       <UserProvider>
         <MaintenanceGate>
           <Toaster />
-          <UpdatePanel />
           <Router root={Layout as any}>
             <AppRoutes />
           </Router>
