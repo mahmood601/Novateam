@@ -145,7 +145,6 @@ const ReloadPrompt: Component = () => {
       }
     }),
   );
-setTimeout(showUpdateToast, 500);
   return <></>;
 };
 
