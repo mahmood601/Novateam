@@ -128,7 +128,7 @@ export default function Box(props: {
               },
             );
           }}
-          class={`border-border hover:bg-main flex items-center justify-center rounded-[6px] border p-1 transition-all duration-300 hover:text-white disabled:opacity-50 ${downloadStatus() === "pending" ? "cursor-not-allowed" : ""}`}
+          class={`border-darkder-light-1 dark:border-lighter-dark-2 hover:bg-main flex items-center justify-center rounded-[6px] border p-1 transition-all duration-300 hover:text-white disabled:opacity-50 ${downloadStatus() === "pending" ? "cursor-not-allowed" : ""}`}
         >
           تحميل الاسئلة
         </button>

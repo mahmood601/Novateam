@@ -40,6 +40,15 @@ async function syncSubjectsInBackground(
       .select("id, name, year_key")
       .eq("year_key", year_key);
 
+    if (!error && data) {
+      // Remove cached subjects of this year that were deleted/moved remotely
+      const remoteIds = new Set(data.map((r: any) => r.id));
+      const stale = (
+        await db.subjects.where("year_keys").equals(year_key).toArray()
+      ).filter((s) => !remoteIds.has(s.id));
+      if (stale.length) await db.subjects.bulkDelete(stale.map((s) => s.id));
+    }
+
     if (!error && data && data.length > 0) {
       const subjects = (data as any[]).map((row) => ({
         id: row.id,

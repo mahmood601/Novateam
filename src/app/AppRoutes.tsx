@@ -5,14 +5,15 @@ import Login from "../features/shared/pages/Login";
 import AuthCallback from "../features/shared/components/auth/AuthCallback";
 import NotFound from "../features/shared/pages/NotFound";
 import AdminGate from "../features/dashboard/components/AdminGate";
-import PrintPage from "../features/lectures/pages/PrintPage";
-import Landing from "@/features/shared/pages/Landing";
+import SuperAdminGate from "../features/dashboard/components/SuperAdminGate";
 import AuthGate from "@/features/shared/components/AuthGate";
 
 // Lazy Components
 const Dashboard = lazy(() => import("../features/dashboard/pages/Dashboard"));
 const QuizEditor = lazy(() => import("../features/quizzes/pages/QuizEditor"));
 const LectureEditor = lazy(() => import("../features/dashboard/pages/LectureEditor"));
+const ManageSubjects = lazy(() => import("../features/dashboard/pages/ManageSubjects"));
+const ManageSections = lazy(() => import("../features/dashboard/pages/ManageSections"));
 const SectionPicker = lazy(() => import("../features/dashboard/pages/SubjectHub"));
 const EditorPage = lazy(() => import("../features/editor/pages/EditorPage"));
 
@@ -28,6 +29,22 @@ const WeakQuestionsPage = lazy(() => import("../features/quizzes/pages/WeakQuest
 const Privacy = lazy(() => import("../features/shared/pages/Privacy"));
 const LecturesListPage = lazy(() => import("../features/lectures/pages/LecturesListPage"));
 const LectureViewPage = lazy(() => import("../features/lectures/pages/LectureViewPage"));
+
+// PrintPage used to be imported eagerly. It pulls in tiptap + every editor
+// extension + mermaid, so ALL of that was downloaded and executed on every
+// app start just to support the rarely used /print route.
+const PrintPage = lazy(() => import("../features/lectures/pages/PrintPage"));
+
+// Landing is only for signed-out visitors; returning users never need it.
+// It's a public route (outside ProtectedLayout's Suspense), so it brings its own.
+const LandingLazy = lazy(() => import("@/features/shared/pages/Landing"));
+function LandingRoute() {
+  return (
+    <Suspense fallback={null}>
+      <LandingLazy />
+    </Suspense>
+  );
+}
 
 /**
  * غلاف يحمي المسارات ويحتوي على Suspense لجميع الصفحات المفتوحة كسستة Lazy
@@ -46,7 +63,7 @@ export default function AppRoutes() {
   return (
     <>
       {/* ========== صفحات عامة (بدون تسجيل) ========== */}
-      <Route path="/landing" component={Landing} />
+      <Route path="/landing" component={LandingRoute} />
       <Route path="/login" component={Login} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/privacy" component={Privacy} />
@@ -71,6 +88,11 @@ export default function AppRoutes() {
         {/* مسارات الـ Dashboard */}
         <Route path="/dashboard" component={AdminGate}>
           <Route path="/" component={Dashboard} />
+          {/* Super-admin only: manage subjects and sections */}
+          <Route path="/manage" component={SuperAdminGate}>
+            <Route path="/" component={ManageSubjects} />
+            <Route path="/:subject" component={ManageSections} />
+          </Route>
           <Route path="/:subject" component={SectionPicker} />
           <Route path="/:subject/edit-quiz" component={QuizEditor} />
           <Route path="/:subject/edit-lecture" component={LectureEditor} />

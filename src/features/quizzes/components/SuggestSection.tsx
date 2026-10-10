@@ -9,6 +9,7 @@ import { createResource, createSignal, For, Show } from "solid-js";
 import { supabase } from "../../shared/services/supabase";
 import { getSeasons } from "../services/local/indexeddb";
 import { useUser } from "../../shared/context/user";
+import { isAdminRole } from "../../shared/lib/roles";
 import toast from "solid-toast";
 
 const TELEGRAM_TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN ?? "";
@@ -36,7 +37,7 @@ export default function SuggestSection(props: {
   questionText?: string;
 }) {
   const { user } = useUser();
-  const isAdmin = () => user()?.role === "admin";
+  const isAdmin = () => isAdminRole(user()?.role);
 
   const [open, setOpen] = createSignal(false);
   const [selected, setSelected] = createSignal<number | null>(null);

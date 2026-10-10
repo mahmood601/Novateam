@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { parseRole, type Role } from "../lib/roles";
 
 // ─── Ensure user row exists in "users" table ─────────────────────────────────
 // upsert بدل select + insert — طلب واحد لـ Supabase بدل طلبين.
@@ -60,7 +61,7 @@ export async function getUserNameById(userId: string): Promise<string | null> {
 // ─── Get user role ────────────────────────────────────────────────────────────
 export async function getUserRole(
   userId: string,
-): Promise<"student" | "admin"> {
+): Promise<Role> {
   if (!userId) return "student";
 
   const { data, error } = await supabase
@@ -70,7 +71,7 @@ export async function getUserRole(
     .maybeSingle();
 
   if (error || !data) return "student";
-  return data.role === "admin" ? "admin" : "student";
+  return parseRole(data.role);
 }
 
 export async function updateUserProfile(

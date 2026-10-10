@@ -1,8 +1,15 @@
 import { createResource, createSignal, Show } from "solid-js";
 import { supabase } from "../services/supabase";
 import { useUser } from "../context/user";
+import { isAdminRole } from "../lib/roles";
 
-async function checkAccess() {
+type Access = "open" | "maintenance";
+
+// How long we're willing to hold the whole app hostage to this check.
+// On a weak connection a request can hang for a long time instead of failing.
+const CHECK_TIMEOUT_MS = 3000;
+
+async function fetchAccess(): Promise<Access> {
   // هل الصيانة مفعلة؟
   const { data: config } = await supabase
     .from("app_config")
@@ -10,12 +17,16 @@ async function checkAccess() {
     .eq("key", "maintenance_mode")
     .single();
 
+  // On error `config` is null → treated as "not in maintenance".
   if (config?.value !== "true") return "open";
 
   // هل المستخدم admin؟
+  // getSession reads the local session (no extra network round-trip),
+  // which is enough for a UX gate.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return "maintenance";
 
   const { data: profile } = await supabase
@@ -24,9 +35,27 @@ async function checkAccess() {
     .eq("id", user.id)
     .single();
 
-  return profile?.role === "admin" && config?.value == "true"
-    ? "open"
-    : "maintenance";
+  return isAdminRole(profile?.role) ? "open" : "maintenance";
+}
+
+// Offline-first rule: this gate may only ever *add* a maintenance screen when
+// it positively learns maintenance is on. Offline, slow, or erroring → "open".
+// (This is a UX gate, not security — real protection must be Supabase RLS.)
+async function checkAccess(): Promise<Access> {
+  if (!navigator.onLine) return "open";
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<Access>((resolve) => {
+    timer = setTimeout(() => resolve("open"), CHECK_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([fetchAccess(), timeout]);
+  } catch {
+    return "open";
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export default function MaintenanceGate(props: { children: any }) {

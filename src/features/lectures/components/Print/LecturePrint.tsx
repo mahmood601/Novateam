@@ -226,16 +226,10 @@ export default function LecturePrint(props: Props) {
         <div class="fixed top-4 left-4 z-50 flex gap-3 print:hidden">
           <button
             onClick={() => window.print()}
-            class="rounded-xl px-5 py-2.5 font-bold shadow-lg transition hover:opacity-90"
-            style="background-color: var(--color-lecture-cycle); color: var(--color-lecture-cycle-foreground);"
+            dir="rtl"
+            class="rounded-xl px-5 py-2.5 font-bold shadow-lg transition hover:opacity-90 bg-main text-main-light"
           >
             طباعة / حفظ PDF
-          </button>
-          <button
-            onClick={() => window.history.back()}
-            class="rounded-xl bg-slate-200 px-5 py-2.5 font-bold"
-          >
-            رجوع
           </button>
         </div>
       </Show>
@@ -259,7 +253,7 @@ function buildDocument(
         <div class="header-box">
           <div class="logos-box">
             <img class="nova-logo" src="/print/image1.png" alt="" />
-            <div class="team-box">MEDICAL . TEAM</div>
+            <div class="team-box">MEDICAL • TEAM</div>
           </div>
           <img class="tartous-logo" src="/print/image3.png" alt="" />
         </div>

@@ -42,3 +42,8 @@
     format("truetype");
   font-weight: bold;
 }
+
+@font-face {
+  font-family: 'Recompense';
+  src: url("/print/fonts/RECOMPENSE\ Regular.otf");
+}

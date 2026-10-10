@@ -1,6 +1,7 @@
 import { A, useLocation } from "@solidjs/router";
 import { createMemo, For, Match, Show, Switch } from "solid-js";
 import { useUser } from "../../context/user";
+import { isAdminRole } from "../../lib/roles";
 import {
   Atom,
   ChartColumnBigIcon,
@@ -21,7 +22,7 @@ export function Links() {
   ];
 
   const links = createMemo(() => {
-    if (user() && user()?.role == "admin") {
+    if (user() && isAdminRole(user()?.role)) {
       return [
         ...baseLinks,
         { name: "التحكم", icon: LayoutGrid, route: "/dashboard" },
@@ -41,7 +42,7 @@ export function Links() {
                   when={
                     !(
                       user() &&
-                      user()?.role !== "admin" &&
+                      !isAdminRole(user()?.role) &&
                       link.route == "dashboard"
                     )
                   }
@@ -50,7 +51,7 @@ export function Links() {
                     when={
                       !(
                         user() &&
-                        user()?.role !== "admin" &&
+                        !isAdminRole(user()?.role) &&
                         link.route == "dashboard"
                       )
                     }

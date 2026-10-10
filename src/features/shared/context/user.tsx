@@ -3,27 +3,28 @@ import {
   Accessor,
   createContext,
   createSignal,
+  onCleanup,
   onMount,
   Setter,
   useContext,
 } from "solid-js";
-import {
-  ensureUserExists,
-  updateUserProfile,
-} from "../services/user";
+import { ensureUserExists, updateUserProfile } from "../services/user";
+import { parseRole, type Role } from "../lib/roles";
 
 type User = {
   id: string;
   email: string;
   name: string;
-  role: "student" | "admin";
+  role: Role;
 };
+
+type FetchUserOpts = { silent?: boolean };
 
 type UserContextType = {
   user: Accessor<User | null>;
   setUser: Setter<User | null>;
   isLoading: Accessor<boolean>;
-  fetchUser: () => Promise<void>;
+  fetchUser: (opts?: FetchUserOpts) => Promise<void>;
   login: (provider: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: {
@@ -38,9 +39,40 @@ export function useUser() {
   return useContext(UserContext) as UserContextType;
 }
 
+// ─── Cached user (the offline identity) ──────────────────────────────────────
+// Rule of this file: the cache is only ever DELETED on a real sign-out
+// (logout() or the SIGNED_OUT auth event). A network failure must never
+// delete it, because it is the only identity we have while offline.
+const USER_CACHE_KEY = "user";
+
+function readCachedUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    // corrupted JSON or storage blocked → behave as "no cache" instead of crashing
+    return null;
+  }
+}
+
+function writeCachedUser(user: User) {
+  try {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } catch {
+    // storage full / blocked — not fatal
+  }
+}
+
+function clearCachedUser() {
+  try {
+    localStorage.removeItem(USER_CACHE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function UserProvider(props: any) {
-  const cached = localStorage.getItem("user")
-  const [user, setUser] = createSignal<User | null>(cached? JSON.parse(cached) : null);
+  const [user, setUser] = createSignal<User | null>(readCachedUser());
   const [isLoading, setIsLoading] = createSignal(false);
 
   const updateProfile = async (updates: {
@@ -54,7 +86,6 @@ export function UserProvider(props: any) {
 
     const updated = { ...user()!, ...updates };
     if (updated) {
-
       if (updates.year) localStorage.setItem("year", updates.year);
     }
     return true;
@@ -104,76 +135,108 @@ export function UserProvider(props: any) {
   };
 
   const logout = async () => {
-    localStorage.removeItem("user");
+    clearCachedUser();
     setUser(null);
     await supabase.auth.signOut();
   };
 
-  const fetchUser = async (opts?:{silent?: boolean}) => {
+  const fetchUser = async (opts?: FetchUserOpts) => {
     const silent = opts?.silent || !!user();
-    if(!silent) setIsLoading(true);
+    if (!silent) setIsLoading(true);
 
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const authUser = session?.user ?? null;
+      const cached = readCachedUser();
 
-      // Fallback: offline
+      // A cache is only trustworthy if it belongs to the account that is
+      // actually signed in (guards against switching accounts on one device).
+      const cacheIsUsable = !!cached && (!authUser || cached.id === authUser.id);
+
+      // ── Offline / no session → fall back to the cache ──
       if (!authUser || !navigator.onLine) {
-        const cached = localStorage.getItem("user");
-        if (cached) {
-          setUser(JSON.parse(cached));
-          return;
-        }
-        setUser(null);
+        setUser(cacheIsUsable ? cached : null);
         return;
       }
 
+      // ── Online with a session → refresh the profile ──
       const name =
         authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? "";
 
-      // ensure if user in users
-      await ensureUserExists({ userId: authUser.id, name });
+      // Best effort: failing to upsert the row must not log anyone out.
+      try {
+        await ensureUserExists({ userId: authUser.id, name });
+      } catch (e) {
+        console.warn("ensureUserExists failed (non-fatal):", e);
+      }
 
-      const { data: userData } = await supabase
+      const { data: userData, error } = await supabase
         .from("users")
         .select("name, role")
         .eq("id", authUser.id)
         .single();
 
+      // navigator.onLine can be true while the network is useless (weak signal,
+      // captive portal). If the profile didn't load, keep what we had instead of
+      // overwriting it with blanks (which silently demoted admins to "student").
+      if (error || !userData) {
+        if (cacheIsUsable) {
+          setUser(cached);
+        } else {
+          // First-ever login and profile unreachable: let them in as a student,
+          // but DON'T persist this guess. The next successful fetch fixes it.
+          setUser({
+            id: authUser.id,
+            email: authUser.email ?? "",
+            name,
+            role: "student",
+          });
+        }
+        return;
+      }
+
       const userInfo: User = {
         id: authUser.id,
         email: authUser.email ?? "",
-        name: userData?.name ?? "",
-        role: userData?.role === "admin" ? "admin" : "student",
+        name: userData.name ?? "",
+        role: parseRole(userData.role),
       };
 
-      localStorage.setItem("user", JSON.stringify(userInfo));
+      writeCachedUser(userInfo);
       setUser(userInfo);
     } catch (err) {
       console.error("Auth error:", err);
-      localStorage.removeItem("user");
-      setUser(null);
+      // Unexpected failure (almost always network). Do NOT clear the cache.
+      setUser(readCachedUser());
     } finally {
       setIsLoading(false);
     }
   };
 
   onMount(() => {
-  fetchUser({silent: !!user()});
+    fetchUser({ silent: !!user() });
 
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        // The only moment we're allowed to forget the user.
+        clearCachedUser();
+        setUser(null);
+        return;
+      }
 
-    if (session?.user) {
-      fetchUser({silent: true});
-    } else {
-      setUser(null);
-      localStorage.removeItem("user");
-    }
+      if (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") return;
+
+      if (session?.user) {
+        // supabase-js docs: don't call other supabase methods synchronously
+        // inside this callback (can deadlock) — defer to the next tick.
+        setTimeout(() => fetchUser({ silent: true }), 0);
+      }
+    });
+
+    onCleanup(() => data.subscription.unsubscribe());
   });
-});
 
   return (
     <UserContext.Provider

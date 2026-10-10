@@ -1,4 +1,16 @@
-import mermaid from "mermaid";
+// mermaid is ~600 kB+ of JS. It used to be imported at the top of this file,
+// and `initMermaid()` ran at import time — so anything that imported this
+// module paid for mermaid immediately. Now it's fetched (once) only when a
+// diagram actually has to be rendered. Offline still works: the chunk is in
+// the service worker's precache.
+type Mermaid = (typeof import("mermaid"))["default"];
+
+let mermaidPromise: Promise<Mermaid> | null = null;
+
+function loadMermaid(): Promise<Mermaid> {
+  mermaidPromise ??= import("mermaid").then((m) => m.default);
+  return mermaidPromise;
+}
 
 // Mermaid ships its own "dark" theme (tuned node/text/edge colors for a
 // dark canvas) alongside "neutral" for light — re-initializing with the
@@ -8,23 +20,23 @@ function isDarkMode() {
   return document.documentElement.classList.contains("dark");
 }
 
-function initMermaid() {
+async function initMermaid(): Promise<Mermaid> {
+  const mermaid = await loadMermaid();
   mermaid.initialize({
     startOnLoad: false,
-    theme: isDarkMode() ? "dark" : "neutral",
+    theme: isDarkMode() ? "dark" : "neo",
     securityLevel: "loose",
     fontFamily: "inherit",
   });
+  return mermaid;
 }
-
-initMermaid();
 
 export async function renderMermaidToSvg(code: string): Promise<string> {
   if (code.trim() === "") return "";
 
-  initMermaid();
   const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
   try {
+    const mermaid = await initMermaid();
     const { svg } = await mermaid.render(id, code.trim());
     return svg;
   } catch (error) {
@@ -40,17 +52,16 @@ export async function renderMermaidToSvg(code: string): Promise<string> {
   }
 }
 
-
 export async function renderAllMermaidInContainer(container: HTMLElement) {
-    const elements  = container.querySelectorAll('[data-type="mermaid"]');
+  const elements = container.querySelectorAll('[data-type="mermaid"]');
 
-    for (const element of elements) {
-        const code = element.getAttribute("data-content") || element.textContent ||"";
-   
-        if(code.trim() === "") continue;
+  for (const element of elements) {
+    const code = element.getAttribute("data-content") || element.textContent || "";
 
-        const svg = await renderMermaidToSvg(code);
-        element.innerHTML = svg;
-        element.classList.add("mermaid-rendered");
-    }
+    if (code.trim() === "") continue;
+
+    const svg = await renderMermaidToSvg(code);
+    element.innerHTML = svg;
+    element.classList.add("mermaid-rendered");
+  }
 }

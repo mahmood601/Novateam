@@ -1,6 +1,8 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import { getSubjectsOfflineFirst } from "../../quizzes/services/local/indexeddb";
 import { A } from "@solidjs/router";
+import { useUser } from "../../shared/context/user";
+import { isSuperAdminRole } from "../../shared/lib/roles";
 
 const YEARS = [
   { id: "second", name: "الثانية" },
@@ -10,6 +12,7 @@ const YEARS = [
 ];
 
 export default function Dashboard() {
+  const { user } = useUser();
   const [yearKey, setYearKey] = createSignal<string>("second");
   const [subjects] = createResource(
     () => yearKey(),
@@ -21,6 +24,17 @@ export default function Dashboard() {
       {/* أضفنا mx-auto لضبط المحاذاة */}
       <div class="mx-auto flex h-full max-w-lg flex-col overflow-hidden pt-22 pb-22">
         
+        <Show when={isSuperAdminRole(user()?.role)}>
+          <A
+            href="/dashboard/manage"
+            class="mb-4 flex shrink-0 items-center gap-3 rounded-4xl bg-gradient-to-r from-cyan-400 to-blue-500 p-4 text-white shadow-md"
+          >
+            <span class="text-2xl">🛠️</span>
+            <span class="flex-1 font-bold">إدارة المواد والأقسام</span>
+            <span>←</span>
+          </A>
+        </Show>
+
         {/* شريط اختيار السنة */}
         <div class="mb-4 shrink-0 rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
           <p class="mb-3 text-xs font-bold text-slate-400">📅 السنة الدراسية</p>

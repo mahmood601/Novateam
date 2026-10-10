@@ -3,16 +3,32 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import process from "node:process";
 import devtools from "solid-devtools/vite";
-import { VitePWA } from "vite-plugin-pwa";
+import { VitePWA, type VitePWAOptions } from "vite-plugin-pwa";
 import mkcert from "vite-plugin-mkcert";
 import path from "path";
 
+// Workbox silently SKIPS any file bigger than this (default 2 MiB) — it only
+// prints a build warning. Skipped chunks aren't cached → lazy pages that need
+// them (mermaid, docx, tiptap...) fail offline. Tune it after checking your
+// real chunk sizes in the build output.
+const MAX_PRECACHE_BYTES = 6 * 1024 * 1024;
+
 const pwaOptions: Partial<VitePWAOptions> = {
-  mode: "development",
+  // (removed `mode: "development"` — it made production builds use the
+  //  unminified dev Workbox runtime)
   base: "/",
+  // "prompt": a new version waits until the user accepts it via ReloadPrompt.
+  // (was previously switched to "autoUpdate" by the CLAIMS env var)
+  registerType: "prompt", // autoUpdate the other way
+  // Emergency kill-switch: build with SW_DESTROY=true to ship a service worker
+  // that unregisters itself and clears caches for everyone.
+  selfDestroying: process.env.SW_DESTROY === "true",
   includeAssets: ["favicon.svg"],
   workbox: {
     globPatterns: ["**/*.{js,css,html,mp3,woff2,svg,webp,png,ico}"],
+    maximumFileSizeToCacheInBytes: MAX_PRECACHE_BYTES,
+    // Any navigation (refresh/deep link) offline → serve the cached app shell.
+    navigateFallback: "index.html",
   },
   manifest: {
     name: "Nova App",
@@ -52,26 +68,6 @@ const pwaOptions: Partial<VitePWAOptions> = {
     navigateFallback: "index.html",
   },
 };
-
-const claims = process.env.CLAIMS === "true";
-const selfDestroying = process.env.SW_DESTROY === "true";
-
-if (process.env.SW === "true") {
-  pwaOptions.srcDir = "src";
-  pwaOptions.filename = claims ? "claims-sw.ts" : "prompt-sw.ts";
-  pwaOptions.strategies = "injectManifest";
-  (pwaOptions.manifest as Partial<ManifestOptions>).name =
-    "PWA Inject Manifest";
-  (pwaOptions.manifest as Partial<ManifestOptions>).short_name = "PWA Inject";
-  pwaOptions.injectManifest = {
-    minify: false,
-    enableWorkboxModulesLogs: true,
-  };
-}
-
-if (claims) pwaOptions.registerType = "autoUpdate";
-
-if (selfDestroying) pwaOptions.selfDestroying = selfDestroying;
 
 export default defineConfig({
   define: {

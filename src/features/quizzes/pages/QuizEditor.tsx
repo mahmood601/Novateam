@@ -10,6 +10,7 @@ import { QuestionCard } from "../components/QuestionCard";
 import { SmartImporter } from "../components/SmartImporter";
 import { ManualForm } from "../components/ManualForm";
 import { PassageManager } from "../components/PassageManager";
+import { isAdminRole } from "../../shared/lib/roles";
 import { BulkActionBar } from "../components/BulkActionBar";
 import { SuggestionsManager } from "../components/SuggestionsManager";
 
@@ -161,7 +162,7 @@ export default function QuizEditor() {
     };
 
     createEffect(() => {
-        if (user() && user()?.role !== "admin") {
+        if (user() && !isAdminRole(user()?.role)) {
             navigate("/", { replace: true });
         }
     });

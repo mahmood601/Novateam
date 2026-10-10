@@ -12,15 +12,6 @@
   orphans: 2;
 }
 
-@print {
-  [data-nova-block="note"] {
-    display: none;
-  }
-  .pagedjs_page {
-    margin: 0;
-    box-shadow: none;
-  }
-}
 
 .pagedjs_pagebox {
   background-color: #fff;
@@ -56,13 +47,13 @@
   justify-content: center;
   align-items: flex-end;
   background-color: #d6ebff;
-  width: 218.8mm;
-  height: 100.9mm;
   border-radius: 70%;
   position: absolute;
   top: 0;
   left: 50%;
   transform: translate(-50%, -50%);
+      width: 218.8mm;
+  height: 100.9mm;
 }
 
 .header-box {
@@ -72,7 +63,7 @@
   width: 184.7mm;
   height: 35.1mm;
   position: relative;
-  margin-top: -10mm;
+  top: -10mm;
 }
 
 .logos-box {
@@ -80,6 +71,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  gap: 3mm;
 }
 
 .nova-logo {
@@ -93,17 +85,17 @@
   width: 7.63cm;
   background-color: #ffdf7f;
   border: 1.5pt solid #604700;
-  font-family: "Recompense", sans-serif;
+  font-family: "Recompense" !important;
   font-size: 16pt;
-  padding: 2pt 5pt;
+  padding: 0.13cm 0.25cm;
   border-radius: 5pt;
-  font-weight: bold;
-  letter-spacing: 3pt;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.2cm;
   margin-top: 1pt;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #000;
+  display: flex;
+  justify-content: center;
 }
 
 .tartous-logo {
@@ -112,10 +104,10 @@
 }
 
 .cover-circle {
-  width: 13cm;
-  height: 13cm;
   border-radius: 100%;
   border: 6pt solid #991f60;
+    width: 218.8mm;
+  height: 100.9mm;
 }
 
 .cover-lecture-title {
@@ -334,6 +326,10 @@
   padding: 5pt;
   color: #000 !important;
   text-align: center;
+
+  a {
+    text-decoration: none !important;
+  }
 }
 
 /* ---------- Running Header & Footer ---------- */
@@ -445,8 +441,8 @@
 .lecture-body {
   page: main;
   font-family: "OoredooArabic-Heavy", sans-serif;
-  font-size: 12pt;
-  line-height: 1.7;
+  font-size: 14pt;
+  line-height: 1.6;
   direction: rtl;
   background-color: #fff;
 }
@@ -577,7 +573,7 @@
 }
 
 .lecture-content table tbody,
-.nova-tiptap-content  table tbody,
+.nova-tiptap-content table tbody,
 .lecture-body table tbody,
 .print-area table tbody {
   width: 100%;
@@ -593,7 +589,7 @@
 .print-area table th {
   border: 1px solid var(--editor-chrome-border, #d1d5db);
   padding: 6px 10px;
-  vertical-align: center;
+  vertical-align: middle;
   box-sizing: border-box;
   width: 10rem;
   width: fit-content;
@@ -619,8 +615,6 @@
     border-collapse: collapse;
     table-layout: auto;
   }
-
-
 
   table td,
   table th {
@@ -760,30 +754,45 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    /* HTML labels */
+    .label-container,
+    .node label,
+    .node-0 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center !important;
+    }
+
+    /* SVG text inside nodes */
+    svg text {
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    /* بعض إصدارات Mermaid تستخدم foreignObject */
+    foreignObject {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
   }
 
   /* FIXED: Prevent large images from overflowing page height */
-.lecture-body img,
-.lecture-body svg,
-.pagedjs_page img {
-  max-height: 23cm !important; /* Leaves room for headers & footers */
-  width: auto;
-  object-fit: contain;
-}
-
+  .lecture-body img,
+  .lecture-body svg,
+  .pagedjs_page img {
+    max-height: 23cm !important; /* Leaves room for headers & footers */
+    width: auto;
+    object-fit: contain;
+  }
 
   pre {
     border-right: 4px solid var(--nova-color, #999);
     border-radius: 6px;
     direction: ltr;
     text-align: left;
-  }
-
-  /* ---------- الروابط ---------- */
-  a {
-    color: var(--nova-color, #0563c1);
-    text-decoration: none;
-    border-bottom: 1px dashed currentColor;
   }
 
   /* ---------- القوائم ---------- */
@@ -1009,7 +1018,7 @@
     var(--callout-bg) 0%,
     color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
   );
-   ul li::marker,
+  ul li::marker,
   ol li::marker {
     color: var(--callout-color);
   }
@@ -1064,7 +1073,6 @@
   -webkit-mask-size: contain;
 }
 
-
 /* Content cleanup */
 .nova-note p:last-child {
   margin-bottom: 0;
@@ -1075,13 +1083,16 @@
 
 /* ========== Rainbow Color Mapping ========== */
 
-/* Note → Blue */
+/* Note  */
 .nova-note[data-type="note"] {
-  --callout-color: var(--nova-color); /* Blue */
-  --callout-bg: var(--callout-bg); /* Light Blue Background */
-  box-shadow:  -3px 5px 10px 0px #999;
-
+  --callout-color: var(--nova-color);
+  --callout-bg: var(--color-darker-light-2);
 }
+
+.dark .lecture-content .nova-note[data-type="note"] {
+  --callout-bg: var(--color-lighter-dark-2);
+}
+
 .nova-note[data-type="note"] .nova-note-icon {
   --icon-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
 }

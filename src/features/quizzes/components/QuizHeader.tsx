@@ -7,6 +7,7 @@ import { quizDisplayMode, setQuizDisplayMode } from "../utils/quizDisplayMode";
 import { quizState } from "../utils/quizStore";
 import AdminEditPanel from "./AdminEditPanel";
 import { useUser } from "../../shared/context/user";
+import { isAdminRole } from "../../shared/lib/roles";
 
 export default function QuizHeader(props: {
   total: number;
@@ -27,7 +28,7 @@ export default function QuizHeader(props: {
   const [editOpen, setEditOpen] = createSignal(false);
 
   const { user } = useUser();
-  const isAdmin = () => user()?.role === "admin";
+  const isAdmin = () => isAdminRole(user()?.role);
 
   createEffect(() => {
     setTimeLeft((props.total - 1) * 60);
