@@ -36,14 +36,19 @@ export async function getSeasonsFromRemote(subjectId: string): Promise<Section[]
 export async function getSeasonNameFromRemote(subjectId: string, value: number | string): Promise<string> {
   const { data, error } = await supabase
     .from("sections")
-    .select("name")
+    .select("id, value, name")
     .eq("subject_id", subjectId)
-    .eq("type", "season")
-    .eq("value", value)
+    .eq("type", "season");
 
   if (error) {
     toast.error("فشل تحميل الفصل: " + error.message);
     return "";
   }
-  return data?.[0]?.name ?? "";
+
+  const target = String(value).trim();
+  const match = data?.find((season) => {
+    return String(season.id) === target || String(season.value) === target;
+  });
+
+  return match?.name ?? "";
 }

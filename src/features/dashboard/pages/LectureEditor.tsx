@@ -26,14 +26,14 @@ export default function LectureEditor() {
                 {(season) => (
                   <A
                     href={`/dashboard/${subjectId}/edit-lecture/${season.id}/editor`}
-                    class="hover:border-main dark:border-lighter-dark-2 bg-main-light relative flex flex-row-reverse justify-between gap-2 rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
+                    class="hover:border-main dark:border-lighter-dark-2 bg-main-light relative flex flex-row-reverse items-center justify-between gap-2 rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
                   >
                     <div>
-                      <p class="text-foreground text-sm font-bold">
+                      <p class="text-foreground text-right text-sm font-bold">
                         {season.name}
                       </p>
                     </div>
-                    <span class="bg-main text-main-light rounded-full px-3 py-1 text-xs font-bold transition">
+                    <span class="bg-main text-main-light h-fit rounded-full px-3 py-1 text-xs font-bold transition">
                       فتح
                     </span>
                   </A>

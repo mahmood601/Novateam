@@ -35,6 +35,7 @@ import {
   Columns3,
   Copy,
   Eraser,
+  FileText,
   Grid2x2Check,
   ImagePlus,
   Images,
@@ -57,6 +58,8 @@ import {
   Undo2,
   Workflow,
   X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-solid";
 
 import { debounce } from "@/features/shared/utils/debounce";
@@ -69,6 +72,7 @@ import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
 
 import "../styles/editor.css";
+import "../styles/a4-mode.css";
 import "../../../../public/print/paged-print.css";
 import { extensionsArr } from "../tiptap/extensions/extensionsArr";
 import Menu from "./DropdownMenu";
@@ -98,6 +102,34 @@ export default function TiptapReviewEditor(props: {
   let editor: Editor | undefined;
   const { offset } = useKeyboardToolbar();
   const [tick, setTick] = createSignal(0); // forces toolbar re-render on selection/content change
+
+  // ── A4 page mode ───────────────────────────────────────────────
+  // A4 is 210mm wide; CSS defines 1in = 96px, so that's ~793.7px.
+  const A4_WIDTH_PX = (210 / 25.4) * 96;
+  const [a4Active, setA4Active] = createSignal(false);
+  // 1 = "fit the phone width"; the +/- buttons multiply on top of that.
+  const [a4Scale, setA4Scale] = createSignal(1);
+
+  // Computes the CSS `zoom` that makes the A4 sheet exactly as wide as
+  // the screen (never bigger than real size), then applies the user's
+  // extra zoom. It's written as a CSS variable that a4-mode.css reads.
+  const applyA4Zoom = () => {
+    if (!containerRef) return;
+    const fit = Math.min(1, (containerRef.clientWidth - 16) / A4_WIDTH_PX);
+    const zoom = Math.min(1.5, fit * a4Scale());
+    containerRef.style.setProperty("--a4-zoom", String(zoom));
+  };
+
+  createEffect(() => {
+    // Re-runs whenever A4 mode or the user's zoom changes.
+    const active = a4Active();
+    a4Scale();
+    if (active) applyA4Zoom();
+    else containerRef?.style.removeProperty("--a4-zoom");
+  });
+
+  const a4ZoomIn = () => setA4Scale((s) => Math.min(3, +(s + 0.35).toFixed(2)));
+  const a4ZoomOut = () => setA4Scale((s) => Math.max(1, +(s - 0.35).toFixed(2)));
 
   // MS Word–style "insert table" grid picker
   const TABLE_PICKER_MAX_ROWS = 8;
@@ -270,6 +302,13 @@ export default function TiptapReviewEditor(props: {
 
   onMount(() => {
     loadLecture();
+
+    // Recompute the A4 fit when the container's width changes (rotation, etc.)
+    const a4Observer = new ResizeObserver(() => {
+      if (a4Active()) applyA4Zoom();
+    });
+    a4Observer.observe(containerRef);
+    onCleanup(() => a4Observer.disconnect());
 
     editor = new Editor({
       element: containerRef,
@@ -561,7 +600,8 @@ export default function TiptapReviewEditor(props: {
         onSave={saveToSupabase}
         onUndo={() => editor?.chain().focus().undo().run()}
         onRedo={() => editor?.chain().focus().redo().run()}
-        onInsert={() => setInsertActive(true)}
+        a4Active={a4Active()}
+        onToggleA4={() => setA4Active((v) => !v)}
         subjectId={props.subjectId}
         handleFileUpload={handleFileUpload}
         handleEditDoctorName={handleEditDoctorName}
@@ -575,8 +615,26 @@ export default function TiptapReviewEditor(props: {
           <div
             ref={containerRef}
             class="nova-tiptap-content dark:bg-main-dark dark:text-main-light mb-6 min-h-0 flex-1 overflow-auto"
+            classList={{ "a4-mode": a4Active() }}
           />
         </Suspense>
+
+        {/* A4 mode: hint + zoom controls */}
+        <Show when={a4Active()}>
+          <div class="pointer-events-none fixed inset-x-0 top-14 z-40 flex justify-center">
+            <span class="bg-main rounded-full px-3 py-1 text-xs text-white shadow">
+              A4 · الخط المتقطع = نهاية الصفحة
+            </span>
+          </div>
+          <div class="bg-main-light dark:bg-lighter-dark-1 fixed top-24 left-2 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">
+            <button class="rounded p-2" title="تكبير" onClick={a4ZoomIn}>
+              <ZoomIn size={18} />
+            </button>
+            <button class="rounded p-2" title="تصغير" onClick={a4ZoomOut}>
+              <ZoomOut size={18} />
+            </button>
+          </div>
+        </Show>
 
         {/* Floating formatting toolbar (hidden while a sheet is open) */}
         <Show when={!insertActive() && !formatActive() && !tableRowColActive()}>
@@ -793,7 +851,8 @@ function EditorHeader(props: {
   onSave: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onInsert: () => void;
+  a4Active: boolean;
+  onToggleA4: () => void;
   subjectId: string;
   handleFileUpload: (event: Event) => void;
   handleEditDoctorName: (event: Event) => void;
@@ -852,10 +911,11 @@ function EditorHeader(props: {
 
           <button
             class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full p-2"
-            title="Insert"
-            onClick={props.onInsert}
+            classList={{ "bg-main/15 text-main": props.a4Active }}
+            title="A4"
+            onClick={props.onToggleA4}
           >
-            <Plus size={20} />
+            <FileText size={20} />
           </button>
 
           <Menu

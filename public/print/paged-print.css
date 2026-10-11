@@ -12,7 +12,6 @@
   orphans: 2;
 }
 
-
 .pagedjs_pagebox {
   background-color: #fff;
 }
@@ -52,7 +51,7 @@
   top: 0;
   left: 50%;
   transform: translate(-50%, -50%);
-      width: 218.8mm;
+  width: 218.8mm;
   height: 100.9mm;
 }
 
@@ -106,8 +105,8 @@
 .cover-circle {
   border-radius: 100%;
   border: 6pt solid #991f60;
-    width: 218.8mm;
-  height: 100.9mm;
+  width: 13cm;
+  height: 13cm;
 }
 
 .cover-lecture-title {
@@ -229,14 +228,13 @@
 
 .toc .table-header {
   width: 13cm;
-  height: 2.54cm;
   font-size: 28pt;
   font-family: "OoredooArabic-Heavy", sans-serif;
   color: white;
   background: linear-gradient(to right, #ec008c, #991f60) !important;
   text-align: center;
   border-radius: 10pt;
-  padding-top: 16pt;
+  padding: 16pt;
   margin-bottom: -1.26cm;
   z-index: 10;
 }
@@ -672,9 +670,9 @@
     text-align: right;
     font-family: "NovaHeading";
     padding: 0.3em;
-    color: #fff;
-    border: 5px solid var(--nova-border);
-    background-color: var(--nova-bg-strong);
+    color: #000;
+    border: 5px solid var(--nova-bg-strong);
+    background-color: var(--nova-bg-light);
     margin-top: 1em;
     margin-bottom: 0.6em;
   }

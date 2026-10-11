@@ -1,0 +1,97 @@
+/* ============================================================
+   A4 page mode for the review editor
+   ------------------------------------------------------------
+   Idea: make the editable area look like ONE long sheet of A4
+   paper, at the real printable width, and draw a dashed red line
+   every "page content height". The lines are pure CSS decoration:
+   they are NOT part of the document, are never saved, and don't
+   depend on what's written (they appear even on an empty page).
+
+   !! THESE NUMBERS MUST MATCH THE PRINT !!
+   Copy them from the `@page { margin: ... }` rule in
+   public/print/paged-print.css. If they differ, the lines (and the
+   text wrapping) will not match the printed PDF.
+   ============================================================ */
+
+.nova-tiptap-content.a4-mode {
+  /* A4 paper */
+  --a4-page-w: 210mm;
+  --a4-page-h: 297mm;
+
+  /* Page margins as printed (TODO: copy from @page in paged-print.css) */
+  --a4-mt: 1cm;
+  --a4-mb: 1cm;
+  --a4-ml: 1cm;
+  --a4-mr: 1cm;
+
+  /* Height of the area text can occupy on ONE page. */
+  --a4-content-h: calc(var(--a4-page-h) - var(--a4-mt) - var(--a4-mb));
+
+  /* The "desk" around the paper */
+  background-color: #d4d4d8;
+  padding: 8px 0 96px; /* extra bottom room so the toolbar doesn't cover the last lines */
+}
+
+.dark .nova-tiptap-content.a4-mode {
+  background-color: #18181b;
+}
+
+/* The paper itself (Tiptap's editable root) */
+.nova-tiptap-content.a4-mode .tiptap {
+  position: relative;
+  box-sizing: content-box;
+
+  /* Text column = paper width minus side margins, exactly like print. */
+  width: calc(var(--a4-page-w) - var(--a4-ml) - var(--a4-mr));
+  min-height: var(--a4-content-h);
+  margin: 0 auto;
+
+  /* Paper margins are padding, so the first page starts at --a4-mt. */
+  padding: var(--a4-mt) var(--a4-mr) var(--a4-mb) var(--a4-ml);
+
+  /* Paper is white and printed in black, even in dark mode. */
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 8px rgb(0 0 0 / 0.25);
+
+  /* Shrinks the whole sheet to fit the phone. Set from JS (--a4-zoom).
+     `zoom` scales layout too, so the dashed lines stay in sync. */
+  zoom: var(--a4-zoom, 0.45);
+
+  /* TODO: match the print typography (from .lecture-body in paged-print.css):
+  font-size: 11pt;
+  line-height: 1.6;
+  */
+}
+
+/* Dashed "end of page" lines.
+   - ::after covers the paper from where page-1 content starts downward.
+   - A gradient tile exactly one page-content tall draws a 2px line at
+     its bottom edge, repeated down the sheet.
+   - The mask turns that solid line into dashes. */
+.nova-tiptap-content.a4-mode .tiptap::after {
+  content: "";
+  position: absolute;
+  inset: var(--a4-mt) 0 0 0;
+  pointer-events: none;
+  user-select: none;
+
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(100% - 2px),
+    #ef4444 calc(100% - 2px)
+  );
+  background-size: 100% var(--a4-content-h);
+  background-repeat: repeat-y;
+
+  -webkit-mask-image: repeating-linear-gradient(
+    to right,
+    #000 0 10px,
+    transparent 10px 18px
+  );
+  mask-image: repeating-linear-gradient(
+    to right,
+    #000 0 10px,
+    transparent 10px 18px
+  );
+}
