@@ -9,8 +9,6 @@ import { CircleCheck, RefreshCw } from "lucide-solid";
 const UPDATE_TOAST_ID = "sw-update";
 
 const ReloadPrompt: Component = () => {
-  // replaced dynamically
-  const reloadSW = "__RELOAD_SW__";
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -19,16 +17,32 @@ const ReloadPrompt: Component = () => {
     immediate: true,
     onRegisteredSW(swUrl, r) {
       console.log(`Service Worker at: ${swUrl}`);
-      // @ts-expect-error just ignore
-      if (reloadSW === "true") {
-        r &&
-          setInterval(() => {
-            console.log("Checking for sw update");
-            r.update();
-          }, 20000 /* 20s for testing purposes */);
-      } else {
-        console.log(`SW Registered: ${r}`);
-      }
+      if (!r) return;
+
+      // WHY THIS EXISTS: the browser only looks for a new service worker
+      // when a page is *loaded* (and on register()). A PWA that students keep
+      // open in the app switcher for days is never reloaded, so a new deploy
+      // was never even detected → needRefresh stayed false → no toast.
+      // (Tested in a real browser: after a deploy, nothing happens until
+      // registration.update() is called.)
+      // So we ask the browser to check ourselves: whenever the app comes
+      // back to the foreground, when the connection returns, and hourly.
+      const MIN_GAP_MS = 5 * 60 * 1000; // don't hammer the server on tab switches
+      let lastCheck = 0;
+      const checkForUpdate = () => {
+        const now = Date.now();
+        if (!navigator.onLine || now - lastCheck < MIN_GAP_MS) return;
+        lastCheck = now;
+        r.update().catch(() => {
+          /* offline or server hiccup — the next trigger will retry */
+        });
+      };
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkForUpdate();
+      });
+      window.addEventListener("online", checkForUpdate);
+      setInterval(checkForUpdate, 60 * 60 * 1000);
     },
     onRegisterError(error) {
       console.error("SW registration error", error);
@@ -145,6 +159,7 @@ const ReloadPrompt: Component = () => {
       }
     }),
   );
+
   return <></>;
 };
 
