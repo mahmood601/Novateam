@@ -566,7 +566,7 @@
   border-collapse: collapse;
   table-layout: auto;
   width: max-content;
-  margin: 1rem 0;
+  margin: 0.5rem 0;
   min-width: 100%;
 }
 
@@ -585,7 +585,7 @@
 .lecture-body table th,
 .print-area table td,
 .print-area table th {
-  border: 1px solid var(--editor-chrome-border, #d1d5db);
+  border: 1px solid #000;
   padding: 6px 10px;
   vertical-align: middle;
   box-sizing: border-box;
@@ -673,8 +673,8 @@
     color: #000;
     border: 5px solid var(--nova-bg-strong);
     background-color: var(--nova-bg-light);
-    margin-top: 1em;
-    margin-bottom: 0.6em;
+    margin-top: 0.5em;
+    margin-bottom: 0.2em;
   }
 
   h1 {
@@ -1188,4 +1188,98 @@
   display: block; /* يتلغى تلقائياً إذا الصندوق نفسه display:flex عبر inline style */
   border-radius: 0.65rem;
   break-inside: avoid;
+}
+
+/* ============================================================
+   A4 page mode for the review editor (Word-like pages)
+   ------------------------------------------------------------
+   The editable area looks like A4 sheets lying on a gray "desk".
+   Every page-content height a gray separator band is drawn, like the
+   gap between pages in Word. The bands are pure CSS decoration: they
+   are NOT part of the document, are never saved, and appear even on
+   an empty page.
+
+   NOTE: the flow of text is continuous, so a line that lands exactly
+   on a band can be slightly covered by it (4px). This is a visual
+   guide only; the real pagination happens in Paged.js when printing.
+
+   !! THESE NUMBERS MUST MATCH THE PRINT !!
+   They are copied from `@page main { margin: ... }` and `.lecture-body`
+   in public/print/paged-print.css. Keep them in sync.
+   ============================================================ */
+
+.nova-tiptap-content.a4-mode {
+  /* A4 paper */
+  --a4-page-w: 210mm;
+  --a4-page-h: 297mm;
+
+  /* Page margins as printed (@page main) */
+  --a4-mt: 1.5cm;
+  --a4-mb: 1.8cm;
+  --a4-ml: 0.8cm;
+  --a4-mr: 0.8cm;
+
+  /* Height of the area text can occupy on ONE page. */
+  --a4-content-h: calc(var(--a4-page-h) - var(--a4-mt) - var(--a4-mb));
+
+  /* The "desk" around the paper */
+  --a4-desk: #d4d4d8;
+  background-color: var(--a4-desk);
+  padding: 16px 0 24px;
+}
+
+.dark .nova-tiptap-content.a4-mode {
+  --a4-desk: #18181b;
+}
+
+/* The paper itself (Tiptap's editable root) */
+.nova-tiptap-content.a4-mode .tiptap {
+  position: relative;
+  box-sizing: content-box;
+
+  /* Text column = paper width minus side margins, exactly like print. */
+  width: calc(var(--a4-page-w) - var(--a4-ml) - var(--a4-mr));
+  min-height: var(--a4-content-h);
+  margin: 0 auto;
+
+  /* Paper margins are padding, so the first page starts at --a4-mt. */
+  padding: var(--a4-mt) var(--a4-mr) var(--a4-mb) var(--a4-ml);
+
+  /* Paper is white and printed in black, even in dark mode. */
+  background: #fff;
+  color: #000;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.2),
+    0 6px 18px rgb(0 0 0 / 0.18);
+
+  /* Same typography as the printed page (.lecture-body). */
+  font-size: 14pt;
+  line-height: 1.6;
+
+  /* Shrinks the whole sheet to fit the phone. Set from JS (--a4-zoom).
+     `zoom` scales layout too, so the page bands stay in sync. */
+  zoom: var(--a4-zoom, 0.45);
+}
+
+/* Page separator bands.
+   - ::after covers the paper from where page-1 content starts downward.
+   - A gradient tile exactly one page-content tall draws, at its bottom
+     edge, a soft shadow plus a 4px band in the desk color, repeated
+     down the sheet. */
+.nova-tiptap-content.a4-mode .tiptap::after {
+  content: "";
+  position: absolute;
+  inset: var(--a4-mt) 0 0 0;
+  pointer-events: none;
+  user-select: none;
+
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(100% - 12px),
+    rgb(0 0 0 / 0.1) calc(100% - 4px),
+    var(--a4-desk) calc(100% - 4px),
+    var(--a4-desk) 100%
+  );
+  background-size: 100% var(--a4-content-h);
+  background-repeat: repeat-y;
 }

@@ -49,6 +49,7 @@ import {
   Redo2,
   Rows3,
   Save,
+  SeparatorHorizontal,
   Strikethrough,
   Table2,
   TableCellsMerge,
@@ -100,7 +101,7 @@ export default function TiptapReviewEditor(props: {
 }) {
   let containerRef: any;
   let editor: Editor | undefined;
-  const { offset } = useKeyboardToolbar();
+  const { height: vvHeight, top: vvTop } = useKeyboardToolbar();
   const [tick, setTick] = createSignal(0); // forces toolbar re-render on selection/content change
 
   // ── A4 page mode ───────────────────────────────────────────────
@@ -298,6 +299,15 @@ export default function TiptapReviewEditor(props: {
         editor?.chain().focus().setBox().run();
       }
     },
+    {
+      id: "page-break",
+      label: "فاصل صفحة",
+      icon: SeparatorHorizontal,
+      onClick: () => {
+        editor?.chain().focus().setPageBreak().run();
+        setInsertActive(false);
+      },
+    },
   ];
 
   onMount(() => {
@@ -306,6 +316,13 @@ export default function TiptapReviewEditor(props: {
     // Recompute the A4 fit when the container's width changes (rotation, etc.)
     const a4Observer = new ResizeObserver(() => {
       if (a4Active()) applyA4Zoom();
+      // The writing area shrinks when the keyboard or a docked sheet opens:
+      // scroll the caret back into view so it is never hidden.
+      const sheetOpen =
+        insertActive() || formatActive() || tableRowColActive();
+      if (editor && (sheetOpen || editor.isFocused)) {
+        requestAnimationFrame(() => editor?.commands.scrollIntoView());
+      }
     });
     a4Observer.observe(containerRef);
     onCleanup(() => a4Observer.disconnect());
@@ -592,7 +609,13 @@ export default function TiptapReviewEditor(props: {
   ];
 
   return (
-    <div class="bg-main-light dark:bg-main-dark relative flex h-dvh w-full flex-1 flex-col overflow-hidden">
+    // Root is pinned to the visual viewport (area above the keyboard).
+    // Everything inside is a normal flex column: header / writing area /
+    // bottom dock. Nothing floats over the text any more.
+    <div
+      style={{ height: `${vvHeight()}px`, top: `${vvTop()}px` }}
+      class="bg-main-light dark:bg-main-dark fixed left-0 flex w-full flex-col overflow-hidden"
+    >
       <EditorHeader
         seasonId={seasonId}
         status={status}
@@ -608,25 +631,25 @@ export default function TiptapReviewEditor(props: {
       />
 
       <div
-        class="nova-tiptap-review flex min-h-0 w-full flex-1 flex-col pt-12"
+        class="nova-tiptap-review relative flex min-h-0 w-full flex-1 flex-col"
         dir="rtl"
       >
         <Suspense fallback={<div>Loading...</div>}>
           <div
             ref={containerRef}
-            class="nova-tiptap-content dark:bg-main-dark dark:text-main-light mb-6 min-h-0 flex-1 overflow-auto"
+            class="nova-tiptap-content dark:bg-main-dark dark:text-main-light min-h-0 flex-1 overflow-auto"
             classList={{ "a4-mode": a4Active() }}
           />
         </Suspense>
 
         {/* A4 mode: hint + zoom controls */}
         <Show when={a4Active()}>
-          <div class="pointer-events-none fixed inset-x-0 top-14 z-40 flex justify-center">
+          <div class="pointer-events-none absolute inset-x-0 top-2 z-40 flex justify-center">
             <span class="bg-main rounded-full px-3 py-1 text-xs text-white shadow">
-              A4 · الخط المتقطع = نهاية الصفحة
+              A4 · الشريط الرمادي = فاصل الصفحة
             </span>
           </div>
-          <div class="bg-main-light dark:bg-lighter-dark-1 fixed top-24 left-2 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">
+          <div class="bg-main-light dark:bg-lighter-dark-1 absolute top-12 left-2 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">
             <button class="rounded p-2" title="تكبير" onClick={a4ZoomIn}>
               <ZoomIn size={18} />
             </button>
@@ -636,159 +659,32 @@ export default function TiptapReviewEditor(props: {
           </div>
         </Show>
 
-        {/* Floating formatting toolbar (hidden while a sheet is open) */}
-        <Show when={!insertActive() && !formatActive() && !tableRowColActive()}>
-          <div
-            style={{ transform: `translate(-50%, -${offset()}px)` }}
-            class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-1/2 z-50 flex w-screen flex-row-reverse gap-2 overflow-scroll px-3 py-2 shadow-md"
-          >
-            <For each={toolbarButtons}>
-              {(button) => (
-                <button
-                  type="button"
-                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
-                  title={button.title}
-                  classList={{ active: isActive(button.activeKey) }}
-                  onClick={button.onClick}
-                >
-                  <button.icon size={18} />
-                </button>
-              )}
-            </For>
+        {/* Row/column grip overlay: drag to reorder, tap to select */}
+        <TableGripOverlay
+          editor={() => editor}
+          tick={tick}
+          visible={() =>
+            !insertActive() && !formatActive() && !tableRowColActive()
+          }
+        />
+      </div>
 
-            {/* Text alignment (heading/paragraph) — Kobalte dropdown, same
-                library as the "⋮" menu in DropdownMenu.tsx */}
-            <DropdownMenu>
-              <DropdownMenu.Trigger
-                type="button"
-                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
-                title="Text alignment"
-              >
-                <Dynamic component={currentAlignIcon()} size={18} />
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light dark:bg-lighter-dark-1 text-header dark:text-main-light z-50 min-w-40 rounded-lg border p-1 shadow-lg"
-                  dir="rtl"
-                >
-                  <For each={textAlignCommands}>
-                    {(item) => (
-                      <DropdownMenu.Item
-                        class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-right text-sm outline-none"
-                        onSelect={() =>
-                          editor
-                            ?.chain()
-                            .focus()
-                            .toggleTextAlign(item.align)
-                            .run()
-                        }
-                      >
-                        <item.icon size={16} />
-                        <span class="flex-1">{item.label}</span>
-                        <Show when={isTextAlign(item.align)}>
-                          <Check
-                            size={14}
-                            style={{ color: "var(--color-main)" }}
-                          />
-                        </Show>
-                      </DropdownMenu.Item>
-                    )}
-                  </For>
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu>
-
-            {/* Only shown while the selection is inside a table */}
-            <Show when={isActive("table")}>
-              <button
-                type="button"
-                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
-                title={
-                  cellSelectAnchor() !== null
-                    ? "اضغط الخلية الثانية"
-                    : "تحديد خليتين متجاورتين"
-                }
-                classList={{ active: cellSelectActive() }}
-                onClick={() => {
-                  const next = !cellSelectActive();
-                  setCellSelectActive(next);
-                  setCellSelectAnchor(null);
-                }}
-              >
-                <Grid2x2Check size={18} />
-              </button>
-              <button
-                type="button"
-                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded p-2"
-                title="Rows & columns"
-                classList={{ active: tableRowColActive() }}
-                onClick={() => setTableRowColActive(!tableRowColActive())}
-              >
-                <TableProperties size={18} />
-              </button>
-            </Show>
-          </div>
-        </Show>
-
+      {/* Bottom dock: toolbar and sheets live IN the layout (shrink-0), so
+          the writing area above is resized instead of being covered. */}
+      <div class="bg-main-light dark:bg-lighter-dark-1 z-50 flex w-full shrink-0 flex-col shadow-[0_-1px_6px_rgb(0_0_0/0.12)]">
         {/* Hint shown while waiting for the second tap in "select cells" mode */}
         <Show when={cellSelectActive() && cellSelectAnchor() !== null}>
           <div
-            style={{
-              transform: `translate(-50%, -${offset() + 50}px)`,
-              "background-color": "var(--color-main)",
-            }}
-            class="fixed bottom-0 left-1/2 z-50 rounded-full px-3 py-1 text-xs text-white"
+            style={{ "background-color": "var(--color-main)" }}
+            class="self-center rounded-full px-3 py-1 text-xs text-white"
           >
             اضغط الخلية الثانية لإتمام التحديد
           </div>
         </Show>
 
-        {/* Insert sheet driven by reusable MenuSheet */}
-        <Show when={insertActive()}>
-          <div class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg">
-            <MenuSheet
-              title="ادراج"
-              onClose={() => setInsertActive(false)}
-              items={getInsertItems()}
-            />
-          </div>
-        </Show>
-
-        {/* Rows/columns sheet: everything that used to be inline in the
-            table context toolbar below (add/delete row & column, merge,
-            duplicate, clear, header toggles) */}
-        <Show when={tableRowColActive()}>
-          <div class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-40 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg">
-            <MenuSheet
-              title="صفوف وأعمدة"
-              onClose={() => setTableRowColActive(false)}
-              items={tableCommands}
-            />
-          </div>
-        </Show>
-
-        {/* "Aa" format sheet: text style, font, color, highlight, sub/superscript */}
-        <Show when={formatActive()}>
-          <div
-            style={{ transform: `translate(0, -${offset()}px)` }}
-            class="bg-main-light dark:bg-lighter-dark-1 fixed bottom-0 left-0 z-50 flex max-h-[80vh] w-screen flex-col overflow-hidden pb-1 shadow-lg"
-          >
-            <FormatSheet
-              editor={() => editor}
-              tick={tick}
-              onClose={() => setFormatActive(false)}
-            />
-          </div>
-        </Show>
-
-        {/* Table context toolbar: delete table + cell alignment. Row/column
-            add-delete-merge-etc. commands moved to the sheet above,
-            reachable via the "Rows & columns" button. */}
+        {/* Table context row: cell alignment */}
         <Show when={isActive("table")}>
-          <div
-            style={{ transform: `translate(-50%, -${offset() + 50}px)` }}
-            class={`fixed bottom-0 left-1/2 flex items-center justify-center gap-1 px-3 text-xs`}
-          >
+          <div class="flex items-center justify-center gap-1 px-3 py-1 text-xs">
             <For each={cellAlignCommands}>
               {(item) => (
                 <button
@@ -831,14 +727,128 @@ export default function TiptapReviewEditor(props: {
           </div>
         </Show>
 
-        {/* Row/column grip overlay: drag to reorder, tap to select */}
-        <TableGripOverlay
-          editor={() => editor}
-          tick={tick}
-          visible={() =>
-            !insertActive() && !formatActive() && !tableRowColActive()
-          }
-        />
+        {/* Formatting toolbar (replaced by a sheet while one is open) */}
+        <Show when={!insertActive() && !formatActive() && !tableRowColActive()}>
+          <div class="flex w-full flex-row gap-2 overflow-x-auto px-3 py-2">
+            <For each={toolbarButtons}>
+              {(button) => (
+                <button
+                  type="button"
+                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 shrink-0 rounded p-2"
+                  title={button.title}
+                  classList={{ active: isActive(button.activeKey) }}
+                  onClick={button.onClick}
+                >
+                  <button.icon size={18} />
+                </button>
+              )}
+            </For>
+
+            {/* Text alignment (heading/paragraph) — Kobalte dropdown */}
+            <DropdownMenu>
+              <DropdownMenu.Trigger
+                type="button"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 shrink-0 rounded p-2"
+                title="Text alignment"
+              >
+                <Dynamic component={currentAlignIcon()} size={18} />
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light dark:bg-lighter-dark-1 text-header dark:text-main-light z-50 min-w-40 rounded-lg border p-1 shadow-lg"
+                  dir="rtl"
+                >
+                  <For each={textAlignCommands}>
+                    {(item) => (
+                      <DropdownMenu.Item
+                        class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-right text-sm outline-none"
+                        onSelect={() =>
+                          editor
+                            ?.chain()
+                            .focus()
+                            .toggleTextAlign(item.align)
+                            .run()
+                        }
+                      >
+                        <item.icon size={16} />
+                        <span class="flex-1">{item.label}</span>
+                        <Show when={isTextAlign(item.align)}>
+                          <Check
+                            size={14}
+                            style={{ color: "var(--color-main)" }}
+                          />
+                        </Show>
+                      </DropdownMenu.Item>
+                    )}
+                  </For>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu>
+
+            {/* Only shown while the selection is inside a table */}
+            <Show when={isActive("table")}>
+              <button
+                type="button"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 shrink-0 rounded p-2"
+                title={
+                  cellSelectAnchor() !== null
+                    ? "اضغط الخلية الثانية"
+                    : "تحديد خليتين متجاورتين"
+                }
+                classList={{ active: cellSelectActive() }}
+                onClick={() => {
+                  const next = !cellSelectActive();
+                  setCellSelectActive(next);
+                  setCellSelectAnchor(null);
+                }}
+              >
+                <Grid2x2Check size={18} />
+              </button>
+              <button
+                type="button"
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 shrink-0 rounded p-2"
+                title="Rows & columns"
+                classList={{ active: tableRowColActive() }}
+                onClick={() => setTableRowColActive(!tableRowColActive())}
+              >
+                <TableProperties size={18} />
+              </button>
+            </Show>
+          </div>
+        </Show>
+
+        {/* Insert sheet */}
+        <Show when={insertActive()}>
+          <div class="flex max-h-[45dvh] w-full flex-col overflow-hidden pb-1">
+            <MenuSheet
+              title="ادراج"
+              onClose={() => setInsertActive(false)}
+              items={getInsertItems()}
+            />
+          </div>
+        </Show>
+
+        {/* Rows/columns sheet */}
+        <Show when={tableRowColActive()}>
+          <div class="flex max-h-[45dvh] w-full flex-col overflow-hidden pb-1">
+            <MenuSheet
+              title="صفوف وأعمدة"
+              onClose={() => setTableRowColActive(false)}
+              items={tableCommands}
+            />
+          </div>
+        </Show>
+
+        {/* "Aa" format sheet */}
+        <Show when={formatActive()}>
+          <div class="flex max-h-[45dvh] w-full flex-col overflow-hidden pb-1">
+            <FormatSheet
+              editor={() => editor}
+              tick={tick}
+              onClose={() => setFormatActive(false)}
+            />
+          </div>
+        </Show>
       </div>
     </div>
   );
@@ -858,7 +868,7 @@ function EditorHeader(props: {
   handleEditDoctorName: (event: Event) => void;
 }) {
   return (
-    <div class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light/80 dark:bg-main-dark fixed top-0 left-0 z-50 w-full border-b shadow-sm backdrop-blur-sm">
+    <div class="border-darker-light-2 dark:border-lighter-dark-2 bg-main-light dark:bg-main-dark relative z-50 w-full shrink-0 border-b shadow-sm">
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
         <button
           class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex items-center rounded p-2"

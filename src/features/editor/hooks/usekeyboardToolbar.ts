@@ -1,21 +1,40 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
 
+/**
+ * Tracks the *visual* viewport (the part of the page that is actually
+ * visible, i.e. excluding the on-screen keyboard).
+ *
+ * The editor root is sized to `height` and pinned at `top`, so the toolbar
+ * docked at the bottom of that box always sits right above the keyboard and
+ * the writing area shrinks instead of being covered.
+ */
 export function useKeyboardToolbar() {
   const [offset, setOffset] = createSignal(0);
   const [persistentHeight, setPersistentHeight] = createSignal(0);
+  const [height, setHeight] = createSignal(
+    typeof window !== "undefined" ? window.innerHeight : 0,
+  );
+  const [top, setTop] = createSignal(0);
 
   const updatePosition = () => {
-    if (!window.visualViewport) {
-      // No visualViewport (desktop) — don't reset persistent height,
-      // keep whatever we measured previously.
+    const vv = window.visualViewport;
+    if (!vv) {
+      // No visualViewport (old browsers) — fall back to the layout viewport.
       setOffset(0);
+      setTop(0);
+      setHeight(window.innerHeight);
       return;
     }
 
-    const vv = window.visualViewport;
-    const newOffset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    const newOffset = Math.max(
+      0,
+      Math.round(window.innerHeight - vv.height - vv.offsetTop),
+    );
     setOffset(newOffset);
     if (newOffset > 0) setPersistentHeight(newOffset);
+
+    setHeight(Math.round(vv.height));
+    setTop(Math.round(vv.offsetTop));
   };
 
   onMount(() => {
@@ -27,15 +46,12 @@ export function useKeyboardToolbar() {
   });
 
   onCleanup(() => {
-    updatePosition();
-
     window.visualViewport?.removeEventListener("resize", updatePosition);
     window.visualViewport?.removeEventListener("scroll", updatePosition);
     window.removeEventListener("resize", updatePosition);
   });
 
-  // Return both the live offset (which goes to 0 when the keyboard hides)
-  // and the last-measured keyboard height so callers can keep a sheet
-  // sized to the keyboard even after it disappeared.
-  return { offset, persistentHeight };
+  // `offset` = keyboard height now, `persistentHeight` = last measured one,
+  // `height`/`top` = visible area to size/pin the editor root with.
+  return { offset, persistentHeight, height, top };
 }

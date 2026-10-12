@@ -19,8 +19,8 @@
   --a4-page-h: 297mm;
 
   /* Page margins as printed (TODO: copy from @page in paged-print.css) */
-  --a4-mt: 1cm;
-  --a4-mb: 1cm;
+  --a4-mt: 1.8cm;
+  --a4-mb: 1.8cm;
   --a4-ml: 1cm;
   --a4-mr: 1cm;
 

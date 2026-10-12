@@ -6,6 +6,14 @@ import { Editor, JSONContent } from "@tiptap/core";
 import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
 import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
 
+const PAGE_BREAK_CSS = `.nova-page-break {
+  break-after: page;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}`;
+
 interface Props {
   subjectName: string;
   subjectId: string;
@@ -126,7 +134,10 @@ export default function LecturePrint(props: Props) {
     const paged = new Previewer();
     const flow = await paged.preview(
       fragment,
-      [new URL("/print/paged-print.css", import.meta.url).href],
+      [
+        new URL("/print/paged-print.css", import.meta.url).href,
+        { "nova-page-break.css": PAGE_BREAK_CSS } as any,
+      ],
       outputEl,
     );
 
@@ -314,7 +325,7 @@ function buildDocument(
         <div class="footer-flex-content">
       <div class="number"></div>
       <div class="info-bar" dir="rtl">
-        ${data.lectureNumber || ""} ${data.lectureTitle} - د. ${doctorName} – السنة ${data.year}ة الفصل ${data.semester}
+        ${data.lectureNumber || ""}. ${data.lectureTitle} - د. ${doctorName} – السنة ${data.year}ة الفصل ${data.semester}
       </div>
     </div>
 

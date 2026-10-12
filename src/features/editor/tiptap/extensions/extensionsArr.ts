@@ -11,6 +11,7 @@ import { Mermaid } from "./mermaid";
 import { NovaAdmonition } from "./NovaAdmonition";
 import { NovaHeading } from "./NovaHeadingExtension";
 import { NovaQuiz } from "./NovaQuiz";
+import { NovaPageBreak } from "./NovaPageBreak";
 import Link from "@tiptap/extension-link";
 import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
@@ -30,6 +31,7 @@ export const extensionsArr = [
   NovaBulletList,
   NovaAdmonition,
   NovaQuiz,
+  NovaPageBreak,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize
   TextAlign.configure({ types: ["heading", "paragraph"] }),
   Highlight.configure({ multicolor: true }),
