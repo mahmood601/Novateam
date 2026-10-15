@@ -601,6 +601,9 @@
   background-color: var(--editor-chrome-bg, #f3f4f6);
   font-weight: 600;
   text-align: start;
+  p{
+    font-family: "OoredooArabic-Heavy";
+  }
 }
 
 .lecture-body,
