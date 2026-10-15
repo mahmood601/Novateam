@@ -122,7 +122,7 @@ export default function FormatSheet(props: {
   createEffect(() => {
     const el = panel() === "root" ? rootRef : leafRef;
     if (el && wrapperRef) {
-      wrapperRef.style.height = `40vh`;
+      wrapperRef.style.height = `40dvh`;
     }
   });
 
@@ -244,12 +244,13 @@ export default function FormatSheet(props: {
   return (
     <div
       ref={wrapperRef}
+      dir="rtl"
       class="format-sheet shrink-0 grow"
       style={{
         transition: "height 0.2s ease",
         display: "flex",
         "flex-direction": "column",
-        "max-height": "80vh",
+        "max-height": "45dvh",
       }}
     >
       <div
@@ -257,7 +258,14 @@ export default function FormatSheet(props: {
         dir="rtl"
       >
         <span class="font-medium">تنسيق</span>
-        <X class="cursor-pointer" onClick={props.onClose} />
+        <button
+          type="button"
+          class="rounded-full p-2"
+          aria-label="إغلاق"
+          onClick={props.onClose}
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <div
@@ -427,8 +435,7 @@ export default function FormatSheet(props: {
               <Match when={panel() === "boxFormat"}>
                 <BoxStylePanel
                   editor={ed()!}
-                  open={boxPanelOpen()}
-                  onClose={() => setBoxPanelOpen(false)}
+                  onClose={() => void setBoxPanelOpen(false)}
                 />
               </Match>
 

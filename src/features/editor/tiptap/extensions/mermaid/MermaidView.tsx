@@ -137,6 +137,7 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
       <Show when={isEditing()}>
         <div style={{ padding: "12px" }}>
           <textarea
+          dir="auto"
             ref={textareaRef}
             value={content()}
             onKeyDown={handleKeyDown}

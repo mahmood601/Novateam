@@ -24,10 +24,40 @@ async function initMermaid(): Promise<Mermaid> {
   const mermaid = await loadMermaid();
   mermaid.initialize({
     startOnLoad: false,
-    theme: isDarkMode() ? "dark" : "neo",
-    securityLevel: "loose",
+    theme: isDarkMode() ? "dark" : "redux-color",
+    htmlLabels: true,
     fontFamily: "inherit",
+    securityLevel: "loose",
+    flowchart: {
+      useMaxWidth: true,
+    },
+    themeCSS: `
+    /* توسيط أفقي وعمودي للنصوص داخل كل العقد */
+    .node foreignObject div,
+    .node .label,
+    .label {
+      text-align: center !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 13pt !important;
+      width: 100% !important;
+    }
+
+    /* للعقد التي تستخدم SVG text بدل HTML */
+    .node text,
+    .node tspan {
+      text-anchor: middle !important;
+      dominant-baseline: central !important;
+    }
+
+    /* تحسين إضافي للنصوص متعددة الأسطر */
+    .node foreignObject {
+      overflow: visible;
+}
+      `,
   });
+
   return mermaid;
 }
 
@@ -56,7 +86,8 @@ export async function renderAllMermaidInContainer(container: HTMLElement) {
   const elements = container.querySelectorAll('[data-type="mermaid"]');
 
   for (const element of elements) {
-    const code = element.getAttribute("data-content") || element.textContent || "";
+    const code =
+      element.getAttribute("data-content") || element.textContent || "";
 
     if (code.trim() === "") continue;
 

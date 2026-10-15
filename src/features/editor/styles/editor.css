@@ -1,5 +1,6 @@
 .tiptap {
-    padding: 10px;
+    padding: 14px 16px 96px; /* bottom room so the caret never hugs the dock */
+    min-height: 100%;
     outline: none;
     border: none;
 }
@@ -71,14 +72,6 @@
 }
 
 /* Table Kit styling — driven by the active --color-main / --color-* theme */
-.tiptap table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    margin: 1rem 0;
-    overflow: hidden;
-}
-
 .tiptap table {
   border-collapse: collapse;
   table-layout: auto; /* auto so column widths can be set by the user */
@@ -192,4 +185,16 @@
 .nova-tiptap-review .nova-box .nova-box {
   outline-style: dashed;
   outline-color: color-mix(in srgb, var(--color-secondary, orange) 40%, transparent);
+}
+
+/* Mobile comfort: no 300ms tap delay / grey flash on toolbar buttons, and
+   16px text in inputs so iOS doesn't zoom when one is focused. */
+.nova-tiptap-review,
+.nova-tiptap-review button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.nova-tiptap-content {
+  overscroll-behavior: contain;
+  scroll-padding-bottom: 96px;
 }

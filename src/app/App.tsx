@@ -6,7 +6,7 @@ import "@fontsource-variable/readex-pro/wght.css";
 import "@fontsource/cairo";
 import { UserProvider } from "../features/shared/context/user";
 import { Toaster } from "solid-toast";
-// import "solid-devtools";
+import "solid-devtools";
 
 import AppRoutes from "./AppRoutes";
 import PWAProvider from "../features/shared/components/PWAProvider";

@@ -34,6 +34,7 @@ export default function MenuSheet(props: {
 
   return (
     <div
+    dir="rtl"
       ref={wrapperRef}
       class="sheet-wrapper grow shrink-0"
       style={{
@@ -52,17 +53,24 @@ export default function MenuSheet(props: {
         }}
       >
         {/* Root list */}
-        <div ref={rootRef} class="sheet-panel flex w-full flex-col gap-1 p-2  max-h-[40vh]">
+        <div ref={rootRef} class="sheet-panel flex max-h-[45dvh] w-full flex-col gap-1 p-2">
           <div class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2">
             <span>{props.title}</span>
-            <X class="cursor-pointer" onClick={() => props.onClose()} />
+            <button
+              type="button"
+              class="rounded-full p-2"
+              aria-label="إغلاق"
+              onClick={() => props.onClose()}
+            >
+              <X size={20} />
+            </button>
           </div>
-          <div class="overflow-y-scroll">
+          <div class="overflow-y-auto">
             <For each={props.items}>
               {(item) => (
                 <button
                   type="button"
-                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex w-full items-center gap-3 rounded px-3 py-2 text-sm"
+                  class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex min-h-11 w-full items-center gap-3 rounded px-3 py-2 text-sm"
                   onClick={() => {
                     if (item.panel) {
                       setActiveId(item.id);
@@ -92,7 +100,7 @@ export default function MenuSheet(props: {
               <ArrowRight size={18} />
               <span class="flex-1 text-right">{activeItem()!.label}</span>
             </button>
-            <div class="overflow-y-hidden py-2">
+            <div class="overflow-y-auto py-2">
               <Dynamic
                 component={activeItem()!.panel}
                 onDone={() => {
