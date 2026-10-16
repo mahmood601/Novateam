@@ -63,14 +63,14 @@ import {
 } from "lucide-solid";
 
 import { updateA4Lines } from "../lib/a4Lines";
-import { applyA4Breaks, computeA4Breaks, type A4Break } from "../lib/a4Paginate";
+import {
+  applyA4Breaks,
+  computeA4Breaks,
+  type A4Break,
+} from "../lib/a4Paginate";
 import { debounce } from "@/features/shared/utils/debounce";
 import Loading from "@/features/shared/components/Loading";
-import {
-  clearDraft,
-  loadDraft,
-  saveDraft,
-} from "../lib/draftStore";
+import { clearDraft, loadDraft, saveDraft } from "../lib/draftStore";
 import {
   getLecture,
   upsertLecture,
@@ -214,7 +214,8 @@ export default function TiptapReviewEditor(props: {
   });
 
   const a4ZoomIn = () => setA4Scale((s) => Math.min(3, +(s + 0.35).toFixed(2)));
-  const a4ZoomOut = () => setA4Scale((s) => Math.max(1, +(s - 0.35).toFixed(2)));
+  const a4ZoomOut = () =>
+    setA4Scale((s) => Math.max(1, +(s - 0.35).toFixed(2)));
 
   // MS Word–style "insert table" grid picker
   const TABLE_PICKER_MAX_ROWS = 8;
@@ -376,8 +377,7 @@ export default function TiptapReviewEditor(props: {
       subjectId: subjectId,
       seasonId: seasonId,
     });
-    const remote: JSONContent | null =
-      content?.data?.[0]?.content?.raw ?? null;
+    const remote: JSONContent | null = content?.data?.[0]?.content?.raw ?? null;
 
     // A local draft that differs from the database means the last session
     // ended before the changes were saved to Supabase.
@@ -562,7 +562,12 @@ export default function TiptapReviewEditor(props: {
         })
         .run();
     } else {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .setLink({ href: url })
+        .run();
     }
   };
 
@@ -617,7 +622,7 @@ export default function TiptapReviewEditor(props: {
       icon: TableProperties,
       onClick: () => {
         editor?.chain().focus().setBox().run();
-      }
+      },
     },
     {
       id: "page-break",
@@ -814,9 +819,10 @@ export default function TiptapReviewEditor(props: {
 
   const isTextAlign = (align: string) => {
     tick();
+    if (editor?.isActive("image"))
+      return editor.getAttributes("image").align === align;
     return editor?.isActive({ textAlign: align }) ?? false;
   };
-
   const currentAlignIcon = () =>
     textAlignCommands.find((item) => isTextAlign(item.align))?.icon ??
     AlignRight;
@@ -1176,13 +1182,24 @@ export default function TiptapReviewEditor(props: {
                     {(item) => (
                       <DropdownMenu.Item
                         class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 focus:bg-darker-light-1 dark:focus:bg-lighter-dark-2 flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-3 text-right text-sm outline-none"
-                        onSelect={() =>
-                          editor
-                            ?.chain()
-                            .focus()
-                            .toggleTextAlign(item.align)
-                            .run()
-                        }
+                        onSelect={() => {
+                          if (editor?.isActive("image")) {
+                            const cur = editor.getAttributes("image").align;
+                            editor
+                              .chain()
+                              .focus()
+                              .updateAttributes("image", {
+                                align: cur === item.align ? null : item.align,
+                              })
+                              .run();
+                          } else {
+                            editor
+                              ?.chain()
+                              .focus()
+                              .toggleTextAlign(item.align)
+                              .run();
+                          }
+                        }}
                       >
                         <item.icon size={18} />
                         <span class="flex-1">{item.label}</span>
@@ -1307,10 +1324,7 @@ function EditorHeader(props: {
         >
           <Switch>
             <Match when={props.status() == "typing"}>
-              <Save
-                size={20}
-                classList={{ "text-amber-600": props.dirty() }}
-              />
+              <Save size={20} classList={{ "text-amber-600": props.dirty() }} />
             </Match>
             <Match when={props.status() == "saving"}>
               <CloudSync class="animate-pulse" size={20} />

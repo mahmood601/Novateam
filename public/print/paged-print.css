@@ -784,13 +784,22 @@
     }
   }
 
-  /* FIXED: Prevent large images from overflowing page height */
+  /* Prevent large images from overflowing the page.
+     IMPORTANT: do NOT set `width: auto` here. Tiptap's resize stores the
+     size as width/height HTML attributes on <img>; any author CSS `width`
+     (even `auto`) overrides those attributes, which is why resizing
+     worked in the editor but was ignored in the Paged.js preview.
+     `height: auto` is also avoided for the same reason - it would fight
+     the height attribute. max-width/max-height only clamp oversize images. */
   .lecture-body img,
-  .lecture-body svg,
   .pagedjs_page img {
-    max-height: 23cm !important; /* Leaves room for headers & footers */
-    width: auto;
-    object-fit: contain;
+    max-width: 100%;
+    max-height: 23cm; /* Leaves room for headers & footers */
+    object-fit: fill; /* width+height attrs keep the aspect ratio already */
+  }
+
+  .lecture-body svg {
+    max-height: 23cm !important;
   }
 
   pre {
@@ -1212,3 +1221,19 @@
 .lecture-body .mermaid-rendered {
   break-inside: avoid;
 }
+
+
+img[data-align="center"],
+.image-with-caption[data-align="center"] { margin-left: auto; margin-right: auto; }
+
+img[data-align="left"],
+.image-with-caption[data-align="left"]   { margin-left: 0; margin-right: auto; }
+
+img[data-align="right"],
+.image-with-caption[data-align="right"]  { margin-left: auto; margin-right: 0; }
+
+.image-with-caption { display: flex; width: fit-content; flex-direction: column; align-items: center; }
+
+[data-resize-container][data-align="center"] { justify-content: center; }
+[data-resize-container][data-align="left"]   { justify-content: flex-start; }
+[data-resize-container][data-align="right"]  { justify-content: flex-end; }
