@@ -37,12 +37,10 @@ import {
 } from "solid-js";
 import type { Editor } from "@tiptap/core";
 import {
-  FORMAT_COLOR_GROUPS,
   FONT_FAMILY_CHOICES,
   DEFAULT_FONT_SIZE,
   MIN_FONT_SIZE,
   MAX_FONT_SIZE,
-  type ColorSwatch,
 } from "../lib/formatColors";
 import {
   setSelectedCellsAttrs,
@@ -53,6 +51,7 @@ import type {
   CellBorderWidth,
 } from "../tiptap/extensions/table/TableCellAttributes";
 import BoxStylePanel from "./BoxStylePanel";
+import WordColorPicker from "./WordColorPicker";
 
 type PanelId =
   | "root"
@@ -425,7 +424,7 @@ export default function FormatSheet(props: {
               </Match>
 
               <Match when={panel() === "textColor"}>
-                <ColorGrid
+                <WordColorPicker
                   current={currentColor()}
                   resetLabel="افتراضي"
                   onSelect={(v) => applyColor("textColor", v)}
@@ -440,7 +439,7 @@ export default function FormatSheet(props: {
               </Match>
 
               <Match when={panel() === "textBackground"}>
-                <ColorGrid
+                <WordColorPicker
                   current={currentBackground()}
                   resetLabel="بلا لون"
                   onSelect={(v) => applyColor("textBackground", v)}
@@ -448,7 +447,7 @@ export default function FormatSheet(props: {
               </Match>
 
               <Match when={panel() === "highlight"}>
-                <ColorGrid
+                <WordColorPicker
                   current={currentHighlight()}
                   resetLabel="بلا تظليل"
                   onSelect={(v) => applyColor("highlight", v)}
@@ -491,7 +490,7 @@ export default function FormatSheet(props: {
                     >
                       خلفية الخلية
                     </div>
-                    <ColorGrid
+                    <WordColorPicker
                       current={currentCellBackground()}
                       resetLabel="بلا لون"
                       onSelect={(v) => applyTableAttrs({ backgroundColor: v })}
@@ -585,7 +584,7 @@ export default function FormatSheet(props: {
                     >
                       لون الحدود
                     </div>
-                    <ColorGrid
+                    <WordColorPicker
                       current={currentBorderColor()}
                       resetLabel="افتراضي"
                       onSelect={(v) => applyTableAttrs({ borderColor: v })}
@@ -700,68 +699,6 @@ function FontSizeRow(props: {
           <Plus size={14} />
         </button>
       </div>
-    </div>
-  );
-}
-
-function ColorGrid(props: {
-  current: string | null;
-  resetLabel: string;
-  onSelect: (value: string | null) => void;
-}) {
-  const isCurrent = (value: string) =>
-    (props.current ?? "").toLowerCase() === value.toLowerCase();
-
-  return (
-    <div class="flex flex-col gap-3 px-1 py-2">
-      <button
-        type="button"
-        class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex items-center gap-3 rounded px-2 py-2 text-sm"
-        onClick={() => props.onSelect(null)}
-      >
-        <span
-          class="border-darker-light-2 dark:border-lighter-dark-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border"
-          style={{ "background-color": "transparent" }}
-        >
-          <X size={12} style={{ color: "var(--muted-foreground)" }} />
-        </span>
-        <span class="flex-1 text-right">{props.resetLabel}</span>
-        <Show when={props.current === null}>
-          <Check size={16} style={{ color: "var(--color-main)" }} />
-        </Show>
-      </button>
-
-      <For each={FORMAT_COLOR_GROUPS}>
-        {(group: ColorSwatch[]) => (
-          <div class="firs grid grid-cols-6 justify-items-center gap-2 overflow-scroll">
-            <For each={group}>
-              {(swatch) => (
-                <button
-                  type="button"
-                  title={swatch.label}
-                  class="border-darker-light-2 dark:border-lighter-dark-2 relative h-8 w-8 rounded-full border"
-                  style={{ "background-color": swatch.value }}
-                  onClick={() => props.onSelect(swatch.value)}
-                >
-                  <Show when={isCurrent(swatch.value)}>
-                    <Check
-                      size={14}
-                      class="absolute inset-0 m-auto"
-                      style={{
-                        color:
-                          swatch.value === "#FFFFFF" ||
-                          swatch.value === "#FFFF00"
-                            ? "#000"
-                            : "#fff",
-                      }}
-                    />
-                  </Show>
-                </button>
-              )}
-            </For>
-          </div>
-        )}
-      </For>
     </div>
   );
 }

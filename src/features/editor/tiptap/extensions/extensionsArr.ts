@@ -35,7 +35,7 @@ export const extensionsArr = [
   NovaPageBreak,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize
   TextAlign.configure({ types: ["heading", "paragraph"] }),
-  Highlight.configure({ multicolor: true }),
+  Highlight.configure({ multicolor: true, HTMLAttributes: { class: "highlight" } }),
   NovaSubscript,
   NovaSuperscript,
   Mermaid.configure({

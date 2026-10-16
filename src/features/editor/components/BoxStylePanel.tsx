@@ -9,6 +9,7 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import type { Editor } from "@tiptap/core";
 import { parseStyleString, withStyleProp } from "../lib/cssStyleString";
+import WordColorPicker from "./WordColorPicker";
 
 export default function BoxStylePanel(props: {
   editor: Editor | null;
@@ -34,7 +35,29 @@ export default function BoxStylePanel(props: {
   const setProp = (prop: string, value: string) =>
     commit(withStyleProp(styleText(), prop, value));
 
+  // Border color needs a visible border to mean anything: if the box has
+  // no border yet, give it a thin solid one when a color is picked.
+  const setBorderColor = (value: string | null) => {
+    let next = withStyleProp(styleText(), "border-color", value ?? "");
+    const p = parseStyleString(next);
+    const hasBorder =
+      p["border"] || p["border-style"] || p["border-width"];
+    if (value && !hasBorder) {
+      next = withStyleProp(next, "border-style", "solid");
+      next = withStyleProp(next, "border-width", "1px");
+    }
+    commit(next);
+  };
+
   const isFlex = () => parsed()["display"] === "flex";
+
+  // Which color field's palette is open (only one at a time keeps the
+  // sheet short on phones).
+  const [openField, setOpenField] = createSignal<
+    "bg" | "text" | "border" | null
+  >(null);
+  const toggle = (f: "bg" | "text" | "border") =>
+    setOpenField(openField() === f ? null : f);
 
   return (
 
@@ -45,24 +68,44 @@ export default function BoxStylePanel(props: {
         >
           <p class="mb-3 text-sm font-bold dark:text-white">تنسيق الصندوق</p>
 
-          {/* ألوان */}
-          <div class="mb-3 grid grid-cols-2 gap-3">
-            <Field label="لون الخلفية">
-              <input
-                type="color"
-                value={toHex(parsed()["background-color"]) ?? "#ffffff"}
-                onInput={(e) => setProp("background-color", e.currentTarget.value)}
-                class="h-8 w-full rounded-lg"
+          {/* ألوان — Word-style palette, one field open at a time */}
+          <div class="mb-3 flex flex-col gap-1">
+            <ColorField
+              label="لون الخلفية"
+              value={parsed()["background-color"] ?? null}
+              open={openField() === "bg"}
+              onToggle={() => toggle("bg")}
+            >
+              <WordColorPicker
+                current={parsed()["background-color"] ?? null}
+                resetLabel="بلا لون"
+                onSelect={(v) => setProp("background-color", v ?? "")}
               />
-            </Field>
-            <Field label="لون النص">
-              <input
-                type="color"
-                value={toHex(parsed()["color"]) ?? "#000000"}
-                onInput={(e) => setProp("color", e.currentTarget.value)}
-                class="h-8 w-full rounded-lg"
+            </ColorField>
+            <ColorField
+              label="لون النص"
+              value={parsed()["color"] ?? null}
+              open={openField() === "text"}
+              onToggle={() => toggle("text")}
+            >
+              <WordColorPicker
+                current={parsed()["color"] ?? null}
+                resetLabel="افتراضي"
+                onSelect={(v) => setProp("color", v ?? "")}
               />
-            </Field>
+            </ColorField>
+            <ColorField
+              label="لون الحدود"
+              value={parsed()["border-color"] ?? null}
+              open={openField() === "border"}
+              onToggle={() => toggle("border")}
+            >
+              <WordColorPicker
+                current={parsed()["border-color"] ?? null}
+                resetLabel="افتراضي"
+                onSelect={setBorderColor}
+              />
+            </ColorField>
           </div>
 
           {/* مسافات */}
@@ -195,11 +238,34 @@ function SelectField(props: {
   );
 }
 
-// <input type="color"> needs a hex value — if the stored style already
-// has a named/rgb color we can't easily round-trip it back into the
-// picker, so we just fall back to the default rather than fighting it;
-// the raw CSS field below is always there for exact values.
-function toHex(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  return /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : undefined;
+// A tappable row (label + current color dot) that expands the palette
+// inline below it — full-width rows are easy touch targets on mobile.
+function ColorField(props: {
+  label: string;
+  value: string | null;
+  open: boolean;
+  onToggle: () => void;
+  children: any;
+}) {
+  return (
+    <div class="border-darker-light-2 dark:border-lighter-dark-2 rounded-lg border">
+      <button
+        type="button"
+        class="flex min-h-11 w-full touch-manipulation items-center gap-3 px-3 py-2 text-xs font-bold dark:text-gray-200"
+        aria-expanded={props.open}
+        onClick={props.onToggle}
+      >
+        <span class="flex-1 text-right">{props.label}</span>
+        <span
+          class="border-darker-light-2 dark:border-lighter-dark-2 h-5 w-5 shrink-0 rounded-full border"
+          style={{ "background-color": props.value || "transparent" }}
+        />
+      </button>
+      <Show when={props.open}>
+        <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t">
+          {props.children}
+        </div>
+      </Show>
+    </div>
+  );
 }
