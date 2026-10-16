@@ -7,6 +7,7 @@ import {
   onMount,
   createSignal,
   createEffect,
+  createResource,
   For,
   Match,
   Show,
@@ -84,6 +85,10 @@ import "../styles/a4-mode.css";
 import "../../../../public/print/paged-print.css";
 import { extensionsArr } from "../tiptap/extensions/extensionsArr";
 import Menu from "./DropdownMenu";
+import {
+  syncAndGetSections,
+  getSeasons,
+} from "../../quizzes/services/local/indexeddb/sections";
 import { useKeyboardToolbar } from "../hooks/usekeyboardToolbar";
 import MenuSheet, { type MenuSheetItem } from "./MenuSheet";
 import FormatSheet from "./FormatSheet";
@@ -241,6 +246,14 @@ export default function TiptapReviewEditor(props: {
   const subjectId = params.subject ?? "";
   const seasonId = params.season ?? "";
   const navigate = useNavigate();
+
+  const [seasons] = createResource(
+    () => props.subjectId,
+    (subjectId) => syncAndGetSections(subjectId).then(() => getSeasons(subjectId)),
+  );
+
+  const seasonName = () =>
+    seasons()?.find((s) => String(s.id) === String(seasonId))?.name ?? `الفصل ${seasonId}`;
 
   const { user } = useUser();
   const [raw, setRaw] = createSignal<JSONContent | null>(null);
@@ -958,6 +971,7 @@ export default function TiptapReviewEditor(props: {
     >
       <EditorHeader
         seasonId={seasonId}
+        seasonName={seasonName()}
         status={status}
         dirty={dirty}
         localSavedAt={localSavedAt}
@@ -1263,6 +1277,7 @@ export default function TiptapReviewEditor(props: {
 
 function EditorHeader(props: {
   seasonId: string;
+  seasonName: string;
   status: () => "typing" | "saving" | "saved" | "error";
   dirty: () => boolean;
   localSavedAt: () => number | null;
@@ -1304,7 +1319,7 @@ function EditorHeader(props: {
 
         <div class="min-w-0 flex-1 px-1">
           <div class="text-header dark:text-main-light truncate text-base font-medium">
-            {props.seasonId}
+            {props.seasonName}
           </div>
           <Show when={props.dirty()}>
             <div class="truncate text-xs text-amber-600 dark:text-amber-400">
