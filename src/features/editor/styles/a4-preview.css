@@ -1,0 +1,29 @@
+/* Screen look for the Paged.js preview: grey desk, white sheets with a gap.
+   Page content itself is styled only by public/print/paged-print.css. */
+.a4-preview {
+  background-color: #d4d4d8;
+  padding: 8px 0 96px; /* room so the bottom toolbar doesn't cover the last page */
+}
+
+.dark .a4-preview {
+  background-color: #18181b;
+}
+
+.a4-preview .pagedjs_pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  /* `zoom` is set from JS; it scales layout, so no extra wrapper maths. */
+}
+
+.a4-preview .pagedjs_page {
+  background: #fff;
+  box-shadow: 0 1px 8px rgb(0 0 0 / 0.25);
+  flex: none;
+}
+
+/* Tap targets for click-to-jump */
+.a4-preview [data-a4-i] {
+  cursor: pointer;
+}

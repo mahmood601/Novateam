@@ -1,5 +1,5 @@
 // Shared by the print page (LecturePrint.tsx) and the editor's A4 mode
-// (a4Paginate.ts), so both paginate with EXACTLY the same rules.
+// (a4Preview.ts), so both paginate with EXACTLY the same rules.
 
 /** Manual page break: `:::pagebreak :::` renders as <div class="nova-page-break">. */
 export const PAGE_BREAK_CSS = `.nova-page-break {

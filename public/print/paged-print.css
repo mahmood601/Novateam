@@ -562,9 +562,10 @@
 .lecture-content table,
 .nova-tiptap-content table,
 .lecture-body table,
-.print-area table {
+.print-area table,
+.pagedjs_page table {
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
   width: 100%;
   margin: 0.5rem 0;
 }
@@ -572,7 +573,8 @@
 .lecture-content table tbody,
 .nova-tiptap-content table tbody,
 .lecture-body table tbody,
-.print-area table tbody {
+.print-area table tbody,
+.pagedjs_page table tbody {
   width: 100%;
 }
 
@@ -607,7 +609,8 @@
 
 .lecture-body,
 .tiptap,
-.lecture-content {
+.lecture-content,
+.pagedjs_page {
   table {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

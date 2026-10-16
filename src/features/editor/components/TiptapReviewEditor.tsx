@@ -7,6 +7,7 @@ import {
   onMount,
   createSignal,
   createEffect,
+  untrack,
   createResource,
   For,
   Match,
@@ -63,12 +64,7 @@ import {
   ZoomOut,
 } from "lucide-solid";
 
-import { updateA4Lines } from "../lib/a4Lines";
-import {
-  applyA4Breaks,
-  computeA4Breaks,
-  type A4Break,
-} from "../lib/a4Paginate";
+import { renderA4Pages } from "../lib/a4Preview";
 import { debounce } from "@/features/shared/utils/debounce";
 import Loading from "@/features/shared/components/Loading";
 import { clearDraft, loadDraft, saveDraft } from "../lib/draftStore";
@@ -81,7 +77,7 @@ import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
 
 import "../styles/editor.css";
-import "../styles/a4-mode.css";
+import "../styles/a4-preview.css";
 import "../../../../public/print/paged-print.css";
 import { extensionsArr } from "../tiptap/extensions/extensionsArr";
 import Menu from "./DropdownMenu";
@@ -117,110 +113,97 @@ export default function TiptapReviewEditor(props: {
   const { height: vvHeight, top: vvTop } = useKeyboardToolbar();
   const [tick, setTick] = createSignal(0); // forces toolbar re-render on selection/content change
 
-  // ── A4 page mode ───────────────────────────────────────────────
-  // A4 is 210mm wide; CSS defines 1in = 96px, so that's ~793.7px.
+  // ── A4 preview (real Paged.js pages) ───────────────────────────
+  // A4 mode shows the SAME Paged.js output the print page produces, as
+  // separate read-only pages. Edit in normal mode, review here.
   const A4_WIDTH_PX = (210 / 25.4) * 96;
   const [a4Active, setA4Active] = createSignal(false);
-  // 1 = "fit the phone width"; the +/- buttons multiply on top of that.
-  const [a4Scale, setA4Scale] = createSignal(1);
-
-  // Computes the CSS `zoom` that makes the A4 sheet exactly as wide as
-  // the screen (never bigger than real size), then applies the user's
-  // extra zoom. It's written as a CSS variable that a4-mode.css reads.
-  const applyA4Zoom = () => {
-    if (!containerRef) return;
-    const fit = Math.min(1, (containerRef.clientWidth - 16) / A4_WIDTH_PX);
-    const zoom = Math.min(1.5, fit * a4Scale());
-    containerRef.style.setProperty("--a4-zoom", String(zoom));
-  };
-
-  // ── Red page-end lines that match the PRINTED PDF ──────────────
-  // Paged.js decides where pages really end (it moves whole blocks, splits
-  // paragraphs by line, restarts at manual breaks). So we run it in a hidden
-  // container (a4Paginate.ts) and keep the result as anchors: "page ends
-  // after block 12", "page ends 340 characters into block 15".
-  //  - anchors → pixels is cheap, done on every change, so lines follow the
-  //    text instantly while typing;
-  //  - the Paged.js run is slow, so it is debounced and only refreshes the
-  //    anchors. Until the first run finishes (or if it fails) we draw the
-  //    old fixed-grid lines from a4Lines.ts.
-  let a4Breaks: A4Break[] | null = null;
-  let a4LastDoc: any = null;
-  let a4Timer: ReturnType<typeof setTimeout> | undefined;
-  let a4Running = false;
-  let a4Again = false;
+  const [a4Scale, setA4Scale] = createSignal(1); // user zoom on top of fit-to-width
   const [a4Busy, setA4Busy] = createSignal(false);
+  const [a4Error, setA4Error] = createSignal(false);
+  let a4HostRef: HTMLDivElement | undefined; // visible preview container
+  let a4Cleanup: (() => void) | undefined; // drops the Paged.js styles of the shown pages
+  let a4Run = 0; // run id: older runs discard their result
 
-  const refreshA4Lines = () => {
-    if (!editor || !a4Active()) return;
-    if (a4Breaks && applyA4Breaks(editor, a4Breaks)) return;
-    updateA4Lines(editor.view.dom as HTMLElement); // fallback: fixed grid
+  const applyA4Zoom = () => {
+    const pages = a4HostRef?.querySelector<HTMLElement>(".pagedjs_pages");
+    if (!a4HostRef || !pages) return;
+    const fit = Math.min(1, (a4HostRef.clientWidth - 16) / A4_WIDTH_PX);
+    pages.style.setProperty("zoom", String(Math.min(3, fit * a4Scale())));
   };
 
-  const runA4Pagination = async () => {
-    if (!editor || !a4Active()) return;
-    if (a4Running) {
-      a4Again = true; // edited while paginating: run once more afterwards
-      return;
-    }
-    a4Running = true;
+  const runA4Preview = async () => {
+    if (!editor || !a4HostRef) return;
+    const id = ++a4Run;
+    setA4Busy(true);
+    setA4Error(false);
     try {
-      a4Breaks = await computeA4Breaks(editor);
+      const res = await renderA4Pages(
+        editor,
+        { headerTitle: seasonName(), footerTitle: seasonName() },
+        () => id !== a4Run || !a4Active(),
+      );
+      if (!res || id !== a4Run || !a4HostRef) {
+        res?.destroy();
+        return;
+      }
+      const scroll = a4HostRef.scrollTop;
+      a4Cleanup?.(); // old pages' styles go away only when the new pages are ready
+      a4Cleanup = res.destroy;
+      a4HostRef.replaceChildren(res.pages);
+      applyA4Zoom();
+      a4HostRef.scrollTop = scroll; // keep the reader where they were
     } catch (err) {
-      console.warn("A4 pagination failed, using the fixed grid", err);
-      a4Breaks = null;
+      console.warn("A4 preview failed", err);
+      if (id === a4Run) setA4Error(true);
     } finally {
-      a4Running = false;
+      if (id === a4Run) setA4Busy(false);
     }
-    refreshA4Lines();
-    if (a4Again) {
-      a4Again = false;
-      runA4Pagination();
+  };
+
+  // Entering A4 mode renders; leaving it cleans up.
+  createEffect(() => {
+    if (a4Active()) {
+      untrack(runA4Preview); // only a4Active() should trigger this effect
     } else {
+      a4Run++; // cancel any run in flight
+      a4Cleanup?.();
+      a4Cleanup = undefined;
+      a4HostRef?.replaceChildren();
       setA4Busy(false);
     }
-  };
-
-  const scheduleA4Pagination = (delay: number) => {
-    clearTimeout(a4Timer);
-    setA4Busy(true);
-    a4Timer = setTimeout(runA4Pagination, delay);
-  };
-
-  createEffect(() => {
-    tick();
-    if (!a4Active() || !editor) return;
-    // Cursor moves also bump `tick`; only re-paginate when the text changed.
-    if (!a4LastDoc || !editor.state.doc.eq(a4LastDoc)) {
-      const first = !a4LastDoc;
-      a4LastDoc = editor.state.doc;
-      scheduleA4Pagination(first ? 150 : 900);
-    }
-    requestAnimationFrame(refreshA4Lines);
+  });
+  onCleanup(() => {
+    a4Run++;
+    a4Cleanup?.();
   });
 
-  // Leaving A4 mode: drop the cached anchors and any pending run.
+  // Zoom buttons / container resize only rescale, no re-pagination.
   createEffect(() => {
-    if (a4Active()) return;
-    clearTimeout(a4Timer);
-    a4LastDoc = null;
-    a4Breaks = null;
-    a4Again = false;
-    setA4Busy(false);
-  });
-  onCleanup(() => clearTimeout(a4Timer));
-
-  createEffect(() => {
-    // Re-runs whenever A4 mode or the user's zoom changes.
-    const active = a4Active();
     a4Scale();
-    if (active) applyA4Zoom();
-    else containerRef?.style.removeProperty("--a4-zoom");
+    if (a4Active()) applyA4Zoom();
   });
 
   const a4ZoomIn = () => setA4Scale((s) => Math.min(3, +(s + 0.35).toFixed(2)));
   const a4ZoomOut = () =>
     setA4Scale((s) => Math.max(1, +(s - 0.35).toFixed(2)));
+
+  // Tap a page -> leave A4 mode and put the caret in that block.
+  const onA4PageClick = (e: MouseEvent) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>("[data-a4-i]");
+    if (!el || !editor) return;
+    const i = Number(el.getAttribute("data-a4-i"));
+    let off: number | null = null;
+    editor.state.doc.forEach((_n, o, idx) => {
+      if (idx === i) off = o;
+    });
+    setA4Active(false);
+    if (off === null) return;
+    const pos = off + 1;
+    requestAnimationFrame(() => {
+      editor?.chain().focus().setTextSelection(pos).scrollIntoView().run();
+    });
+  };
 
   // MS Word–style "insert table" grid picker
   const TABLE_PICKER_MAX_ROWS = 8;
@@ -661,6 +644,7 @@ export default function TiptapReviewEditor(props: {
       }
     });
     a4Observer.observe(containerRef);
+    if (a4HostRef) a4Observer.observe(a4HostRef);
     onCleanup(() => a4Observer.disconnect());
 
     editor = new Editor({
@@ -671,11 +655,6 @@ export default function TiptapReviewEditor(props: {
       onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });
 
-    const paperObserver = new ResizeObserver(() => {
-      refreshA4Lines();
-    });
-    paperObserver.observe(editor.view.dom);
-    onCleanup(() => paperObserver.disconnect());
   });
 
   // Flush the draft immediately when the tab is hidden/closed (mobile
@@ -995,7 +974,14 @@ export default function TiptapReviewEditor(props: {
           <div
             ref={containerRef}
             class="nova-tiptap-content dark:bg-main-dark dark:text-main-light min-h-0 flex-1 overflow-auto"
-            classList={{ "a4-mode": a4Active() }}
+            classList={{ hidden: a4Active() }}
+          />
+          {/* A4 preview: real Paged.js pages (read-only) */}
+          <div
+            ref={a4HostRef}
+            class="a4-preview min-h-0 flex-1 overflow-auto"
+            classList={{ hidden: !a4Active() }}
+            onClick={onA4PageClick}
           />
         </Suspense>
 
@@ -1003,9 +989,11 @@ export default function TiptapReviewEditor(props: {
         <Show when={a4Active()}>
           <div class="pointer-events-none absolute inset-x-0 top-2 z-40 flex justify-center">
             <span class="bg-main rounded-full px-3 py-1 text-xs text-white shadow">
-              {a4Busy()
-                ? "A4 · جارٍ مطابقة الصفحات مع الطباعة…"
-                : "A4 · الخط الأحمر المتقطع = نهاية الصفحة (مطابق للطباعة)"}
+              {a4Error()
+                ? "A4 · تعذّر توليد المعاينة"
+                : a4Busy()
+                  ? "A4 · جارٍ توليد الصفحات…"
+                  : "A4 · معاينة الطباعة · اضغط على فقرة للتعديل"}
             </span>
           </div>
           <div class="bg-main-light dark:bg-lighter-dark-1 absolute inset-e-2 top-12 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">

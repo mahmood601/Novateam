@@ -79,9 +79,7 @@ export async function renderMermaidToSvg(
 
   // Wide left-to-right charts get shrunk the most on paper; top-down uses
   // the page height instead.
-  const src = forPrint
-    ? code.trim().replace(/^(\s*(?:flowchart|graph))\s+(LR|RL)\b/m, "$1 TD")
-    : code.trim();
+  const src = code.trim();
 
   const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
   try {
