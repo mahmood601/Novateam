@@ -5,7 +5,6 @@ import { getLecture } from "@/features/shared/services/lecturesUpdates";
 import LecturePrint from "../components/Print/LecturePrint";
 import { getSeasonNameFromRemote, getSeasonsFromRemote } from "@/features/shared/services/sections";
 import { getSubjectInfo, trasnlationMap } from "@/features/shared/services/subjects";
-import { createEffect } from "solid-js";
 
 export default function PrintPage() {
   const [params] = useSearchParams();

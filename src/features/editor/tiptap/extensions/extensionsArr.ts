@@ -17,6 +17,7 @@ import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
 import { NovaBox } from "./NovaBox";
 import { NovaTable } from "./table/novaTable";
+import { TableTouchResize } from "./table/TableTouchResize";
 import { NovaBulletList } from "./NovaBulletList";
 
 // Sub/superscript don't exclude each other by default, which lets both
@@ -49,9 +50,10 @@ export const extensionsArr = [
     resizable: true,
     lastColumnResizable: true,
     allowTableNodeSelection: true,
-    handleWidth: 10,
+    handleWidth: 12,
     cellMinWidth: 40,
   }),
+  TableTouchResize,
   TableRow,
   NovaTableHeader,
   NovaTableCell,

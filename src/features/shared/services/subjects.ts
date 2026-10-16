@@ -2,6 +2,7 @@ import toast from "solid-toast";
 import { supabase } from "./supabase";
 
 export const trasnlationMap: Record<string, string> = {
+  "first": "الأول",
  "second": "الثاني",
  "third": "الثالث",
  "fourth": "الرابع",

@@ -19,6 +19,8 @@ export type InputField = {
 export type InputRequest = {
   title: string;
   submitLabel?: string;
+  /** Optional explanatory text shown under the title (used for confirmations). */
+  message?: string;
   fields: InputField[];
   /** Optional secondary action, e.g. "remove link". */
   dangerLabel?: string;
@@ -70,6 +72,10 @@ export default function InputSheet(props: { request: InputRequest }) {
           <X size={20} />
         </button>
       </div>
+
+      <Show when={props.request.message}>
+        <p class="px-3 text-sm leading-6 opacity-80">{props.request.message}</p>
+      </Show>
 
       <div class="flex flex-col gap-2 px-2">
         <For each={props.request.fields}>

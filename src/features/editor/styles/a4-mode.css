@@ -18,11 +18,11 @@
   --a4-page-w: 210mm;
   --a4-page-h: 297mm;
 
-  /* Page margins as printed (TODO: copy from @page in paged-print.css) */
-  --a4-mt: 1.8cm;
+  /* Page margins as printed (@page main in paged-print.css) */
+  --a4-mt: 1.5cm;
   --a4-mb: 1.8cm;
-  --a4-ml: 1cm;
-  --a4-mr: 1cm;
+  --a4-ml: 0.8cm;
+  --a4-mr: 0.8cm;
 
   /* Height of the area text can occupy on ONE page. */
   --a4-content-h: calc(var(--a4-page-h) - var(--a4-mt) - var(--a4-mb));
@@ -58,10 +58,9 @@
      `zoom` scales layout too, so the dashed lines stay in sync. */
   zoom: var(--a4-zoom, 0.45);
 
-  /* TODO: match the print typography (from .lecture-body in paged-print.css):
-  font-size: 11pt;
+  /* Same typography as the printed page (.lecture-body). */
+  font-size: 14pt;
   line-height: 1.6;
-  */
 }
 
 /* Dashed "end of page" lines.
@@ -76,13 +75,11 @@
   pointer-events: none;
   user-select: none;
 
-  background-image: linear-gradient(
-    to bottom,
-    transparent calc(100% - 2px),
-    #ef4444 calc(100% - 2px)
-  );
-  background-size: 100% var(--a4-content-h);
-  background-repeat: repeat-y;
+  /* One red line per page end; positions come from updateA4Lines()
+     (lib/a4Lines.ts) so they restart after each manual page break. */
+  /* `background` (not background-image): the variable holds full layers
+     with position/size, which background-image would reject. */
+  background: var(--a4-lines, none);
 
   -webkit-mask-image: repeating-linear-gradient(
     to right,

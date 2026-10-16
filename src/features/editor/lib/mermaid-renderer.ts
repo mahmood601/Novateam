@@ -20,7 +20,7 @@ function isDarkMode() {
   return document.documentElement.classList.contains("dark");
 }
 
-async function initMermaid(): Promise<Mermaid> {
+async function initMermaid(forPrint = false): Promise<Mermaid> {
   const mermaid = await loadMermaid();
   mermaid.initialize({
     startOnLoad: false,
@@ -28,9 +28,19 @@ async function initMermaid(): Promise<Mermaid> {
     htmlLabels: true,
     fontFamily: "inherit",
     securityLevel: "loose",
-    flowchart: {
-      useMaxWidth: true,
-    },
+    // Print: a narrower diagram gets scaled down less to fit the A4 width,
+    // so its text stays readable on paper.
+    flowchart: forPrint
+      ? {
+          useMaxWidth: true,
+          wrappingWidth: 140,
+          nodeSpacing: 30,
+          rankSpacing: 40,
+          padding: 8,
+        }
+      : {
+          useMaxWidth: true,
+        },
     themeCSS: `
     /* توسيط أفقي وعمودي للنصوص داخل كل العقد */
     .node foreignObject div,
@@ -61,13 +71,22 @@ async function initMermaid(): Promise<Mermaid> {
   return mermaid;
 }
 
-export async function renderMermaidToSvg(code: string): Promise<string> {
+export async function renderMermaidToSvg(
+  code: string,
+  forPrint = false,
+): Promise<string> {
   if (code.trim() === "") return "";
+
+  // Wide left-to-right charts get shrunk the most on paper; top-down uses
+  // the page height instead.
+  const src = forPrint
+    ? code.trim().replace(/^(\s*(?:flowchart|graph))\s+(LR|RL)\b/m, "$1 TD")
+    : code.trim();
 
   const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
   try {
-    const mermaid = await initMermaid();
-    const { svg } = await mermaid.render(id, code.trim());
+    const mermaid = await initMermaid(forPrint);
+    const { svg } = await mermaid.render(id, src);
     return svg;
   } catch (error) {
     return `<pre style="
@@ -82,7 +101,10 @@ export async function renderMermaidToSvg(code: string): Promise<string> {
   }
 }
 
-export async function renderAllMermaidInContainer(container: HTMLElement) {
+export async function renderAllMermaidInContainer(
+  container: HTMLElement,
+  forPrint = false,
+) {
   const elements = container.querySelectorAll('[data-type="mermaid"]');
 
   for (const element of elements) {
@@ -91,7 +113,7 @@ export async function renderAllMermaidInContainer(container: HTMLElement) {
 
     if (code.trim() === "") continue;
 
-    const svg = await renderMermaidToSvg(code);
+    const svg = await renderMermaidToSvg(code, forPrint);
     element.innerHTML = svg;
     element.classList.add("mermaid-rendered");
   }

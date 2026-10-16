@@ -75,8 +75,7 @@
 .tiptap table {
   border-collapse: collapse;
   table-layout: auto; /* auto so column widths can be set by the user */
-  width: max-content;          /* الافتراضي */
-  min-width: 100%;          /* يملأ الصندوق */
+  width: 100%; /* default; Tiptap's colgroup/inline style overrides it once columns are resized */
   margin: 1rem 0;
 }
 

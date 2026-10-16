@@ -565,9 +565,8 @@
 .print-area table {
   border-collapse: collapse;
   table-layout: auto;
-  width: max-content;
+  width: 100%;
   margin: 0.5rem 0;
-  min-width: 100%;
 }
 
 .lecture-content table tbody,
@@ -601,7 +600,7 @@
   background-color: var(--editor-chrome-bg, #f3f4f6);
   font-weight: 600;
   text-align: start;
-  p{
+  p {
     font-family: "OoredooArabic-Heavy";
   }
 }
@@ -610,7 +609,6 @@
 .tiptap,
 .lecture-content {
   table {
-    max-width: 18cm;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
@@ -1193,96 +1191,18 @@
   break-inside: avoid;
 }
 
-/* ============================================================
-   A4 page mode for the review editor (Word-like pages)
-   ------------------------------------------------------------
-   The editable area looks like A4 sheets lying on a gray "desk".
-   Every page-content height a gray separator band is drawn, like the
-   gap between pages in Word. The bands are pure CSS decoration: they
-   are NOT part of the document, are never saved, and appear even on
-   an empty page.
 
-   NOTE: the flow of text is continuous, so a line that lands exactly
-   on a band can be slightly covered by it (4px). This is a visual
-   guide only; the real pagination happens in Paged.js when printing.
-
-   !! THESE NUMBERS MUST MATCH THE PRINT !!
-   They are copied from `@page main { margin: ... }` and `.lecture-body`
-   in public/print/paged-print.css. Keep them in sync.
-   ============================================================ */
-
-.nova-tiptap-content.a4-mode {
-  /* A4 paper */
-  --a4-page-w: 210mm;
-  --a4-page-h: 297mm;
-
-  /* Page margins as printed (@page main) */
-  --a4-mt: 1.5cm;
-  --a4-mb: 1.8cm;
-  --a4-ml: 0.8cm;
-  --a4-mr: 0.8cm;
-
-  /* Height of the area text can occupy on ONE page. */
-  --a4-content-h: calc(var(--a4-page-h) - var(--a4-mt) - var(--a4-mb));
-
-  /* The "desk" around the paper */
-  --a4-desk: #d4d4d8;
-  background-color: var(--a4-desk);
-  padding: 16px 0 24px;
+/* ---------- Mermaid in print ----------
+   The generic ".lecture-body svg { width: auto }" rule above overrides
+   Mermaid's own width="100%", which can collapse diagrams to a tiny default
+   size. Restore full width; Mermaid's inline max-width still stops a diagram
+   from being scaled UP beyond its natural size. */
+.lecture-body .mermaid-rendered svg {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 23cm !important;
 }
 
-.dark .nova-tiptap-content.a4-mode {
-  --a4-desk: #18181b;
-}
-
-/* The paper itself (Tiptap's editable root) */
-.nova-tiptap-content.a4-mode .tiptap {
-  position: relative;
-  box-sizing: content-box;
-
-  /* Text column = paper width minus side margins, exactly like print. */
-  width: calc(var(--a4-page-w) - var(--a4-ml) - var(--a4-mr));
-  min-height: var(--a4-content-h);
-  margin: 0 auto;
-
-  /* Paper margins are padding, so the first page starts at --a4-mt. */
-  padding: var(--a4-mt) var(--a4-mr) var(--a4-mb) var(--a4-ml);
-
-  /* Paper is white and printed in black, even in dark mode. */
-  background: #fff;
-  color: #000;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.2),
-    0 6px 18px rgb(0 0 0 / 0.18);
-
-  /* Same typography as the printed page (.lecture-body). */
-  font-size: 14pt;
-  line-height: 1.6;
-
-  /* Shrinks the whole sheet to fit the phone. Set from JS (--a4-zoom).
-     `zoom` scales layout too, so the page bands stay in sync. */
-  zoom: var(--a4-zoom, 0.45);
-}
-
-/* Page separator bands.
-   - ::after covers the paper from where page-1 content starts downward.
-   - A gradient tile exactly one page-content tall draws, at its bottom
-     edge, a soft shadow plus a 4px band in the desk color, repeated
-     down the sheet. */
-.nova-tiptap-content.a4-mode .tiptap::after {
-  content: "";
-  position: absolute;
-  inset: var(--a4-mt) 0 0 0;
-  pointer-events: none;
-  user-select: none;
-
-  background-image: linear-gradient(
-    to bottom,
-    transparent calc(100% - 12px),
-    rgb(0 0 0 / 0.1) calc(100% - 4px),
-    var(--a4-desk) calc(100% - 4px),
-    var(--a4-desk) 100%
-  );
-  background-size: 100% var(--a4-content-h);
-  background-repeat: repeat-y;
+.lecture-body .mermaid-rendered {
+  break-inside: avoid;
 }

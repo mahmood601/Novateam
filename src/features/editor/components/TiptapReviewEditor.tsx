@@ -58,12 +58,19 @@ import {
   Underline,
   Undo2,
   Workflow,
-  X,
   ZoomIn,
   ZoomOut,
 } from "lucide-solid";
 
+import { updateA4Lines } from "../lib/a4Lines";
+import { applyA4Breaks, computeA4Breaks, type A4Break } from "../lib/a4Paginate";
 import { debounce } from "@/features/shared/utils/debounce";
+import Loading from "@/features/shared/components/Loading";
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+} from "../lib/draftStore";
 import {
   getLecture,
   upsertLecture,
@@ -122,6 +129,82 @@ export default function TiptapReviewEditor(props: {
     containerRef.style.setProperty("--a4-zoom", String(zoom));
   };
 
+  // ── Red page-end lines that match the PRINTED PDF ──────────────
+  // Paged.js decides where pages really end (it moves whole blocks, splits
+  // paragraphs by line, restarts at manual breaks). So we run it in a hidden
+  // container (a4Paginate.ts) and keep the result as anchors: "page ends
+  // after block 12", "page ends 340 characters into block 15".
+  //  - anchors → pixels is cheap, done on every change, so lines follow the
+  //    text instantly while typing;
+  //  - the Paged.js run is slow, so it is debounced and only refreshes the
+  //    anchors. Until the first run finishes (or if it fails) we draw the
+  //    old fixed-grid lines from a4Lines.ts.
+  let a4Breaks: A4Break[] | null = null;
+  let a4LastDoc: any = null;
+  let a4Timer: ReturnType<typeof setTimeout> | undefined;
+  let a4Running = false;
+  let a4Again = false;
+  const [a4Busy, setA4Busy] = createSignal(false);
+
+  const refreshA4Lines = () => {
+    if (!editor || !a4Active()) return;
+    if (a4Breaks && applyA4Breaks(editor, a4Breaks)) return;
+    updateA4Lines(editor.view.dom as HTMLElement); // fallback: fixed grid
+  };
+
+  const runA4Pagination = async () => {
+    if (!editor || !a4Active()) return;
+    if (a4Running) {
+      a4Again = true; // edited while paginating: run once more afterwards
+      return;
+    }
+    a4Running = true;
+    try {
+      a4Breaks = await computeA4Breaks(editor);
+    } catch (err) {
+      console.warn("A4 pagination failed, using the fixed grid", err);
+      a4Breaks = null;
+    } finally {
+      a4Running = false;
+    }
+    refreshA4Lines();
+    if (a4Again) {
+      a4Again = false;
+      runA4Pagination();
+    } else {
+      setA4Busy(false);
+    }
+  };
+
+  const scheduleA4Pagination = (delay: number) => {
+    clearTimeout(a4Timer);
+    setA4Busy(true);
+    a4Timer = setTimeout(runA4Pagination, delay);
+  };
+
+  createEffect(() => {
+    tick();
+    if (!a4Active() || !editor) return;
+    // Cursor moves also bump `tick`; only re-paginate when the text changed.
+    if (!a4LastDoc || !editor.state.doc.eq(a4LastDoc)) {
+      const first = !a4LastDoc;
+      a4LastDoc = editor.state.doc;
+      scheduleA4Pagination(first ? 150 : 900);
+    }
+    requestAnimationFrame(refreshA4Lines);
+  });
+
+  // Leaving A4 mode: drop the cached anchors and any pending run.
+  createEffect(() => {
+    if (a4Active()) return;
+    clearTimeout(a4Timer);
+    a4LastDoc = null;
+    a4Breaks = null;
+    a4Again = false;
+    setA4Busy(false);
+  });
+  onCleanup(() => clearTimeout(a4Timer));
+
   createEffect(() => {
     // Re-runs whenever A4 mode or the user's zoom changes.
     const active = a4Active();
@@ -163,21 +246,68 @@ export default function TiptapReviewEditor(props: {
   const [status, setStatus] = createSignal<
     "typing" | "saving" | "saved" | "error"
   >("typing");
+  // true while the editor holds changes that are NOT in Supabase yet.
+  const [dirty, setDirty] = createSignal(false);
+  const [localSavedAt, setLocalSavedAt] = createSignal<number | null>(null);
 
+  // One picker for both formats: .md is converted, .json is imported as a
+  // Tiptap document (the same file the "تصدير JSON" menu item produces).
   const handleFileUpload = (event: Event) => {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        editor?.commands.setContent(content, {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ""; // lets the same file be picked again later
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target?.result as string;
+
+      if (!file.name.toLowerCase().endsWith(".json")) {
+        editor?.commands.setContent(text, {
           contentType: "markdown",
           emitUpdate: true,
         });
-      };
-      setRaw(editor?.getJSON() || null);
-      reader.readAsText(file);
-    }
+        return;
+      }
+
+      // JSON: accept the bare document, or a { content: { raw } } / { raw }
+      // wrapper like the one stored in Supabase.
+      let doc: JSONContent | null = null;
+      try {
+        const parsed = JSON.parse(text);
+        const candidate =
+          parsed?.type === "doc"
+            ? parsed
+            : (parsed?.content?.raw ?? parsed?.raw ?? parsed?.content);
+        if (candidate?.type === "doc") {
+          editor?.schema.nodeFromJSON(candidate).check(); // throws if invalid
+          doc = candidate;
+        }
+      } catch {
+        doc = null;
+      }
+
+      if (!doc) {
+        await askInput("ملف غير صالح", [], {
+          message: "هذا الملف ليس مستند JSON صالحاً للمحرر.",
+          submitLabel: "حسناً",
+        });
+        return;
+      }
+
+      const res = await askInput("استيراد JSON", [], {
+        message:
+          "سيستبدل هذا الملف محتوى المحرر الحالي. لن يُحفظ في قاعدة البيانات حتى تضغط زر الحفظ.",
+        submitLabel: "استيراد",
+      });
+      if (!res) return;
+
+      editor?.commands.setContent(doc, {
+        contentType: "json",
+        emitUpdate: true, // marks dirty + writes the local draft
+      });
+    };
+    reader.readAsText(file);
   };
 
   // In-app replacement for window.prompt (rendered by InputSheet in the dock).
@@ -185,7 +315,12 @@ export default function TiptapReviewEditor(props: {
   const askInput = (
     title: string,
     fields: InputField[],
-    extra?: { dangerLabel?: string; onDanger?: () => void; submitLabel?: string },
+    extra?: {
+      dangerLabel?: string;
+      onDanger?: () => void;
+      submitLabel?: string;
+      message?: string;
+    },
   ) =>
     new Promise<Record<string, string> | null>((resolve) => {
       setInputReq({
@@ -224,46 +359,147 @@ export default function TiptapReviewEditor(props: {
     }
   };
 
+  const sameContent = (a: unknown, b: unknown) =>
+    JSON.stringify(a) === JSON.stringify(b);
+
+  // Draft bookkeeping, so a draft is only written when the CONTENT changed:
+  //  - baseline:      the document as it was when loaded / last saved to
+  //                   Supabase. An update that equals it (e.g. a node view
+  //                   normalising itself after load) is not a user edit.
+  //  - lastDraftJson: what is already stored as the local draft, so an
+  //                   identical document is never written twice.
+  let baseline: string | null = null;
+  let lastDraftJson: string | null = null;
+
   const loadLecture = async () => {
     const content = await getLecture({
       subjectId: subjectId,
       seasonId: seasonId,
     });
+    const remote: JSONContent | null =
+      content?.data?.[0]?.content?.raw ?? null;
 
-    const json = content?.data?.[0]?.content?.raw ?? null;
-    if (!json) return;
+    // A local draft that differs from the database means the last session
+    // ended before the changes were saved to Supabase.
+    const draft = await loadDraft(subjectId, seasonId);
+    if (draft && !sameContent(draft.content, remote)) {
+      const when = new Date(draft.savedAt).toLocaleString("ar");
+      let discard = false;
 
-    editor?.commands.setContent(json, {
+      const res = await askInput("مسودة غير محفوظة", [], {
+        message: `وُجدت مسودة محفوظة على هذا الجهاز بتاريخ ${when} تختلف عن النسخة في قاعدة البيانات. هل تريد استعادتها؟`,
+        submitLabel: "استعادة المسودة",
+        dangerLabel: "تجاهل المسودة",
+        onDanger: () => {
+          discard = true;
+        },
+      });
+
+      if (discard) {
+        await clearDraft(subjectId, seasonId); // delete the local save
+        lastDraftJson = null;
+        setLocalSavedAt(null);
+      } else if (res) {
+        // emitUpdate: false  → loading is NOT an edit. (In Tiptap 3 setContent
+        // emits `update` by default, which used to mark the doc dirty and
+        // write a draft on every open.)
+        editor?.commands.setContent(draft.content, {
+          contentType: "json",
+          emitUpdate: false,
+        });
+        setRaw(draft.content);
+        setDirty(true); // differs from the database, so it IS unsaved work
+        lastDraftJson = JSON.stringify(editor?.getJSON());
+        setLocalSavedAt(draft.savedAt);
+        return;
+      }
+    }
+
+    if (!remote) {
+      baseline = JSON.stringify(editor?.getJSON());
+      return;
+    }
+    editor?.commands.setContent(remote, {
       contentType: "json",
+      emitUpdate: false, // loading is not an edit
     });
+    setRaw(remote);
+    baseline = JSON.stringify(editor?.getJSON());
   };
 
+  // ── Local autosave (every edit) ────────────────────────────────
+  const writeDraftNow = async () => {
+    if (!editor || !dirty()) return;
+    const content = editor.getJSON();
+    const json = JSON.stringify(content);
+    if (json === lastDraftJson) return; // already stored, nothing new to write
+    const ok = await saveDraft(subjectId, seasonId, content);
+    if (ok) {
+      lastDraftJson = json;
+      setLocalSavedAt(Date.now());
+    }
+  };
+  const debouncedDraft = debounce(writeDraftNow, 800);
+
+  // ── Supabase save (manual, with confirmation) ──────────────────
   const saveToSupabase = async () => {
+    if (!editor) return;
+
+    const res = await askInput("حفظ في قاعدة البيانات", [], {
+      message:
+        "هل أنت متأكد أنك تريد حفظ التغييرات في قاعدة البيانات؟ سيتم استبدال النسخة الحالية للجميع.",
+      submitLabel: "نعم، احفظ",
+    });
+    if (!res) return;
+
     setStatus("saving");
+    // Always read the live document: never send a stale/empty snapshot.
+    const content = editor.getJSON();
     const { error } = await upsertLecture({
       subjectId: props.subjectId,
       seasonId: props.seasonId,
-      rawContent: raw(),
+      rawContent: content,
       userId: user()?.id,
     });
 
     if (error) {
       setStatus("error");
-    } else {
-      setStatus("saved");
-      debounce(() => setStatus("typing"), 700)();
+      return;
     }
+    setDirty(false);
+    baseline = JSON.stringify(content); // what is in the database now
+    lastDraftJson = null;
+    await clearDraft(subjectId, seasonId);
+    setLocalSavedAt(null);
+    setStatus("saved");
+    setTimeout(() => setStatus("typing"), 1500);
   };
 
-  const debounceSave = debounce(saveToSupabase, 1000);
-
   const handleInputChange = (value: JSONContent) => {
-    setStatus("typing");
-
-    if (value !== null) {
-      setRaw(value);
-      debounceSave();
+    setRaw(value);
+    // Nothing edited yet and the document equals what we loaded/saved: this
+    // update is not a user change (e.g. a node view normalising itself).
+    if (!dirty() && baseline !== null && JSON.stringify(value) === baseline) {
+      return;
     }
+    setStatus("typing");
+    setDirty(true);
+    debouncedDraft();
+  };
+
+  const exportJson = () => {
+    if (!editor) return;
+    const blob = new Blob([JSON.stringify(editor.getJSON(), null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${subjectId}-${seasonId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const addFigure = async () => {
@@ -416,9 +652,38 @@ export default function TiptapReviewEditor(props: {
       onTransaction: () => setTick((t) => t + 1),
       onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });
+
+    const paperObserver = new ResizeObserver(() => {
+      refreshA4Lines();
+    });
+    paperObserver.observe(editor.view.dom);
+    onCleanup(() => paperObserver.disconnect());
+  });
+
+  // Flush the draft immediately when the tab is hidden/closed (mobile
+  // browsers can kill the page before the debounce fires), and warn
+  // before leaving with changes that are not in the database yet.
+  onMount(() => {
+    const flush = () => {
+      if (document.visibilityState === "hidden") writeDraftNow();
+    };
+    const beforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirty()) return;
+      writeDraftNow();
+      e.preventDefault();
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", writeDraftNow);
+    window.addEventListener("beforeunload", beforeUnload);
+    onCleanup(() => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", writeDraftNow);
+      window.removeEventListener("beforeunload", beforeUnload);
+    });
   });
 
   onCleanup(() => {
+    writeDraftNow();
     editor?.destroy();
   });
 
@@ -688,6 +953,9 @@ export default function TiptapReviewEditor(props: {
       <EditorHeader
         seasonId={seasonId}
         status={status}
+        dirty={dirty}
+        localSavedAt={localSavedAt}
+        onExportJson={exportJson}
         onBack={() => navigate(-1)}
         onSave={saveToSupabase}
         onUndo={() => editor?.chain().focus().undo().run()}
@@ -703,7 +971,7 @@ export default function TiptapReviewEditor(props: {
         class="nova-tiptap-review relative flex min-h-0 w-full flex-1 flex-col"
         dir="rtl"
       >
-        <Suspense fallback={<div class="p-4 text-center">جارٍ التحميل...</div>}>
+        <Suspense fallback={<Loading />}>
           <div
             ref={containerRef}
             class="nova-tiptap-content dark:bg-main-dark dark:text-main-light min-h-0 flex-1 overflow-auto"
@@ -715,10 +983,12 @@ export default function TiptapReviewEditor(props: {
         <Show when={a4Active()}>
           <div class="pointer-events-none absolute inset-x-0 top-2 z-40 flex justify-center">
             <span class="bg-main rounded-full px-3 py-1 text-xs text-white shadow">
-              A4 · الخط الأحمر المتقطع = نهاية الصفحة
+              {a4Busy()
+                ? "A4 · جارٍ مطابقة الصفحات مع الطباعة…"
+                : "A4 · الخط الأحمر المتقطع = نهاية الصفحة (مطابق للطباعة)"}
             </span>
           </div>
-          <div class="bg-main-light dark:bg-lighter-dark-1 absolute end-2 top-12 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">
+          <div class="bg-main-light dark:bg-lighter-dark-1 absolute inset-e-2 top-12 z-40 flex flex-col gap-1 rounded-xl p-1 shadow-md">
             <button
               class="flex size-11 items-center justify-center rounded-lg"
               title="تكبير"
@@ -977,6 +1247,9 @@ export default function TiptapReviewEditor(props: {
 function EditorHeader(props: {
   seasonId: string;
   status: () => "typing" | "saving" | "saved" | "error";
+  dirty: () => boolean;
+  localSavedAt: () => number | null;
+  onExportJson: () => void;
   onBack: () => void;
   onSave: () => void;
   onUndo: () => void;
@@ -991,7 +1264,7 @@ function EditorHeader(props: {
     "hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex size-11 shrink-0 items-center justify-center rounded-full";
   const statusLabel = () =>
     ({
-      typing: "حفظ",
+      typing: "حفظ في قاعدة البيانات",
       saving: "جارٍ الحفظ...",
       saved: "تم الحفظ",
       error: "فشل الحفظ — اضغط للمحاولة",
@@ -1012,8 +1285,17 @@ function EditorHeader(props: {
           <ArrowRight size={22} />
         </button>
 
-        <div class="text-header dark:text-main-light min-w-0 flex-1 truncate px-1 text-base font-medium">
-          {props.seasonId}
+        <div class="min-w-0 flex-1 px-1">
+          <div class="text-header dark:text-main-light truncate text-base font-medium">
+            {props.seasonId}
+          </div>
+          <Show when={props.dirty()}>
+            <div class="truncate text-xs text-amber-600 dark:text-amber-400">
+              {props.localSavedAt()
+                ? "محفوظ محلياً • لم يُحفظ في قاعدة البيانات"
+                : "تغييرات غير محفوظة"}
+            </div>
+          </Show>
         </div>
 
         <button
@@ -1025,7 +1307,10 @@ function EditorHeader(props: {
         >
           <Switch>
             <Match when={props.status() == "typing"}>
-              <Save size={20} />
+              <Save
+                size={20}
+                classList={{ "text-amber-600": props.dirty() }}
+              />
             </Match>
             <Match when={props.status() == "saving"}>
               <CloudSync class="animate-pulse" size={20} />
@@ -1071,6 +1356,7 @@ function EditorHeader(props: {
           seasonId={props.seasonId}
           handleFileUpload={props.handleFileUpload}
           handleEditDoctorName={props.handleEditDoctorName}
+          onExportJson={props.onExportJson}
         />
       </div>
     </div>

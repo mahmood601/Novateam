@@ -5,14 +5,11 @@ import { Editor, JSONContent } from "@tiptap/core";
 
 import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
 import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
-
-const PAGE_BREAK_CSS = `.nova-page-break {
-  break-after: page;
-  height: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}`;
+import {
+  PAGE_BREAK_CSS,
+  PAGED_PRINT_CSS_URL,
+  stampPageBreaks,
+} from "@/features/editor/lib/pagedShared";
 
 interface Props {
   subjectName: string;
@@ -85,6 +82,7 @@ function buildTocFromContent(html: string): { html: string; tocRows: string } {
 export default function LecturePrint(props: Props) {
   const [ready, setReady] = createSignal(false);
   let outputEl: HTMLDivElement | undefined;
+  let pagedInstance: any = null; // last Previewer, so we can clean up its styles
   let naturalPageWidth = 0; // يُعاد قياسه بعد كل إعادة رندر لأن الـDOM بينبنى من جديد كامل
 
   // نص المحتوى (بعد توليد الـTOC) — ثابت، ما بيتغيّر بإعادة الرندر
@@ -126,16 +124,25 @@ export default function LecturePrint(props: Props) {
       fragment.appendChild(parsedDocument.body.firstChild);
     }
 
+    stampPageBreaks(fragment);
+
     const { Previewer } = await import("pagedjs");
-    await renderAllMermaidInContainer(fragment as unknown as HTMLElement);
+    // true = print-tuned Mermaid (narrower layout so text isn't scaled down)
+    await renderAllMermaidInContainer(fragment as unknown as HTMLElement, true);
+
+    // Remove the <style> tags the previous Previewer injected into <head>
+    try {
+      pagedInstance?.polisher?.destroy();
+    } catch {}
 
     if (outputEl) outputEl.innerHTML = ""; // رندر نظيف قبل كل إعادة تصفيح
 
     const paged = new Previewer();
+    pagedInstance = paged;
     const flow = await paged.preview(
       fragment,
       [
-        new URL("/print/paged-print.css", import.meta.url).href,
+        PAGED_PRINT_CSS_URL,
         { "nova-page-break.css": PAGE_BREAK_CSS } as any,
       ],
       outputEl,
