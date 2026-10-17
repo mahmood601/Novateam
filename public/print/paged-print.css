@@ -560,7 +560,6 @@
 }
 
 .lecture-content table,
-.nova-tiptap-content table,
 .lecture-body table,
 .print-area table,
 .pagedjs_page table {
@@ -571,7 +570,6 @@
 }
 
 .lecture-content table tbody,
-.nova-tiptap-content table tbody,
 .lecture-body table tbody,
 .print-area table tbody,
 .pagedjs_page table tbody {
@@ -590,8 +588,6 @@
   padding: 6px 10px;
   vertical-align: middle;
   box-sizing: border-box;
-  width: 10rem;
-  width: fit-content;
   white-space: normal;
 }
 
@@ -615,7 +611,7 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
   }
 
   table td,
@@ -679,6 +675,7 @@
     background-color: var(--nova-bg-light);
     margin-top: 0.5em;
     margin-bottom: 0.2em;
+    break-after: avoid;
   }
 
   h1 {
@@ -1240,3 +1237,28 @@ img[data-align="right"],
 [data-resize-container][data-align="center"] { justify-content: center; }
 [data-resize-container][data-align="left"]   { justify-content: flex-start; }
 [data-resize-container][data-align="right"]  { justify-content: flex-end; }
+
+.tiptap td ul,
+.tiptap td ol,
+.tiptap th ul,
+.tiptap th ol,
+.lecture-body td ul, .lecture-body td ol,
+.lecture-body th ul, .lecture-body th ol,
+.lecture-content td ul, .lecture-content td ol,
+.lecture-content th ul, .lecture-content th ol,
+.pagedjs_page td ul, .pagedjs_page td ol,
+.pagedjs_page th ul, .pagedjs_page th ol {
+  list-style-position: inside;
+  padding-inline-start: 0;
+}
+
+.tiptap td li  > p,
+.lecture-body td li  > p, 
+.lecture-body th li  > p, 
+.lecture-content td li  > p, 
+.lecture-content th li  > p, 
+.pagedjs_page td li  > p,
+.pagedjs_page th li  > p  {
+  display: inline;
+  width: 100%;
+}

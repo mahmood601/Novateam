@@ -605,7 +605,7 @@ export default function TiptapReviewEditor(props: {
             editor
               ?.chain()
               .focus()
-              .insertTable({ rows, cols, withHeaderRow: true })
+              .insertTable({ rows, cols, withHeaderRow: false })
               .run();
             panelProps.onDone();
           }}
@@ -655,6 +655,18 @@ export default function TiptapReviewEditor(props: {
       onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });
 
+    // While a sheet is open the editor stays focused (so the selection and
+    // every .focus() command keep working) but must not pop the phone
+    // keyboard: inputmode="none" = focused, no virtual keyboard. Tapping
+    // the text itself is a deliberate "I want to type", so it switches
+    // the keyboard back on.
+    const editorDom = editor.view.dom;
+    createEffect(() => {
+      editorDom.setAttribute("inputmode", anySheetOpen() ? "none" : "text");
+    });
+    const enableTyping = () => editorDom.setAttribute("inputmode", "text");
+    editorDom.addEventListener("pointerdown", enableTyping);
+    onCleanup(() => editorDom.removeEventListener("pointerdown", enableTyping));
   });
 
   // Flush the draft immediately when the tab is hidden/closed (mobile

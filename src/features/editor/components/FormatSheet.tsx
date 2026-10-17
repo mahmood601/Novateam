@@ -268,7 +268,7 @@ export default function FormatSheet(props: {
       </div>
 
       <div
-        class="sheet-track overflow-y-scroll"
+        class="sheet-track min-h-0 flex-1 overflow-y-hidden"
         style={{
           display: "flex",
           width: "200%",
@@ -376,13 +376,13 @@ export default function FormatSheet(props: {
         {/* LEAF PANEL */}
         <div
           ref={leafRef}
-          class="flex w-full flex-col overflow-y-auto p-2"
+          class="flex min-h-0 w-full flex-col overflow-hidden p-2"
           dir="rtl"
         >
           <Show when={panel() !== "root"}>
             <button
               type="button"
-              class="border-b-darker-light-1 dark:border-b-lighter-dark-2 mb-1 flex w-full items-center gap-2 border-b-2 px-3 py-2"
+              class="border-b-darker-light-1 dark:border-b-lighter-dark-2 mb-1 flex w-full shrink-0 items-center gap-2 border-b-2 px-3 py-2"
               onClick={() => setPanel("root")}
             >
               <ArrowRight size={18} />
@@ -391,6 +391,8 @@ export default function FormatSheet(props: {
               </span>
             </button>
 
+            {/* Only this body scrolls; the back button above never moves. */}
+            <div class="min-h-0 flex-1 overflow-y-auto">
             <Switch>
               <Match when={panel() === "textStyle"}>
                 <For each={TEXT_STYLE_ITEMS}>
@@ -593,6 +595,7 @@ export default function FormatSheet(props: {
                 </div>
               </Match>
             </Switch>
+            </div>
           </Show>
         </div>
       </div>

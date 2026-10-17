@@ -74,8 +74,11 @@
 /* Table Kit styling — driven by the active --color-main / --color-* theme */
 .tiptap table {
   border-collapse: collapse;
-  table-layout: auto; /* auto so column widths can be set by the user */
-  width: 100%; /* default; Tiptap's colgroup/inline style overrides it once columns are resized */
+  /* fixed: column widths come ONLY from the <colgroup> (percentages written by
+     novaTable.ts), identical to the reading view and print. `auto` let cell
+     content change the widths, so the same table looked different per screen. */
+  table-layout: fixed;
+  width: 100%;
   margin: 1rem 0;
 }
 
