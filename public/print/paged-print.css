@@ -559,8 +559,6 @@
   }
 }
 
-.lecture-content table,
-.lecture-body table,
 .print-area table,
 .pagedjs_page table {
   border-collapse: collapse;
@@ -569,8 +567,30 @@
   margin: 0.5rem 0;
 }
 
-.lecture-content table tbody,
-.lecture-body table tbody,
+.lecture-body table,
+.lecture-content table {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+  table-layout: auto;
+  margin: 0.5rem 0;
+
+  tbody {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .lecture-body table,
+  .lecture-content table {
+    min-width: 680px;
+  }
+}
+
 .print-area table tbody,
 .pagedjs_page table tbody {
   width: 100%;
@@ -1206,7 +1226,6 @@
   break-inside: avoid;
 }
 
-
 /* ---------- Mermaid in print ----------
    The generic ".lecture-body svg { width: auto }" rule above overrides
    Mermaid's own width="100%", which can collapse diagrams to a tiny default
@@ -1222,43 +1241,68 @@
   break-inside: avoid;
 }
 
-
 img[data-align="center"],
-.image-with-caption[data-align="center"] { margin-left: auto; margin-right: auto; }
+.image-with-caption[data-align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 img[data-align="left"],
-.image-with-caption[data-align="left"]   { margin-left: 0; margin-right: auto; }
+.image-with-caption[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
 
 img[data-align="right"],
-.image-with-caption[data-align="right"]  { margin-left: auto; margin-right: 0; }
+.image-with-caption[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
 
-.image-with-caption { display: flex; width: fit-content; flex-direction: column; align-items: center; }
+.image-with-caption {
+  display: flex;
+  width: fit-content;
+  flex-direction: column;
+  align-items: center;
+}
 
-[data-resize-container][data-align="center"] { justify-content: center; }
-[data-resize-container][data-align="left"]   { justify-content: flex-start; }
-[data-resize-container][data-align="right"]  { justify-content: flex-end; }
+[data-resize-container][data-align="center"] {
+  justify-content: center;
+}
+[data-resize-container][data-align="left"] {
+  justify-content: flex-start;
+}
+[data-resize-container][data-align="right"] {
+  justify-content: flex-end;
+}
 
 .tiptap td ul,
 .tiptap td ol,
 .tiptap th ul,
 .tiptap th ol,
-.lecture-body td ul, .lecture-body td ol,
-.lecture-body th ul, .lecture-body th ol,
-.lecture-content td ul, .lecture-content td ol,
-.lecture-content th ul, .lecture-content th ol,
-.pagedjs_page td ul, .pagedjs_page td ol,
-.pagedjs_page th ul, .pagedjs_page th ol {
+.lecture-body td ul,
+.lecture-body td ol,
+.lecture-body th ul,
+.lecture-body th ol,
+.lecture-content td ul,
+.lecture-content td ol,
+.lecture-content th ul,
+.lecture-content th ol,
+.pagedjs_page td ul,
+.pagedjs_page td ol,
+.pagedjs_page th ul,
+.pagedjs_page th ol {
   list-style-position: inside;
   padding-inline-start: 0;
 }
 
-.tiptap td li  > p,
-.lecture-body td li  > p, 
-.lecture-body th li  > p, 
-.lecture-content td li  > p, 
-.lecture-content th li  > p, 
-.pagedjs_page td li  > p,
-.pagedjs_page th li  > p  {
+.tiptap td li > p,
+.lecture-body td li > p,
+.lecture-body th li > p,
+.lecture-content td li > p,
+.lecture-content th li > p,
+.pagedjs_page td li > p,
+.pagedjs_page th li > p {
   display: inline;
   width: 100%;
 }

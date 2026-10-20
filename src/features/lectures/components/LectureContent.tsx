@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createResource, Show } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, Show } from "solid-js";
 import type { JSONContent } from "@tiptap/core";
 import { getLectureContentCached } from "../services/local/indexeddb/lectures";
 import {
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export default function LectureContent(props: Props) {
-  let containerEl: HTMLDivElement | undefined;
+  const [containerEl, setContainerEl] = createSignal<HTMLDivElement | undefined>();
 
   // المصدر التفاعلي: [subjectId, seasonId] — أي تغيير فيهم (تبديل محاضرة
   // من الـSidebar بدون remount كامل للصفحة) بيعيد الجلب تلقائياً.
@@ -46,52 +46,25 @@ export default function LectureContent(props: Props) {
   // توليد id العناوين وكاش الصور يصير فوراً بعد الحقن الفعلي، بدون سباق
   // توقيت بين effect منفصل جوا LectureRender وeffect هون.
   createEffect(() => {
+    const el = containerEl();
     const rendered = html();
-    if (!containerEl) return;
+    if (!el) return;
 
-    containerEl.innerHTML = rendered;
+    el.innerHTML = rendered;
 
-    const toc = annotateHeadingsWithIds(containerEl);
+    const toc = annotateHeadingsWithIds(el);
     props.onToc?.(toc);
 
-    void cacheLectureImages(containerEl);
+    void cacheLectureImages(el);
+    void renderAllMermaidInContainer(el);
 
-    // Jump to the search term, once, after this render. Re-runs if the
-    // query itself changes (e.g. user taps a different result for the
-    // same lecture without navigating away), but not on every unrelated
-    // re-render since `highlightQuery` is read at the end of the effect
-    // via the same reactive scope.
     const query = props.highlightQuery;
-    if (query && containerEl) {
-      // Wait a frame so layout has settled (images etc. can shift height).
+    if (query) {
       requestAnimationFrame(() => {
-        if (containerEl) highlightInLecture(containerEl, query);
+        if (el.isConnected) highlightInLecture(el, query);
       });
     }
   });
-
-
-createEffect(() => {
-  const rendered = html();
-  if (!containerEl) return;
-
-  containerEl.innerHTML = rendered;
-
-  const toc = annotateHeadingsWithIds(containerEl);
-  props.onToc?.(toc);
-
-  void cacheLectureImages(containerEl);
-
-  // ← هذا السطر الناقص
-  void renderAllMermaidInContainer(containerEl);
-
-  const query = props.highlightQuery;
-  if (query && containerEl) {
-    requestAnimationFrame(() => {
-      if (containerEl) highlightInLecture(containerEl, query);
-    });
-  }
-});
 
   return (
     <Show
@@ -106,7 +79,7 @@ createEffect(() => {
           </p>
         }
       >
-        <LectureRender html="" ref={(el) => (containerEl = el)} />
+        <LectureRender html="" ref={(el) => setContainerEl(el)} />
       </Show>
     </Show>
   );

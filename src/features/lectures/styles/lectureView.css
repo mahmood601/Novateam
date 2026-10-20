@@ -203,3 +203,209 @@
   background-color: color-mix(in srgb, var(--color-main) 16%, transparent);
   color: var(--color-main);
 }
+
+/* ============================================
+   TOC (react.dev style) + prev/next pager
+   ============================================ */
+.lecture-content h1,
+.lecture-content h2 {
+  scroll-margin-top: 4rem;
+}
+
+/* Desktop: content + TOC column side by side */
+@media (min-width: 1024px) {
+  .lecture-view {
+    flex-direction: row;
+  }
+  .lecture-view > .lecture-content {
+    min-width: 0;
+  }
+  .lecture-toc-desktop {
+    order: 2; /* end side (left in RTL), like react.dev's "On this page" */
+    flex: none;
+    width: 16rem;
+    overflow-y: auto;
+    padding: 1.5rem 0.75rem;
+    border-inline-start: 1px solid var(--editor-chrome-border);
+  }
+}
+
+.lecture-toc-link {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  text-align: start;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  border-radius: 0.5rem;
+  opacity: 0.7;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+.lecture-toc-link:hover {
+  opacity: 1;
+}
+.lecture-toc-link--level-2 {
+  padding-inline-start: 1.5rem;
+  font-size: 0.8rem;
+}
+.lecture-toc-link--active {
+  opacity: 1;
+  font-weight: 700;
+  color: var(--color-main);
+  background-color: color-mix(in srgb, var(--color-main) 12%, transparent);
+}
+
+/* Mobile: sticky bar showing current section + dropdown */
+.lecture-toc-mobile {
+  position: relative;
+  flex: none;
+  z-index: 35;
+  background: var(--color-main-light);
+  border-bottom: 1px solid var(--editor-chrome-border);
+}
+.dark .lecture-toc-mobile {
+  background: var(--color-main-dark);
+}
+.lecture-toc-mobile__bar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: start;
+}
+.lecture-toc-mobile__panel {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--color-main-light);
+  border-bottom: 1px solid var(--editor-chrome-border);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+.dark .lecture-toc-mobile__panel {
+  background: var(--color-main-dark);
+}
+
+.lecture-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 2.5rem 0 3rem;
+}
+.lecture-pager__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--editor-chrome-border);
+  border-radius: 0.75rem;
+  min-width: 0;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.lecture-pager__card:hover {
+  border-color: var(--color-main);
+  background-color: color-mix(in srgb, var(--color-main) 8%, transparent);
+}
+.lecture-pager__card--next {
+  grid-column: 2;
+  text-align: end;
+  align-items: flex-end;
+}
+.lecture-pager__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+.lecture-pager__title {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ============================================
+   Reading progress bar (replaces the native scrollbar)
+   ============================================ */
+.lecture-view {
+  position: relative;
+}
+.lecture-content {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+}
+.lecture-content::-webkit-scrollbar {
+  display: none; /* Chrome / Safari */
+}
+.lecture-progress {
+  position: absolute;
+  top: 3.75rem; /* right under the fixed h-15 header */
+  inset-inline: 0;
+  height: 3px;
+  z-index: 36;
+  background: color-mix(in srgb, var(--color-main) 15%, transparent);
+  pointer-events: none;
+}
+.lecture-progress__fill {
+  height: 100%;
+  background: var(--color-main);
+  border-radius: 0 3px 3px 0;
+  transform-origin: right center; /* RTL: fills from the right */
+  will-change: transform;
+}
+
+/* ============================================
+   "Continue where you stopped" chip
+   ============================================ */
+.lecture-resume {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 38;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  color: #fff;
+  background: var(--color-main);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.lecture-resume__go {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0.2rem 0.5rem;
+  text-align: start;
+}
+.lecture-resume__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.lecture-resume__sub {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.lecture-resume__close {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
