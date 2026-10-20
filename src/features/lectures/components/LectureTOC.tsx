@@ -17,9 +17,20 @@ interface Props {
 // as "current" while scrolling.
 const ACTIVE_OFFSET = 96;
 
+// Gap (px) left between the scroller's top edge and the heading we jump to.
+const TARGET_GAP = 16;
+// Fallback if the browser doesn't fire `scrollend` (older Safari/Firefox).
+const SETTLE_FALLBACK_MS = 800;
+
 export default function LectureTOC(props: Props) {
   const [activeId, setActiveId] = createSignal<string>("");
   const [open, setOpen] = createSignal(false);
+
+  // While a TOC-initiated smooth scroll is running, the scroll-spy must not
+  // overwrite the clicked entry with the headings it passes on the way.
+  let navLock = false;
+  let cancelSettle: (() => void) | undefined;
+  onCleanup(() => cancelSettle?.());
 
   const activeText = () =>
     props.entries.find((e) => e.id === activeId())?.text ??
@@ -43,6 +54,7 @@ export default function LectureTOC(props: Props) {
         let frame = 0;
         const update = () => {
           frame = 0;
+          if (navLock) return;
           const top = scroller.getBoundingClientRect().top;
           const atBottom =
             scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
@@ -74,12 +86,50 @@ export default function LectureTOC(props: Props) {
     ),
   );
 
+  // scrollTop that puts `el` TARGET_GAP px below the scroller's top edge.
+  const targetTop = (scroller: HTMLElement, el: HTMLElement) =>
+    scroller.scrollTop +
+    el.getBoundingClientRect().top -
+    scroller.getBoundingClientRect().top -
+    TARGET_GAP;
+
+  // Scrolls `.lecture-content` itself (not every ancestor, as scrollIntoView
+  // does), then re-checks once the animation ends: images / mermaid diagrams
+  // above the heading may have changed height meanwhile and moved the target.
   const goTo = (id: string) => {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setActiveId(id);
     setOpen(false);
+    const scroller = document.querySelector<HTMLElement>(".lecture-content");
+    const target = document.getElementById(id);
+    if (!scroller || !target) return;
+
+    cancelSettle?.();
+    setActiveId(id);
+    navLock = true;
+    scroller.scrollTo({
+      top: Math.max(0, targetTop(scroller, target)),
+      behavior: "smooth",
+    });
+
+    let timer: number | undefined;
+    const settle = () => {
+      cancelSettle?.();
+      const el = document.getElementById(id);
+      if (el) {
+        const diff = targetTop(scroller, el) - scroller.scrollTop;
+        if (Math.abs(diff) > 2) {
+          scroller.scrollTo({ top: scroller.scrollTop + diff, behavior: "auto" });
+        }
+      }
+    };
+    cancelSettle = () => {
+      scroller.removeEventListener("scrollend", settle);
+      if (timer) window.clearTimeout(timer);
+      timer = undefined;
+      cancelSettle = undefined;
+      navLock = false;
+    };
+    scroller.addEventListener("scrollend", settle, { once: true });
+    timer = window.setTimeout(settle, SETTLE_FALLBACK_MS);
   };
 
   const list = () => (

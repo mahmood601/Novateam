@@ -51,7 +51,10 @@ async function initMermaid(forPrint = false): Promise<Mermaid> {
       align-items: center !important;
       justify-content: center !important;
       font-size: 13pt !important;
-      width: 100% !important;
+      overflow: hidden !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+      line-height: 1.2 !important;
     }
 
     /* للعقد التي تستخدم SVG text بدل HTML */
@@ -59,12 +62,15 @@ async function initMermaid(forPrint = false): Promise<Mermaid> {
     .node tspan {
       text-anchor: middle !important;
       dominant-baseline: central !important;
+      text-align: center !important;
     }
 
-    /* تحسين إضافي للنصوص متعددة الأسطر */
+    /* منع خروج النص خارج شكل العقد حتى في التسميات الطويلة */
     .node foreignObject {
-      overflow: visible;
-}
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      max-width: 100% !important;
+    }
       `,
   });
 

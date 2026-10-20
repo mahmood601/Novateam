@@ -108,11 +108,33 @@
     padding: 0.1em 0.4em;
   }
 
-  .mermaid-rendered {
-    text-align: center;
+  /* تمرير أفقي للجداول مع شريط ظاهر (يتجاوز إخفاء الأشرطة العام في index.css) */
+  .tableWrapper {
     width: 100%;
-    display: flex;
-    justify-content: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin: 0.5em 0;
+    padding-bottom: 3px;
+    scrollbar-width: auto; /* Firefox */
+    scrollbar-color: var(--nova-color) transparent;
+    &::-webkit-scrollbar {
+      display: block; /* يلغي display:none العام */
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+      border-radius: 999px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--nova-color);
+      border-radius: 999px;
+    }
+
+    /* الجدول نفسه لا يتقلص عن حدّ أدنى فيظهر الشريط عند الحاجة */
+    & > table {
+      margin: 0;
+    }
   }
 
   /* ---------- القوائم ---------- */
@@ -161,8 +183,6 @@
     display: block;
   }
 
-
-
   .resize-cursor {
     cursor: col-resize;
   }
@@ -179,8 +199,6 @@
   text-align: center;
 }
 
-
-
 /* Tailwind's preflight (@import "tailwindcss" in styles/index.css) resets
    list-style/margin/padding to 0 on every <ul>/<ol> globally, so toggling
    a bullet/numbered list produced the right DOM node but no visible
@@ -189,6 +207,7 @@
    both this app's RTL content and any LTR text mixed into a lecture. */
 
 /* Row/column grip overlay (TableGripOverlay) */
+
 .nova-table-grip {
   touch-action: none;
 }
@@ -239,7 +258,9 @@
   line-height: 1.4;
   border-radius: 0.5rem;
   opacity: 0.7;
-  transition: opacity 0.15s, background-color 0.15s;
+  transition:
+    opacity 0.15s,
+    background-color 0.15s;
 }
 .lecture-toc-link:hover {
   opacity: 1;
@@ -282,11 +303,12 @@
   top: 100%;
   inset-inline: 0;
   max-height: 60dvh;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 0.5rem;
   background: var(--color-main-light);
   border-bottom: 1px solid var(--editor-chrome-border);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  z-index: 36;
 }
 .dark .lecture-toc-mobile__panel {
   background: var(--color-main-dark);
@@ -306,7 +328,9 @@
   border: 1px solid var(--editor-chrome-border);
   border-radius: 0.75rem;
   min-width: 0;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
 }
 .lecture-pager__card:hover {
   border-color: var(--color-main);

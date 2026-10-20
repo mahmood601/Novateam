@@ -588,6 +588,10 @@
   .lecture-body table,
   .lecture-content table {
     min-width: 680px;
+
+    td, th {
+      min-width: 50vw;
+    }
   }
 }
 
@@ -839,7 +843,6 @@
   .tableWrapper {
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   ul,
