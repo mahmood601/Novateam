@@ -13,6 +13,12 @@
 import type { Editor } from "@tiptap/core";
 import { Fragment, type Node as PMNode } from "@tiptap/pm/model";
 import { CellSelection, TableMap } from "@tiptap/pm/tables";
+import {
+  clampTableWidth,
+  readColumns,
+  tableWidthOf,
+  writeColumnWidths,
+} from "./novaTable";
 
 export type TableLocation = { node: PMNode; pos: number };
 
@@ -353,4 +359,99 @@ export function appendColumn(editor: Editor): boolean {
   const map = TableMap.get(table.node);
   if (!selectTableColumn(editor, map.width - 1)) return false;
   return editor.chain().focus().addColumnAfter().run();
+}
+
+
+// ─────────────────────────────────────────────────────────────────────
+// Word-style "preferred width" in percent
+// ─────────────────────────────────────────────────────────────────────
+
+/** Table width as % of the page (Word: Table Properties ▸ Table ▸ Preferred width). */
+export function getTableWidthPercent(editor: Editor): number | null {
+  const t = findTable(editor);
+  return t ? tableWidthOf(t.node) : null;
+}
+
+export function setTableWidthPercent(editor: Editor, pct: number): boolean {
+  const t = findTable(editor);
+  if (!t) return false;
+  const v = clampTableWidth(pct);
+  if (v === tableWidthOf(t.node)) return true;
+  editor.view.dispatch(
+    editor.state.tr.setNodeMarkup(t.pos, undefined, { ...t.node.attrs, tableWidth: v }),
+  );
+  return true;
+}
+
+/** A column can't be set narrower than this share of the table. */
+const MIN_COL_SHARE = 5;
+
+type ColumnSpan = { table: TableLocation; first: number; span: number };
+
+/** The column(s) under the cursor (several for a merged cell). */
+function currentColumnSpan(editor: Editor): ColumnSpan | null {
+  const table = findTable(editor);
+  if (!table) return null;
+  const map = TableMap.get(table.node);
+  const sel = editor.state.selection;
+
+  let cellPos: number | null = null;
+  if (sel instanceof CellSelection) {
+    cellPos = sel.$anchorCell.pos;
+  } else {
+    const { $from } = sel;
+    for (let d = $from.depth; d > 0; d--) {
+      const n = $from.node(d).type.name;
+      if (n === "tableCell" || n === "tableHeader") {
+        cellPos = $from.before(d);
+        break;
+      }
+    }
+  }
+  if (cellPos == null) return null;
+  const rect = map.findCell(cellPos - (table.pos + 1));
+  return { table, first: rect.left, span: rect.right - rect.left };
+}
+
+function columnShares(table: PMNode): number[] {
+  const widths = readColumns(table, 40).widths;
+  const sum = widths.reduce((a, b) => a + b, 0) || 1;
+  return widths.map((w) => (w / sum) * 100);
+}
+
+/** Width of the current cell's column, in % of the TABLE (Word: Cell ▸ Preferred width). */
+export function getColumnWidthPercent(editor: Editor): number | null {
+  const c = currentColumnSpan(editor);
+  if (!c) return null;
+  const shares = columnShares(c.table.node);
+  return shares.slice(c.first, c.first + c.span).reduce((a, b) => a + b, 0);
+}
+
+/**
+ * Sets the current cell's column to `pct` % of the table. The table stays at
+ * its width; the other columns keep their proportions to each other and share
+ * what is left, so everything still adds up to 100 %.
+ */
+export function setColumnWidthPercent(editor: Editor, pct: number): boolean {
+  const c = currentColumnSpan(editor);
+  if (!c) return false;
+  const shares = columnShares(c.table.node);
+  const n = shares.length;
+  if (c.span >= n) return false; // the whole table: use the table width instead
+
+  const inside = (i: number) => i >= c.first && i < c.first + c.span;
+  const lo = MIN_COL_SHARE * c.span;
+  const hi = 100 - MIN_COL_SHARE * (n - c.span);
+  const target = Math.min(hi, Math.max(lo, pct));
+
+  const sumIn = shares.filter((_, i) => inside(i)).reduce((a, b) => a + b, 0) || 1;
+  const sumOut = shares.filter((_, i) => !inside(i)).reduce((a, b) => a + b, 0) || 1;
+  // Only proportions matter, so 1 % = 100 saved units (keeps decimals).
+  const units = shares.map((s, i) =>
+    Math.max(1, Math.round((inside(i) ? (s / sumIn) * target : (s / sumOut) * (100 - target)) * 100)),
+  );
+
+  const tr = writeColumnWidths(editor.state.tr, c.table.node, c.table.pos + 1, units);
+  editor.view.dispatch(tr);
+  return true;
 }

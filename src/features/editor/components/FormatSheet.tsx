@@ -43,8 +43,12 @@ import {
   MAX_FONT_SIZE,
 } from "../lib/formatColors";
 import {
+  getColumnWidthPercent,
+  getTableWidthPercent,
+  setColumnWidthPercent,
   setSelectedCellsAttrs,
   setTableAttrs,
+  setTableWidthPercent,
 } from "../tiptap/extensions/table/tableTransforms";
 import type {
   CellBorderStyle,
@@ -189,6 +193,17 @@ export default function FormatSheet(props: {
     (currentCellAttrs().borderWidth as CellBorderWidth | undefined) ?? null;
   const currentBorderColor = () =>
     (currentCellAttrs().borderColor as string | undefined) ?? null;
+
+  // Word-style preferred widths, in percent. `ed()` re-reads on every editor
+  // transaction, so these follow the cursor / selection automatically.
+  const tableWidthPct = () => {
+    const e = ed();
+    return e ? getTableWidthPercent(e) : null;
+  };
+  const columnWidthPct = () => {
+    const e = ed();
+    return e ? getColumnWidthPercent(e) : null;
+  };
 
   const applyTableAttrs = (attrs: Record<string, unknown>) => {
     const e = ed();
@@ -458,6 +473,39 @@ export default function FormatSheet(props: {
 
               <Match when={panel() === "tableFormat"}>
                 <div class="flex flex-col gap-4 px-1 py-2">
+                  {/* Word ▸ Table Properties ▸ Preferred width ▸ Percent */}
+                  <div class="flex flex-col gap-2">
+                    <PercentField
+                      label="عرض الجدول"
+                      value={tableWidthPct()}
+                      min={10}
+                      max={100}
+                      onCommit={(v) => {
+                        const e = ed();
+                        if (e) setTableWidthPercent(e, v);
+                      }}
+                    />
+                    <PercentField
+                      label="عرض العمود / الخلية"
+                      value={columnWidthPct()}
+                      min={5}
+                      max={95}
+                      onCommit={(v) => {
+                        const e = ed();
+                        if (e) setColumnWidthPercent(e, v);
+                      }}
+                    />
+                    <div
+                      class="px-1 text-xs"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      عرض العمود نسبةً من عرض الجدول، والأعمدة الأخرى تتقاسم
+                      الباقي ليبقى المجموع ١٠٠٪.
+                    </div>
+                  </div>
+
+                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
                   {/* Scope: apply the pickers below to the selected cells
                       only, or to every cell in the table at once. */}
                   <div class="bg-darker-light-1 dark:bg-lighter-dark-2 flex items-center gap-1 rounded-full p-1 text-sm">
@@ -598,6 +646,83 @@ export default function FormatSheet(props: {
             </div>
           </Show>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Number field in percent with − / + buttons (like Word's spinner). */
+function PercentField(props: {
+  label: string;
+  value: number | null;
+  min: number;
+  max: number;
+  onCommit: (v: number) => void;
+}) {
+  const fmt = (v: number | null) =>
+    v == null ? "" : String(Math.round(v * 10) / 10);
+  const clamp = (v: number) => Math.min(props.max, Math.max(props.min, v));
+  let input: HTMLInputElement | undefined;
+
+  const commit = (v: number) => {
+    props.onCommit(clamp(v));
+    // Show what was really applied (clamped / rounded).
+    if (input) input.value = fmt(props.value);
+  };
+  const parse = (raw: string) =>
+    parseFloat(
+      raw
+        .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660)) // ٠-٩
+        .replace(/[\u06f0-\u06f9]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+        .replace("٫", ".")
+        .replace(",", "."),
+    );
+  const stepBtn =
+    "hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex size-10 items-center justify-center rounded-full border disabled:opacity-40";
+
+  return (
+    <div class="flex items-center justify-between gap-3 px-1">
+      <span class="text-sm">{props.label}</span>
+      <div class="flex items-center gap-1" dir="ltr">
+        <button
+          type="button"
+          class={stepBtn}
+          style={{ "border-color": "var(--editor-chrome-border)" }}
+          disabled={props.value == null}
+          aria-label="إنقاص"
+          onClick={() => props.value != null && commit(props.value - 5)}
+        >
+          <Minus size={16} />
+        </button>
+        <input
+          ref={input}
+          type="text"
+          inputmode="decimal"
+          class="w-16 rounded border bg-transparent px-2 py-2 text-center"
+          style={{
+            "border-color": "var(--editor-chrome-border)",
+            "font-size": "16px", // 16px: iOS doesn't zoom on focus
+          }}
+          value={fmt(props.value)}
+          disabled={props.value == null}
+          onChange={(e) => {
+            const n = parse(e.currentTarget.value);
+            if (Number.isFinite(n)) commit(n);
+            else e.currentTarget.value = fmt(props.value);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        <span class="w-4 text-sm">%</span>
+        <button
+          type="button"
+          class={stepBtn}
+          style={{ "border-color": "var(--editor-chrome-border)" }}
+          disabled={props.value == null}
+          aria-label="زيادة"
+          onClick={() => props.value != null && commit(props.value + 5)}
+        >
+          <Plus size={16} />
+        </button>
       </div>
     </div>
   );

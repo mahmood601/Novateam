@@ -200,3 +200,38 @@
   overscroll-behavior: contain;
   scroll-padding-bottom: 96px;
 }
+
+/* Column-resize guide shown while dragging a table border with a finger
+   (TableTouchResize). position: fixed + translateX keeps it smooth and
+   outside the document, so it is never saved or printed. */
+.nova-col-guide {
+    position: fixed;
+    left: 0;
+    width: 3px;
+    margin-left: -1.5px;
+    z-index: 45;
+    pointer-events: none;
+    background-color: var(--color-main);
+    border-radius: 2px;
+    will-change: transform;
+}
+
+.nova-col-guide::after {
+    content: "";
+    position: absolute;
+    top: var(--knob-y, 50%);
+    left: 50%;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    border-radius: 50%;
+    background-color: var(--color-main);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+
+/* Mouse hover over a column border (set by TableTouchResize). */
+.tiptap.nova-col-resize-cursor,
+.tiptap.nova-col-resize-cursor * {
+    cursor: col-resize;
+}

@@ -1,6 +1,6 @@
 import { Table, TableView } from "@tiptap/extension-table";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import { Plugin } from "@tiptap/pm/state";
+import { Plugin, type Transaction } from "@tiptap/pm/state";
 import { TableMap, columnResizingPluginKey } from "@tiptap/pm/tables";
 import type { EditorView } from "@tiptap/pm/view";
 
@@ -21,7 +21,18 @@ import type { EditorView } from "@tiptap/pm/view";
 // both always draw the same table.
 
 /** Below this per-column width the table scrolls sideways instead of squeezing. */
-const MIN_COL_PX = 56;
+export const MIN_COL_PX = 56;
+
+export const MIN_TABLE_WIDTH_PCT = 10;
+
+export function clampTableWidth(v: number): number {
+  if (!Number.isFinite(v)) return 100;
+  return Math.min(100, Math.max(MIN_TABLE_WIDTH_PCT, Math.round(v * 10) / 10));
+}
+
+export function tableWidthOf(node: ProseMirrorNode): number {
+  return clampTableWidth(Number(node.attrs.tableWidth ?? 100));
+}
 
 type ColumnInfo = { widths: number[]; allKnown: boolean };
 
@@ -34,7 +45,7 @@ type ColumnInfo = { widths: number[]; allKnown: boolean };
  */
 const REF_WIDTH = 360;
 
-function readColumns(node: ProseMirrorNode, cellMinWidth: number): ColumnInfo {
+export function readColumns(node: ProseMirrorNode, cellMinWidth: number): ColumnInfo {
   const saved: (number | null)[] = [];
   const row = node.firstChild;
   if (!row) return { widths: [], allKnown: false };
@@ -100,7 +111,9 @@ class NovaTableView extends TableView {
       col.style.width = pct;
     });
 
-    this.table.style.width = "100%";
+    // Preferred table width in % of the page (Word: Table Properties ▸ Preferred
+    // width ▸ Percent). Default 100 = fill the wrapper.
+    this.table.style.width = `${tableWidthOf(node)}%`;
     this.table.style.minWidth = `${widths.length * MIN_COL_PX}px`;
   }
 
@@ -108,6 +121,33 @@ class NovaTableView extends TableView {
     if (node.attrs.color) this.dom.setAttribute("data-color", node.attrs.color);
     else this.dom.removeAttribute("data-color");
   }
+}
+
+/**
+ * Saves `px` as the `colwidth` of every cell in the table, so each column
+ * carries the same width in every row (what prosemirror-tables itself does).
+ * `tableStart` is the position just inside the table node. Only attributes
+ * change, so positions don't shift and several tables can be edited in one
+ * transaction.
+ */
+export function writeColumnWidths(
+  tr: Transaction,
+  table: ProseMirrorNode,
+  tableStart: number,
+  px: number[],
+): Transaction {
+  const map = TableMap.get(table);
+  const seen = new Set<number>();
+  for (const pos of map.map) {
+    if (seen.has(pos)) continue; // merged cells appear several times in the map
+    seen.add(pos);
+    const cell = table.nodeAt(pos);
+    if (!cell) continue;
+    const col = map.colCount(pos);
+    const colwidth = px.slice(col, col + cell.attrs.colspan);
+    tr.setNodeMarkup(tableStart + pos, null, { ...cell.attrs, colwidth });
+  }
+  return tr;
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -144,18 +184,7 @@ function normalizeColumnsForDrag(view: EditorView, cellMinWidth: number) {
     Math.max(cellMinWidth, Math.round((w / total) * renderedWidth)),
   );
 
-  const map = TableMap.get(table);
-  const tr = view.state.tr;
-  const seen = new Set<number>();
-  for (const pos of map.map) {
-    if (seen.has(pos)) continue; // merged cells appear several times in the map
-    seen.add(pos);
-    const cell = table.nodeAt(pos);
-    if (!cell) continue;
-    const col = map.colCount(pos);
-    const colwidth = px.slice(col, col + cell.attrs.colspan);
-    tr.setNodeMarkup(start + pos, null, { ...cell.attrs, colwidth });
-  }
+  const tr = writeColumnWidths(view.state.tr, table, start, px);
   tr.setMeta("addToHistory", false);
   view.dispatch(tr);
 }
@@ -171,6 +200,16 @@ export const NovaTable = Table.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
+      // Preferred width of the whole table, in percent (10–100).
+      // Rendered by NovaTableView / renderHTML below, so it is not an HTML attr.
+      tableWidth: {
+        default: 100,
+        parseHTML: (element) => {
+          const m = /^(\d+(?:\.\d+)?)%$/.exec(element.style.width.trim());
+          return m ? clampTableWidth(parseFloat(m[1])) : 100;
+        },
+        renderHTML: () => ({}),
+      },
       color: {
         default: null,
         parseHTML: (element) => {
@@ -218,9 +257,7 @@ export const NovaTable = Table.extend({
       ...toPercents(widths).map((pct) => ["col", { style: `width: ${pct}` }]),
     ];
 
-    const style =
-      (tableAttributes.style as string | undefined) ||
-      `width: 100%; min-width: ${widths.length * MIN_COL_PX}px`;
+    const style = `width: ${tableWidthOf(node)}%; min-width: ${widths.length * MIN_COL_PX}px`;
 
     return [
       "div",

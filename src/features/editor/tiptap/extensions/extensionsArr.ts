@@ -43,14 +43,14 @@ export const extensionsArr = [
   }),
   // Table nodes are wired up individually (rather than via TableKit) so
   // TableCell/TableHeader can be swapped for the alignment-aware variants
-  // below. `handleWidth` is widened past the 5px default so the column
-  // resize handle has a real touch target on Android; `cellMinWidth`
-  // keeps cells from being squeezed unusably thin by a finger drag.
+  // below. Column resizing is done by TableTouchResize (finger AND mouse),
+  // so `handleWidth: 0` keeps prosemirror-tables' own resize from starting
+  // (its mouse drag briefly changed the table's width and is LTR-only).
   NovaTable.configure({
     resizable: true,
     lastColumnResizable: true,
     allowTableNodeSelection: true,
-    handleWidth: 12,
+    handleWidth: 0,
     cellMinWidth: 40,
   }),
   TableTouchResize,
