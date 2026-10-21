@@ -87,21 +87,6 @@
   /* يحترم الـ style المضمّن */
 }
 
-.tiptap table td,
-.tiptap table th {
-    border: 1px solid var(--editor-chrome-border);
-    padding: 6px 10px;
-    vertical-align: top;
-    box-sizing: border-box;
-    position: relative;
-    min-width: 1em;
-}
-
-.tiptap table th {
-    background-color: var(--editor-chrome-bg);
-    font-weight: 600;
-    text-align: start;
-}
 
 /* Cells included in the current multi-cell selection (also driven
    programmatically by the row/column grip overlay's tap-to-select). */
