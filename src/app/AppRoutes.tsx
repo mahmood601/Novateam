@@ -31,7 +31,7 @@ const LecturesListPage = lazy(() => import("../features/lectures/pages/LecturesL
 const LectureViewPage = lazy(() => import("../features/lectures/pages/LectureViewPage"));
 
 // PrintPage used to be imported eagerly. It pulls in tiptap + every editor
-// extension + mermaid, so ALL of that was downloaded and executed on every
+// extension + diagram renderer, so ALL of that was downloaded and executed on every
 // app start just to support the rarely used /print route.
 const PrintPage = lazy(() => import("../features/lectures/pages/PrintPage"));
 

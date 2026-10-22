@@ -49,7 +49,7 @@
     "lucide-solid": "^1.33.0",
     "marked": "^18.0.5",
     "mdast-util-directive": "^3.1.0",
-    "mermaid": "^11.17.2",
+    "pele": "^1.0.0",
     "pagedjs": "^0.4.3",
     "rehype-stringify": "^10.0.1",
     "remark": "^15.0.1",

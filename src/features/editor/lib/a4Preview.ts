@@ -7,7 +7,7 @@
 
 import type { Editor } from "@tiptap/core";
 
-import { renderMermaidToSvg } from "./mermaid-renderer";
+import { renderDiagramToSvg, sectionColorOf } from "./diagram-renderer";
 import {
   PAGE_BREAK_CSS,
   PAGED_PRINT_CSS_URL,
@@ -26,21 +26,24 @@ export type A4PreviewHandle = {
   destroy: () => void;
 };
 
-// Rendering Mermaid is the slowest part; the same code gives the same SVG.
+// Rendering diagrams is the slowest part; the same code gives the same SVG.
 const svgCache = new Map<string, string>();
 
-async function renderMermaids(root: ParentNode) {
-  const els = root.querySelectorAll<HTMLElement>('[data-type="mermaid"]');
+async function renderDiagrams(root: ParentNode) {
+  const els = root.querySelectorAll<HTMLElement>('[data-type="diagram"], [data-type="mermaid"]');
   for (const el of els) {
     const code = el.getAttribute("data-content") || el.textContent || "";
     if (!code.trim()) continue;
-    let svg = svgCache.get(code);
+    // Color follows the section heading, so it is part of the cache key.
+    const accent = sectionColorOf(el);
+    const key = `${accent ?? ""}|${code}`;
+    let svg = svgCache.get(key);
     if (svg === undefined) {
-      svg = await renderMermaidToSvg(code, true); // same print mode as LecturePrint
-      svgCache.set(code, svg);
+      svg = await renderDiagramToSvg(code, true, accent); // same print mode as LecturePrint
+      svgCache.set(key, svg);
     }
     el.innerHTML = svg;
-    el.classList.add("mermaid-rendered");
+    el.classList.add("diagram-rendered");
   }
 }
 
@@ -89,7 +92,7 @@ export async function renderA4Pages(
   fragment.append(...buildRunning(meta), article);
 
   stampPageBreaks(fragment);
-  await renderMermaids(fragment);
+  await renderDiagrams(fragment);
   await document.fonts?.ready; // wrong fonts = wrong wrapping = wrong pages
   if (isStale()) return null;
 

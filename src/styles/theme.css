@@ -136,7 +136,6 @@
   --color-lecture-cycle-foreground: #0f172a;
   --color-lecture-cycle-soft: color-mix(in srgb, var(--color-lecture-cycle) 18%, transparent);
   --color-lecture-cycle-border: color-mix(in srgb, var(--color-lecture-cycle) 36%, transparent);
-  --mermaid-node-shadow: rgba(0, 0, 0, 0.24);
 }
 
 @theme inline {
@@ -240,3 +239,7 @@
     line-height: 1.5;
   }
 }
+/* Pele diagrams */
+.pele { display: block; max-width: 100%; margin-inline: auto; }
+.pele svg { max-width: 100%; height: auto; }
+.pele-print svg { max-width: 100%; }

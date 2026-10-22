@@ -3,7 +3,7 @@
 import { onMount, onCleanup, createSignal, Show } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
 
-import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
+import { renderAllDiagramsInContainer } from "@/features/editor/lib/diagram-renderer";
 import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
 import {
   PAGE_BREAK_CSS,
@@ -22,14 +22,36 @@ interface Props {
   content: JSONContent | null;
 }
 
+function migrateLegacyDiagramNodes<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => migrateLegacyDiagramNodes(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const next: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      next[key] = migrateLegacyDiagramNodes(child);
+    }
+    if (next.type === "mermaid") {
+      next.type = "diagram";
+    }
+    return next as T;
+  }
+
+  return value;
+}
+
 // Same source of truth as the review editor (TiptapReviewEditor.tsx):
 // this MUST use the exact same extension set, or print output can
 // silently diverge from what the team actually reviewed.
 async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
   const printExts = extensionsArr.slice(0, -1); // drop Markdown extension, not needed for print
+  const normalizedContent = content
+    ? migrateLegacyDiagramNodes(content)
+    : content;
   const editor = new Editor({
     extensions: [...printExts],
-    content: content,
+    content: normalizedContent,
     contentType: "json",
   });
 
@@ -127,8 +149,8 @@ export default function LecturePrint(props: Props) {
     stampPageBreaks(fragment);
 
     const { Previewer } = await import("pagedjs");
-    // true = print-tuned Mermaid (narrower layout so text isn't scaled down)
-    await renderAllMermaidInContainer(fragment as unknown as HTMLElement, true);
+    // true = print-tuned diagram (narrower layout so text isn't scaled down)
+    await renderAllDiagramsInContainer(fragment as unknown as HTMLElement, true);
 
     // Remove the <style> tags the previous Previewer injected into <head>
     try {

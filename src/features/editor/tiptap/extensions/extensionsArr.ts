@@ -7,7 +7,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
-import { Mermaid } from "./mermaid";
+import { Diagram } from "./diagram";
 import { NovaAdmonition } from "./NovaAdmonition";
 import { NovaHeading } from "./NovaHeadingExtension";
 import { NovaQuiz } from "./NovaQuiz";
@@ -38,7 +38,7 @@ export const extensionsArr = [
   Highlight.configure({ multicolor: true, HTMLAttributes: { class: "highlight" } }),
   NovaSubscript,
   NovaSuperscript,
-  Mermaid.configure({
+  Diagram.configure({
     debounceMs: 400,
   }),
   // Table nodes are wired up individually (rather than via TableKit) so

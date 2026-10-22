@@ -1,6 +1,25 @@
 import { Editor, type JSONContent } from "@tiptap/core";
 import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
 
+function migrateLegacyDiagramNodes<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => migrateLegacyDiagramNodes(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const next: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      next[key] = migrateLegacyDiagramNodes(child);
+    }
+    if (next.type === "mermaid") {
+      next.type = "diagram";
+    }
+    return next as T;
+  }
+
+  return value;
+}
+
 // ============================================
 // JSON → HTML (نفس محرك jsonToPrintHtml في LecturePrint.tsx)
 // ============================================
@@ -16,15 +35,19 @@ import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr
 // non-destructively, so this and the print path can't step on each other.
 export function jsonToLectureHtml(content: JSONContent | null): string {
   if (!content) return "";
+  const normalizedContent = migrateLegacyDiagramNodes(content);
 
   // Guard: a valid Tiptap/ProseMirror doc is always `{ type: "doc", ... }`.
   // Catches the common integration bug of passing the whole cache record
   // (`{ id, content, cached_at }`) instead of just its `.content` field —
   // fails loud in the console instead of crashing the read view.
-  if (typeof content !== "object" || (content as JSONContent).type !== "doc") {
+  if (
+    typeof normalizedContent !== "object" ||
+    (normalizedContent as JSONContent).type !== "doc"
+  ) {
     console.error(
       "[jsonToLectureHtml] Invalid content — expected a Tiptap doc ({ type: \"doc\", ... }), got:",
-      content,
+      normalizedContent,
     );
     return "";
   }
@@ -32,7 +55,7 @@ export function jsonToLectureHtml(content: JSONContent | null): string {
   const readExts = extensionsArr.filter((ext) => ext.name !== "markdown");
   const editor = new Editor({
     extensions: readExts,
-    content,
+    content: normalizedContent,
     contentType: "json",
     editable: false,
   });

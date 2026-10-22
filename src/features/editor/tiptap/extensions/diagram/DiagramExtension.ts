@@ -1,11 +1,11 @@
-// src/features/editor/tiptap/extensions/mermaid/MermaidExtension.ts
+// src/features/editor/tiptap/extensions/diagram/DiagramExtension.ts
 import { Node, mergeAttributes, nodeInputRule } from "@tiptap/core";
 import { SolidNodeViewRenderer } from "tiptap-solid";
-import MermaidView from "./MermaidView";
-import type { MermaidOptions } from "./types";
+import DiagramView from "./DiagramView";
+import type { DiagramOptions } from "./types";
 
-export const Mermaid = Node.create<MermaidOptions>({
-  name: "mermaid",
+export const Diagram = Node.create<DiagramOptions>({
+  name: "diagram",
 
   group: "block",
   atom: true,
@@ -40,9 +40,9 @@ export const Mermaid = Node.create<MermaidOptions>({
 
   parseHTML() {
     return [
-      {
-        tag: 'div[data-type="mermaid"]',
-      },
+      { tag: 'div[data-type="diagram"]' },
+      // legacy markup saved before the rename
+      { tag: 'div[data-type="mermaid"]' },
       {
         tag: "pre",
         preserveWhitespace: "full",
@@ -52,7 +52,7 @@ export const Mermaid = Node.create<MermaidOptions>({
           const code = (node as HTMLElement).querySelector("code");
           const lang = code?.getAttribute("class") || "";
 
-          if (lang.includes("language-mermaid") || lang.includes("mermaid")) {
+          if (/(?:^|[\s-])(mermaid|mmd|pele|diagram)\b/.test(lang)) {
             return {
               content: code?.textContent || (node as HTMLElement).textContent,
             };
@@ -68,7 +68,7 @@ export const Mermaid = Node.create<MermaidOptions>({
     return [
       "div",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-type": "mermaid",
+        "data-type": "diagram",
       }),
     ];
   },
@@ -77,23 +77,24 @@ export const Mermaid = Node.create<MermaidOptions>({
   // Markdown support
   // ─────────────────────────────────────────────
 
-  // Tokenizer مخصص يلتقط ```mermaid ... ``` قبل أن يصل إلى CodeBlock
+  // Tokenizer مخصص يلتقط ```mermaid / ```diagram ... ``` قبل أن يصل إلى CodeBlock
+  // (the fence is still written back as ```mermaid: that is the stored/Obsidian-compatible form)
   markdownTokenizer: {
-    name: "mermaid",
+    name: "diagram",
     level: "block" as const,
     start(src: string) {
-      const match = src.match(/^```(?:mermaid|mmd)\s*\n/m);
+      const match = src.match(/^```(?:mermaid|mmd|pele|diagram)\s*\n/m);
       return match ? (match.index ?? -1) : -1;
     },
     tokenize(src: string, _tokens: any, _lexer: any) {
       const rule =
-        /^```(?:mermaid|mmd)[ \t]*\n([\s\S]*?)(?:\n```[ \t]*\n?|\n```[ \t]*$)/;
+        /^```(?:mermaid|mmd|pele|diagram)[ \t]*\n([\s\S]*?)(?:\n```[ \t]*\n?|\n```[ \t]*$)/;
       const match = rule.exec(src);
 
       if (!match) return undefined;
 
       return {
-        type: "mermaid",
+        type: "diagram",
         raw: match[0],
         text: match[1] ?? "",
         content: match[1] ?? "",
@@ -102,7 +103,7 @@ export const Mermaid = Node.create<MermaidOptions>({
   },
 
   parseMarkdown: (token, helpers) => {
-    return helpers.createNode("mermaid", {
+    return helpers.createNode("diagram", {
       content: token.content || token.text || "",
     });
   },
@@ -117,12 +118,12 @@ export const Mermaid = Node.create<MermaidOptions>({
   // ─────────────────────────────────────────────
 
   addNodeView() {
-    return SolidNodeViewRenderer(MermaidView);
+    return SolidNodeViewRenderer(DiagramView);
   },
 
   addCommands() {
     return {
-      setMermaid:
+      setDiagram:
         (content = "") =>
         ({ commands }) => {
           return commands.insertContent({
@@ -136,7 +137,7 @@ export const Mermaid = Node.create<MermaidOptions>({
           });
         },
 
-      updateMermaid:
+      updateDiagram:
         (content: string) =>
         ({ commands }) => {
           return commands.updateAttributes(this.name, { content });
@@ -147,7 +148,7 @@ export const Mermaid = Node.create<MermaidOptions>({
   addInputRules() {
     return [
       nodeInputRule({
-        find: /^```mermaid[\s\n]$/,
+        find: /^```(?:mermaid|diagram)[\s\n]$/,
         type: this.type,
         getAttributes: () => ({
           content: `graph TD
@@ -159,9 +160,9 @@ export const Mermaid = Node.create<MermaidOptions>({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Alt-m": () => this.editor.commands.setMermaid(),
+      "Mod-Alt-m": () => this.editor.commands.setDiagram(),
     };
   },
 });
 
-export default Mermaid;
+export default Diagram;

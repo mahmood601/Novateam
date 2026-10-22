@@ -81,7 +81,7 @@ export interface NovaQuizNode {
   quizId: string;
 }
 
-// `:::diagram ... :::` directive from the contract — the Mermaid source
+// `:::diagram ... :::` directive from the contract — the diagram source
 // is stored as raw text and rendered by the dedicated diagram extension
 // in the editor / print pipeline.
 export interface NovaDiagramNode {

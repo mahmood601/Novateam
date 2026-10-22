@@ -94,7 +94,7 @@ export default function LectureTOC(props: Props) {
     TARGET_GAP;
 
   // Scrolls `.lecture-content` itself (not every ancestor, as scrollIntoView
-  // does), then re-checks once the animation ends: images / mermaid diagrams
+  // does), then re-checks once the animation ends: images / diagrams
   // above the heading may have changed height meanwhile and moved the target.
   const goTo = (id: string) => {
     setOpen(false);

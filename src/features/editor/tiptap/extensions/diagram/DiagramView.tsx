@@ -1,4 +1,4 @@
-// src/extensions/mermaid/MermaidView.tsx
+// src/extensions/diagram/DiagramView.tsx
 import {
   Component,
   createSignal,
@@ -7,10 +7,10 @@ import {
   Show,
 } from "solid-js";
 import { NodeViewWrapper } from "tiptap-solid";
-import type { MermaidNodeViewProps } from "./types";
-import { renderMermaidToSvg } from "@/features/editor/lib/mermaid-renderer";
+import type { DiagramNodeViewProps } from "./types";
+import { renderDiagramToSvg } from "@/features/editor/lib/diagram-renderer";
 
-const MermaidView: Component<MermaidNodeViewProps> = (props) => {
+const DiagramView: Component<DiagramNodeViewProps> = (props) => {
   const [isEditing, setIsEditing] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
   const [isRendering, setIsRendering] = createSignal(false);
@@ -28,7 +28,7 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
     setError(null);
 
     try {
-      const svg = await renderMermaidToSvg(code);
+      const svg = await renderDiagramToSvg(code);
 
       if (containerRef) {
         containerRef.innerHTML = svg;
@@ -87,7 +87,7 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
 
   return (
     <NodeViewWrapper
-      class="nova-mermaid"
+      class="nova-diagram"
       data-drag-handle
       style={{
         "border-radius": "10px",
@@ -112,7 +112,7 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
           "user-select": "none",
         }}
       >
-        <span style={{ "font-weight": "500" }}>Mermaid Diagram</span>
+        <span style={{ "font-weight": "500" }}>Diagram</span>
         <div style={{ display: "flex", gap: "6px" }}>
           <Show when={!isEditing()}>
             <button
@@ -259,4 +259,4 @@ const MermaidView: Component<MermaidNodeViewProps> = (props) => {
   );
 };
 
-export default MermaidView;
+export default DiagramView;

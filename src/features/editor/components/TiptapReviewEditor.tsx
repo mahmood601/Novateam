@@ -108,6 +108,25 @@ export default function TiptapReviewEditor(props: {
   subjectId: string;
   seasonId: string;
 }) {
+  const migrateLegacyDiagramNodes = <T,>(value: T): T => {
+    if (Array.isArray(value)) {
+      return value.map((item) => migrateLegacyDiagramNodes(item)) as T;
+    }
+
+    if (value && typeof value === "object") {
+      const next: Record<string, unknown> = {};
+      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+        next[key] = migrateLegacyDiagramNodes(child);
+      }
+      if (next.type === "mermaid") {
+        next.type = "diagram";
+      }
+      return next as T;
+    }
+
+    return value;
+  };
+
   let containerRef: any;
   let editor: Editor | undefined;
   const { height: vvHeight, top: vvTop } = useKeyboardToolbar();
@@ -276,9 +295,10 @@ export default function TiptapReviewEditor(props: {
           parsed?.type === "doc"
             ? parsed
             : (parsed?.content?.raw ?? parsed?.raw ?? parsed?.content);
-        if (candidate?.type === "doc") {
-          editor?.schema.nodeFromJSON(candidate).check(); // throws if invalid
-          doc = candidate;
+        const migrated = migrateLegacyDiagramNodes(candidate) as JSONContent;
+        if (migrated?.type === "doc") {
+          editor?.schema.nodeFromJSON(migrated).check(); // throws if invalid
+          doc = migrated;
         }
       } catch {
         doc = null;
@@ -373,12 +393,19 @@ export default function TiptapReviewEditor(props: {
       subjectId: subjectId,
       seasonId: seasonId,
     });
-    const remote: JSONContent | null = content?.data?.[0]?.content?.raw ?? null;
+    const remoteRaw: JSONContent | null = content?.data?.[0]?.content?.raw ?? null;
+    const remote = remoteRaw
+      ? migrateLegacyDiagramNodes(remoteRaw)
+      : null;
 
     // A local draft that differs from the database means the last session
     // ended before the changes were saved to Supabase.
     const draft = await loadDraft(subjectId, seasonId);
-    if (draft && !sameContent(draft.content, remote)) {
+    const draftContent = draft
+      ? migrateLegacyDiagramNodes(draft.content)
+      : null;
+
+    if (draft && draftContent && !sameContent(draftContent, remote)) {
       const when = new Date(draft.savedAt).toLocaleString("ar");
       let discard = false;
 
@@ -399,11 +426,11 @@ export default function TiptapReviewEditor(props: {
         // emitUpdate: false  → loading is NOT an edit. (In Tiptap 3 setContent
         // emits `update` by default, which used to mark the doc dirty and
         // write a draft on every open.)
-        editor?.commands.setContent(draft.content, {
+        editor?.commands.setContent(draftContent, {
           contentType: "json",
           emitUpdate: false,
         });
-        setRaw(draft.content);
+        setRaw(draftContent);
         setDirty(true); // differs from the database, so it IS unsaved work
         lastDraftJson = JSON.stringify(editor?.getJSON());
         setLocalSavedAt(draft.savedAt);
@@ -586,11 +613,11 @@ export default function TiptapReviewEditor(props: {
       },
     },
     {
-      id: "mermaid",
+      id: "diagram",
       label: "مخطط",
       icon: Workflow,
       onClick: () => {
-        editor?.commands.setMermaid();
+        editor?.commands.setDiagram();
       },
     },
     {

@@ -1,98 +1,76 @@
-// mermaid is ~600 kB+ of JS. It used to be imported at the top of this file,
-// and `initMermaid()` ran at import time — so anything that imported this
-// module paid for mermaid immediately. Now it's fetched (once) only when a
-// diagram actually has to be rendered. Offline still works: the chunk is in
-// the service worker's precache.
-type Mermaid = (typeof import("mermaid"))["default"];
+// Diagrams are rendered with Pele (https://github.com/obsidianmd/pele):
+// zero-dependency, Mermaid-syntax -> themeable SVG, synchronous render.
+// The file name/exports are kept so every caller (editor, A4 preview,
+// print, lecture view) keeps working unchanged.
+//
+// Colors: Pele paints charts with --pele-series-1..8. We feed those from
+// the Nova heading cycle (rose, orange, blue, green, yellow, purple, pink)
+// so diagrams use exactly the same colors as the section headings.
+import { render } from "pele";
+import { NOVA_COLOR_CYCLE, type NovaColor } from "../types/novaAst";
+import { NOVA_COLOR_HEX } from "./novaColors";
 
-let mermaidPromise: Promise<Mermaid> | null = null;
-
-function loadMermaid(): Promise<Mermaid> {
-  mermaidPromise ??= import("mermaid").then((m) => m.default);
-  return mermaidPromise;
-}
-
-// Mermaid ships its own "dark" theme (tuned node/text/edge colors for a
-// dark canvas) alongside "neutral" for light — re-initializing with the
-// right one before each render keeps generated diagrams readable instead
-// of always drawing light-theme shapes regardless of the app's mode.
 function isDarkMode() {
   return document.documentElement.classList.contains("dark");
 }
 
-async function initMermaid(forPrint = false): Promise<Mermaid> {
-  const mermaid = await loadMermaid();
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: isDarkMode() ? "dark" : "redux-color",
-    htmlLabels: true,
-    fontFamily: "inherit",
-    securityLevel: "loose",
-    // Print: a narrower diagram gets scaled down less to fit the A4 width,
-    // so its text stays readable on paper.
-    flowchart: forPrint
-      ? {
-          useMaxWidth: true,
-          wrappingWidth: 140,
-          nodeSpacing: 30,
-          rankSpacing: 40,
-          padding: 8,
-        }
-      : {
-          useMaxWidth: true,
-        },
-    themeCSS: `
-    /* توسيط أفقي وعمودي للنصوص داخل كل العقد */
-    .node foreignObject div,
-    .node .label,
-    .label {
-      text-align: center !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      font-size: 13pt !important;
-      overflow: hidden !important;
-      white-space: normal !important;
-      word-break: break-word !important;
-      line-height: 1.2 !important;
-    }
+function escapeHtml(s: string) {
+  return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
+}
 
-    /* للعقد التي تستخدم SVG text بدل HTML */
-    .node text,
-    .node tspan {
-      text-anchor: middle !important;
-      dominant-baseline: central !important;
-      text-align: center !important;
-    }
+/** Inline CSS variables for one diagram. `accent` = color of the section it sits in. */
+function peleTheme(accent?: NovaColor | null, forPrint = false): string {
+  const dark = isDarkMode();
+  const vars: Record<string, string> = {
+    "--pele-bg": "transparent",
+    "--pele-fg": dark ? "#f1f5f9" : "#0f172a",
+    "--pele-muted": dark ? "#94a3b8" : "#64748b",
+    "--pele-line": dark ? "#94a3b8" : "#475569",
+    "--pele-surface": dark ? "#1e293b" : "#ffffff",
+    "--pele-surface-alt": dark ? "#334155" : "#f1f5f9",
+    "--pele-border": dark ? "#475569" : "#cbd5e1",
+    "--pele-accent": NOVA_COLOR_HEX[accent ?? "blue"],
+    "--pele-font": "inherit",
+    "--pele-radius": "8px",
+  };
+  // Series 1-7 = the 7 Nova heading colors, in heading order.
+  // Series 8 wraps back to the first color.
+  for (let i = 0; i < 8; i++) {
+    vars[`--pele-series-${i + 1}`] =
+      NOVA_COLOR_HEX[NOVA_COLOR_CYCLE[i % NOVA_COLOR_CYCLE.length]];
+  }
+  if (forPrint) vars["--pele-bg"] = "#ffffff";
+  return Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(";");
+}
 
-    /* منع خروج النص خارج شكل العقد حتى في التسميات الطويلة */
-    .node foreignObject {
-      overflow: hidden !important;
-      box-sizing: border-box !important;
-      max-width: 100% !important;
+/** Section color = data-color of the closest previous level-1 heading. */
+export function sectionColorOf(el: Element): NovaColor | null {
+  let node: Element | null = el;
+  while (node) {
+    let sib = node.previousElementSibling;
+    while (sib) {
+      if (sib.tagName === "H1" && sib.getAttribute("data-color")) {
+        return sib.getAttribute("data-color") as NovaColor;
+      }
+      sib = sib.previousElementSibling;
     }
-      `,
-  });
-
-  return mermaid;
+    node = node.parentElement;
+  }
+  return null;
 }
 
 export async function renderMermaidToSvg(
   code: string,
   forPrint = false,
+  accent?: NovaColor | null,
 ): Promise<string> {
-  if (code.trim() === "") return "";
-
-  // Wide left-to-right charts get shrunk the most on paper; top-down uses
-  // the page height instead.
   const src = code.trim();
+  if (src === "") return "";
 
-  const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
   try {
-    const mermaid = await initMermaid(forPrint);
-    const { svg } = await mermaid.render(id, src);
-    return svg;
-  } catch (error) {
+    const svg = render(src);
+    return `<div class="pele${forPrint ? " pele-print" : ""}" style="${peleTheme(accent, forPrint)}">${svg}</div>`;
+  } catch {
     return `<pre style="
             color: var(--destructive);
             background: color-mix(in srgb, var(--destructive) 12%, var(--card));
@@ -101,7 +79,7 @@ export async function renderMermaidToSvg(
             font-size: 13px;
             white-space: pre-wrap;
             overflow-x: auto;
-          ">${code}</pre>`;
+          ">${escapeHtml(code)}</pre>`;
   }
 }
 
@@ -114,11 +92,13 @@ export async function renderAllMermaidInContainer(
   for (const element of elements) {
     const code =
       element.getAttribute("data-content") || element.textContent || "";
-
     if (code.trim() === "") continue;
 
-    const svg = await renderMermaidToSvg(code, forPrint);
-    element.innerHTML = svg;
+    element.innerHTML = await renderMermaidToSvg(
+      code,
+      forPrint,
+      sectionColorOf(element),
+    );
     element.classList.add("mermaid-rendered");
   }
 }

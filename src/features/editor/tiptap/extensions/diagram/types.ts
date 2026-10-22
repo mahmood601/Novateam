@@ -1,7 +1,7 @@
-// src/extensions/mermaid/types.ts
+// src/extensions/diagram/types.ts
 import type { Node } from '@tiptap/core'
 
-export interface MermaidOptions {
+export interface DiagramOptions {
   HTMLAttributes: Record<string, any>
   /** زمن الـ debounce بالمللي ثانية (موصى به 300-500 لمخرجات AI) */
   debounceMs?: number
@@ -9,18 +9,18 @@ export interface MermaidOptions {
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    mermaid: {
-      setMermaid: (content?: string) => ReturnType
-      updateMermaid: (content: string) => ReturnType
+    diagram: {
+      setDiagram: (content?: string) => ReturnType
+      updateDiagram: (content: string) => ReturnType
     }
   }
 }
 
-export type MermaidNodeViewProps = {
+export type DiagramNodeViewProps = {
   node: Node
   updateAttributes: (attrs: Record<string, any>) => void
   selected: boolean
   extension: {
-    options: MermaidOptions
+    options: DiagramOptions
   }
 }

@@ -9,7 +9,7 @@ import {
 import { cacheLectureImages } from "../services/imageCache";
 import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
-import { renderAllMermaidInContainer } from "@/features/editor/lib/mermaid-renderer";
+import { renderAllDiagramsInContainer } from "@/features/editor/lib/diagram-renderer";
 
 interface Props {
   subjectId: string;
@@ -56,7 +56,7 @@ export default function LectureContent(props: Props) {
     props.onToc?.(toc);
 
     void cacheLectureImages(el);
-    void renderAllMermaidInContainer(el);
+    void renderAllDiagramsInContainer(el);
 
     const query = props.highlightQuery;
     if (query) {
