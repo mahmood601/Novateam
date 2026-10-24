@@ -148,6 +148,38 @@ export default function LectureNotes(props: Props) {
     ),
   );
 
+  // ---- which block is hovered / tapped (drives the add-note button) ----
+  // The button of a block without a note is hidden until its paragraph is
+  // hovered (mouse) or tapped (touch, where hover does not exist).
+  const [hoverIdx, setHoverIdx] = createSignal<number | null>(null);
+
+  createEffect(() => {
+    const el = props.container;
+    if (!el) return;
+
+    // Top-level block (direct child of the container) that holds `target`.
+    const blockOf = (target: EventTarget | null) => {
+      let n = target as HTMLElement | null;
+      while (n && n.parentElement !== el) n = n.parentElement;
+      return n ? blocks.indexOf(n) : -1;
+    };
+    const onOver = (e: MouseEvent) => {
+      const i = blockOf(e.target);
+      setHoverIdx(i >= 0 ? i : null);
+    };
+    const onLeave = () => setHoverIdx(null);
+
+    el.addEventListener("mouseover", onOver);
+    el.addEventListener("click", onOver); // touch: tap a paragraph
+    el.addEventListener("mouseleave", onLeave);
+    onCleanup(() => {
+      el.removeEventListener("mouseover", onOver);
+      el.removeEventListener("click", onOver);
+      el.removeEventListener("mouseleave", onLeave);
+      setHoverIdx(null);
+    });
+  });
+
   // ---- which note belongs to which block ----
   const resolved = createMemo(() => {
     const snips = snippets();
@@ -258,7 +290,10 @@ export default function LectureNotes(props: Props) {
               <button
                 type="button"
                 class="nova-note-btn"
-                classList={{ "has-note": resolved().byBlock.has(i) }}
+                classList={{
+                  "has-note": resolved().byBlock.has(i),
+                  "is-hover": hoverIdx() === i,
+                }}
                 style={{ top: `${g().top}px` }}
                 aria-label={resolved().byBlock.has(i) ? "عرض الملاحظة" : "إضافة ملاحظة"}
                 title={resolved().byBlock.has(i) ? "ملاحظتك على هذه الفقرة" : "إضافة ملاحظة"}

@@ -18,7 +18,7 @@
    never overlaps or shifts the text. */
 .nova-note-btn {
   position: absolute;
-  right: -1.5rem;
+  left: -1.5rem;
   width: 1.5rem;
   height: 1.75rem;
   display: flex;
@@ -28,20 +28,35 @@
   border: 0;
   background: transparent;
   color: var(--color-main);
-  opacity: 0.2;
+  /* Hidden until its paragraph is hovered / tapped (see .is-hover). */
+  opacity: 0;
   cursor: pointer;
-  pointer-events: auto;
+  pointer-events: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: opacity 0.15s;
 }
-.nova-notes-root:hover .nova-note-btn,
-.nova-note-btn:hover,
+/* Paragraph hovered or tapped. */
+.nova-note-btn.is-hover,
 .nova-note-btn:focus-visible {
   opacity: 0.9;
+  pointer-events: auto;
 }
+/* Mouse devices: the button itself stays clickable while the pointer
+   travels from the paragraph into the gutter. On touch it stays inert
+   until shown, so an invisible button can't be hit by accident. */
+@media (hover: hover) {
+  .nova-note-btn {
+    pointer-events: auto;
+  }
+  .nova-note-btn:hover {
+    opacity: 0.9;
+  }
+}
+/* A paragraph that already has a note keeps its button visible. */
 .nova-note-btn.has-note {
   opacity: 1;
+  pointer-events: auto;
 }
 .nova-note-btn.has-note svg {
   fill: currentColor;

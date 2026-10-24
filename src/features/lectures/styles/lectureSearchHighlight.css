@@ -28,3 +28,31 @@ th.nova-search-highlight {
   border-radius: 0.4em;
   transition: background-color 1s ease;
 }
+
+/* Older browsers without color-mix() drop the tinted backgrounds above, so
+   the match would be invisible. Show an underline instead. */
+@supports not (color: color-mix(in srgb, red, red)) {
+  mark.nova-search-highlight {
+    background-color: transparent;
+    text-decoration: underline;
+    text-decoration-color: var(--color-main);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.2em;
+  }
+
+  mark.nova-search-highlight--fade {
+    text-decoration-color: transparent;
+    transition: text-decoration-color 1s ease;
+  }
+
+  p.nova-search-highlight,
+  h1.nova-search-highlight,
+  h2.nova-search-highlight,
+  h3.nova-search-highlight,
+  li.nova-search-highlight,
+  blockquote.nova-search-highlight,
+  td.nova-search-highlight,
+  th.nova-search-highlight {
+    box-shadow: 0 3px 0 var(--color-main);
+  }
+}

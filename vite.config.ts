@@ -78,7 +78,12 @@ export default defineConfig({
   },
   build: {
     sourcemap: process.env.SOURCE_MAP === "true",
-    target: "esnext",
+    // Lowest floor Tailwind v4 can run on (it needs cascade layers:
+    // Chrome 99 / Safari 15.4 / Firefox 97). "esnext" shipped untouched
+    // modern syntax and native CSS nesting, which broke older devices
+    // (e.g. all heading colors lived inside nested CSS rules).
+    target: ["chrome99", "safari15.4", "firefox97"],
+    cssTarget: ["chrome99", "safari15.4", "firefox97"],
     // polyfillDynamicImport: false,
   },
   plugins: [
