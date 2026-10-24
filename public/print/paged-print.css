@@ -1284,3 +1284,34 @@ img[data-align="right"],
   display: inline;
   width: 100%;
 }
+/* ---------- Table pagination ----------
+   A long table may continue on the next page, but only BETWEEN rows:
+   a row (and its cells) is never cut in half.
+   Paged.js cannot fragment content inside an element whose overflow is not
+   visible, so the horizontal-scroll wrapper (needed only on screen) is
+   neutralised inside the paged output. */
+.pagedjs_pages .tableWrapper,
+.pagedjs_page .tableWrapper,
+.lecture-body .tableWrapper {
+  overflow: visible !important;
+  break-inside: auto;
+}
+
+.pagedjs_pages table,
+.pagedjs_page table,
+.lecture-body table {
+  break-inside: auto;
+}
+
+.pagedjs_pages tr,
+.pagedjs_pages td,
+.pagedjs_pages th,
+.pagedjs_page tr,
+.pagedjs_page td,
+.pagedjs_page th,
+.lecture-body tr,
+.lecture-body td,
+.lecture-body th {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
