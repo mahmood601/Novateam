@@ -19,6 +19,7 @@ import { NovaBox } from "./NovaBox";
 import { NovaTable } from "./table/novaTable";
 import { TableTouchResize } from "./table/TableTouchResize";
 import { NovaBulletList } from "./NovaBulletList";
+import { NovaClipboard } from "./NovaClipboard";
 
 // Sub/superscript don't exclude each other by default, which lets both
 // marks stack on the same text and render nonsense nested offsets — so
@@ -74,6 +75,8 @@ export const extensionsArr = [
   }),
   NovaImageGallery,
   NovaBox,
+  // Lossless cut/copy/paste inside the editor (see NovaClipboard.ts).
+  NovaClipboard,
   Link.configure({
     openOnClick: false,
     markdownLinks: true,

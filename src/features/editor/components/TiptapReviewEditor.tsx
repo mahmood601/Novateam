@@ -31,6 +31,7 @@ import {
   Bold,
   CaseSensitive,
   Check,
+  ClipboardPaste,
   CloudCheck,
   CloudOff,
   CloudSync,
@@ -51,6 +52,7 @@ import {
   Redo2,
   Rows3,
   Save,
+  Scissors,
   SeparatorHorizontal,
   Strikethrough,
   Table2,
@@ -80,6 +82,11 @@ import "../styles/editor.css";
 import "../styles/a4-preview.css";
 import "../../../../public/print/paged-print.css";
 import { extensionsArr } from "../tiptap/extensions/extensionsArr";
+import {
+  novaCopy,
+  novaCut,
+  novaPaste,
+} from "../tiptap/extensions/NovaClipboard";
 import Menu from "./DropdownMenu";
 import {
   syncAndGetSections,
@@ -1179,6 +1186,39 @@ export default function TiptapReviewEditor(props: {
               onClick={() => setFormatActive(true)}
             >
               <CaseSensitive size={24} />
+            </button>
+
+            {/* Cut / copy / paste inside the editor. Works for any selection
+                (text, table cells, boxes, images) and keeps it exactly as
+                it was; see NovaClipboard.ts. Needed on phones, where there
+                is no native menu for a cell selection. */}
+            {divider}
+            <button
+              type="button"
+              class={tbBtn}
+              title="قص"
+              aria-label="قص"
+              onClick={() => editor && novaCut(editor)}
+            >
+              <Scissors size={20} />
+            </button>
+            <button
+              type="button"
+              class={tbBtn}
+              title="نسخ"
+              aria-label="نسخ"
+              onClick={() => editor && novaCopy(editor)}
+            >
+              <Copy size={20} />
+            </button>
+            <button
+              type="button"
+              class={tbBtn}
+              title="لصق"
+              aria-label="لصق"
+              onClick={() => editor && void novaPaste(editor)}
+            >
+              <ClipboardPaste size={20} />
             </button>
 
             <For each={toolbarGroups}>
