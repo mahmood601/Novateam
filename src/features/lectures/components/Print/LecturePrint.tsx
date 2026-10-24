@@ -230,6 +230,12 @@ export default function LecturePrint(props: Props) {
     pagesEl.style.marginBottom = `${-(naturalHeight * (1 - scale))}px`;
   }
 
+  let printMql: MediaQueryList | undefined;
+  function onPrintMediaChange(e: MediaQueryListEvent) {
+    if (e.matches) resetScaleForPrint();
+    else applyResponsiveScale();
+  }
+
   function resetScaleForPrint() {
     const pagesEl = outputEl?.querySelector<HTMLElement>(".pagedjs_pages");
     if (!pagesEl) return;
@@ -252,16 +258,21 @@ export default function LecturePrint(props: Props) {
     window.addEventListener("resize", applyResponsiveScale);
     window.addEventListener("beforeprint", resetScaleForPrint);
     window.addEventListener("afterprint", applyResponsiveScale);
+    // Android Chrome often skips beforeprint/afterprint; the media query
+    // change is the reliable signal.
+    printMql = window.matchMedia("print");
+    printMql.addEventListener("change", onPrintMediaChange);
   });
 
   onCleanup(() => {
     window.removeEventListener("resize", applyResponsiveScale);
     window.removeEventListener("beforeprint", resetScaleForPrint);
     window.removeEventListener("afterprint", applyResponsiveScale);
+    printMql?.removeEventListener("change", onPrintMediaChange);
   });
 
   return (
-    <div class="flex flex-1 flex-col h-fit overflow-scroll">
+    <div class="flex flex-1 flex-col h-fit overflow-scroll print:overflow-visible">
       <Show when={ready()}>
         <div class="fixed top-4 left-4 z-50 flex gap-3 print:hidden">
           <button

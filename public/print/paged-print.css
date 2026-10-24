@@ -284,10 +284,6 @@
   text-align: center;
 }
 
-.toc-page-num::after {
-  content: target-counter(attr(href), page);
-}
-
 .toc table a {
   text-decoration: none;
   color: #000;
@@ -559,15 +555,22 @@
   }
 }
 
+/* الطباعة + معاينة A4 (Paged.js): الجدول يبقى جدولاً حقيقياً (display: table)
+   بعرض 100% وتوزيع الأعمدة من <colgroup> فقط.
+   ملاحظة: بدون !important حتى يبقى style="width: X%" المضمّن (tableWidth) يعمل. */
 .print-area table,
-.pagedjs_page table {
+.pagedjs_page table,
+.lecture-body table {
+  display: table;
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin: 0.5rem 0;
 }
 
-.lecture-body table,
+/* صفحة القراءة فقط (ليست الطباعة): جدول كتلة قابل للتمرير أفقياً */
 .lecture-content table {
   display: block;
   width: max-content;
@@ -585,7 +588,6 @@
 }
 
 @media (max-width: 768px) {
-  .lecture-body table,
   .lecture-content table {
     min-width: 680px;
 
@@ -615,17 +617,6 @@
   white-space: normal;
 }
 
-.lecture-content table th,
-.nova-tiptap-content table th,
-.lecture-body table th,
-.print-area table th {
-  background-color: var(--editor-chrome-bg, #f3f4f6);
-  font-weight: 600;
-  text-align: start;
-  p {
-    font-family: "OoredooArabic-Heavy";
-  }
-}
 
 .lecture-body,
 .tiptap,
@@ -642,7 +633,7 @@
   table th {
     border: 1px solid var(--nova-color);
     padding: 6px 10px;
-    vertical-align: center;
+    vertical-align: middle;
     box-sizing: border-box;
     position: relative;
     text-align: center;
