@@ -9,6 +9,7 @@ import {
 import { cacheLectureImages } from "../services/imageCache";
 import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
+import LectureNotes from "./LectureNotes";
 import { renderAllDiagramsInContainer } from "@/features/editor/lib/diagram-renderer";
 
 interface Props {
@@ -23,6 +24,8 @@ interface Props {
 
 export default function LectureContent(props: Props) {
   const [containerEl, setContainerEl] = createSignal<HTMLDivElement | undefined>();
+  // يزيد كل ما أُعيد حقن الـHTML، ليعرف مكوّن الملاحظات أنه لازم يعيد قراءة الفقرات.
+  const [renderTick, setRenderTick] = createSignal(0);
 
   // المصدر التفاعلي: [subjectId, seasonId] — أي تغيير فيهم (تبديل محاضرة
   // من الـSidebar بدون remount كامل للصفحة) بيعيد الجلب تلقائياً.
@@ -64,6 +67,8 @@ export default function LectureContent(props: Props) {
         if (el.isConnected) highlightInLecture(el, query);
       });
     }
+
+    setRenderTick((t) => t + 1);
   });
 
   return (
@@ -79,7 +84,15 @@ export default function LectureContent(props: Props) {
           </p>
         }
       >
-        <LectureRender html="" ref={(el) => setContainerEl(el)} />
+        <div class="nova-notes-root">
+          <LectureRender html="" ref={(el) => setContainerEl(el)} />
+          <LectureNotes
+            container={containerEl()}
+            tick={renderTick()}
+            subjectId={props.subjectId}
+            seasonId={props.seasonId}
+          />
+        </div>
       </Show>
     </Show>
   );

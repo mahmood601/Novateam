@@ -261,6 +261,11 @@
   width: 100%;
   table-layout: fixed;
   color: #000 !important;
+
+  th {
+    background: #ec008c !important;
+    color: white !important;
+  }
 }
 
 /* ============================================
@@ -570,32 +575,6 @@
   margin: 0.5rem 0;
 }
 
-/* صفحة القراءة فقط (ليست الطباعة): جدول كتلة قابل للتمرير أفقياً */
-.lecture-content table {
-  display: block;
-  width: max-content;
-  min-width: 100%;
-  max-width: none;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-collapse: collapse;
-  table-layout: auto;
-  margin: 0.5rem 0;
-
-  tbody {
-    min-width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .lecture-content table {
-    min-width: 680px;
-
-    td, th {
-      min-width: 50vw;
-    }
-  }
-}
 
 .print-area table tbody,
 .pagedjs_page table tbody {
@@ -643,7 +622,11 @@
     background-color: var(--nova-color);
     font-weight: 600;
     text-align: center;
+    p{
+
     color: #fff;
+    font-family: "OoredooArabic-Heavy", sans-serif !important;
+    }
   }
 
   .selectedCell:after {
@@ -673,7 +656,7 @@
 .tiptap,
 .lecture-content {
   * {
-    font-family: "Hacen Tunisia";
+    font-family: "Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", sans-serif;
   }
 
   h1,
