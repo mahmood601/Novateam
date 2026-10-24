@@ -54,7 +54,7 @@ export default function AppName(_props: { hide?: Accessor<boolean> }) {
   return (
     <div
       role="status"
-      class="relative grid w-fit py-2 px-4 rounded-full text-xl font-bold bg-main-light dark:bg-main-dark"
+      class="relative grid w-fit py-2 rounded-full text-xl font-bold bg-main-light dark:bg-main-dark"
     >
       {/* Offline: spinning atom */}
       <span
