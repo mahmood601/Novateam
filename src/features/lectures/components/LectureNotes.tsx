@@ -163,16 +163,28 @@ export default function LectureNotes(props: Props) {
       while (n && n.parentElement !== el) n = n.parentElement;
       return n ? blocks.indexOf(n) : -1;
     };
+    // Touch browsers also fire EMULATED mouse events after a tap. Without
+    // this guard, tapping the button itself made the emulated mouseleave of
+    // the paragraph hide the button before the click reached it.
+    let touchMode = false;
+    const onPointerDown = (e: PointerEvent) => {
+      touchMode = e.pointerType !== "mouse";
+    };
     const onOver = (e: MouseEvent) => {
+      if (touchMode && e.type === "mouseover") return;
       const i = blockOf(e.target);
       setHoverIdx(i >= 0 ? i : null);
     };
-    const onLeave = () => setHoverIdx(null);
+    const onLeave = () => {
+      if (!touchMode) setHoverIdx(null);
+    };
 
+    window.addEventListener("pointerdown", onPointerDown, true);
     el.addEventListener("mouseover", onOver);
     el.addEventListener("click", onOver); // touch: tap a paragraph
     el.addEventListener("mouseleave", onLeave);
     onCleanup(() => {
+      window.removeEventListener("pointerdown", onPointerDown, true);
       el.removeEventListener("mouseover", onOver);
       el.removeEventListener("click", onOver);
       el.removeEventListener("mouseleave", onLeave);
