@@ -1,9 +1,14 @@
 import { useParams, A } from "@solidjs/router";
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createResource, createSignal, For, onMount, Show } from "solid-js";
 import { TransitionGroup } from "solid-transition-group";
 import { getFavorites, syncAndGetSections } from "../../quizzes/services/local/indexeddb";
 import { Tabs } from "@kobalte/core/tabs";
 import { CirclePlay } from "lucide-solid";
+import { preloadLectureRenderer } from "../../lectures/lib/lectureContentHtml";
+
+// Warms the lecture page chunk (small) as soon as the browser is idle.
+const preloadLecturePage = () =>
+  void import("../../lectures/pages/LectureViewPage");
 
 export default function SelectMenu() {
   const subject = `${useParams<{ subject: string }>().subject}`;
@@ -20,6 +25,11 @@ export default function SelectMenu() {
       .sort((a, b) => +a.value - +b.value) ?? [];
 
   const [activeIndex, setActiveIndex] = createSignal<number | null>(null);
+
+  onMount(() => {
+    const idle = (window as any).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 800));
+    idle(preloadLecturePage);
+  });
 
   return (
     <div class="bg-main-light dark:bg-main-dark flex h-dvh w-screen justify-center gap-3 overflow-hidden pt-16 text-center">
@@ -94,6 +104,10 @@ export default function SelectMenu() {
             {(section) => (
               <A
                 href={`lectures/${section.id}`}
+                // Pressing intent: the heavy Tiptap renderer starts
+                // downloading ~100ms before the click lands.
+                onPointerEnter={preloadLectureRenderer}
+                onTouchStart={preloadLectureRenderer}
                 class="dark:bg-lighter-dark-1 group dark:border-lighter-dark-2 hover:border-main relative mb-3 flex w-full flex-row-reverse items-center justify-between gap-1 rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <p>{section.name}</p>

@@ -1,4 +1,5 @@
 @font-face {
+  font-display: swap;
   font-family: "OoredooArabic-Heavy";
   src: url("/print/fonts/OoredooArabic-Heavy.ttf")
     format("truetype");
@@ -9,6 +10,7 @@
 
 /* الخط الإنجليزي - يغطي فقط حروف لاتينية */
 @font-face {
+  font-display: swap;
   font-family: 'NovaHeading';
   src: url("/print/fonts/OoredooArabic-Heavy.ttf")
     format("truetype");
@@ -19,6 +21,7 @@
 
 /* الخط العربي - يغطي فقط نطاقات الحروف العربية */
 @font-face {
+  font-display: swap;
   font-family: 'NovaHeading';
   src: url("/print/fonts/SourceSans3-Bold.ttf")
     format("truetype");
@@ -28,6 +31,7 @@
 }
 
 @font-face {
+  font-display: swap;
   font-family: 'Hacen Tunisia';
   src: url("/print/fonts/Hacen\ Tunisia\ Lt.ttf")
     format("truetype");
@@ -37,6 +41,7 @@
 }
 
 @font-face {
+  font-display: swap;
   font-family: 'Sora';
   src: url("/print/fonts/Sora-Bold.ttf")
     format("truetype");
@@ -44,6 +49,7 @@
 }
 
 @font-face {
+  font-display: swap;
   font-family: 'Recompense';
   src: url("/print/fonts/RECOMPENSE\ Regular.otf");
 }

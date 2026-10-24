@@ -87,6 +87,23 @@ export async function getLecture({ subjectId, seasonId, status } = {}) {
 }
 
 // ============================================
+// قراءة خفيفة — updated_at فقط (للتحقق من تغيّر المحاضرة دون جلب المحتوى)
+// ============================================
+export async function getLectureUpdatedAt({ subjectId, seasonId, status } = {}) {
+  let query = supabase
+    .from("formatted_lectures")
+    .select("id, updated_at")
+    .eq("subject_id", subjectId)
+    .eq("season_id", seasonId);
+
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) return { data: null, error: mapError(error) };
+  return { data: Array.isArray(data) ? (data[0] ?? null) : data, error: null };
+}
+
+// ============================================
 // قراءة (Read) — قائمة محاضرات، مع فلاتر اختيارية
 // ============================================
 export async function listLectures({ subjectId, seasonId, status } = {}) {

@@ -25,7 +25,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
   selfDestroying: process.env.SW_DESTROY === "true",
   includeAssets: ["favicon.svg"],
   workbox: {
-    globPatterns: ["**/*.{js,css,html,mp3,woff2,svg,webp,png,ico}"],
+    globPatterns: ["**/*.{js,css,html,mp3,woff2,ttf,otf,svg,webp,png,ico}"],
     maximumFileSizeToCacheInBytes: MAX_PRECACHE_BYTES,
     // Any navigation (refresh/deep link) offline → serve the cached app shell.
     navigateFallback: "index.html",

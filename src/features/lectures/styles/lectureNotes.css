@@ -18,7 +18,7 @@
    never overlaps or shifts the text. */
 .nova-note-btn {
   position: absolute;
-  left: -1.5rem;
+  right: -1.5rem;
   width: 1.5rem;
   height: 1.75rem;
   display: flex;
@@ -35,6 +35,7 @@
   -webkit-tap-highlight-color: transparent;
   transition: opacity 0.15s;
 }
+.nova-notes-root:hover .nova-note-btn,
 .nova-note-btn:hover,
 .nova-note-btn:focus-visible {
   opacity: 0.9;

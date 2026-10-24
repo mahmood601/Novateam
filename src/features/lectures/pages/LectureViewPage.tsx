@@ -1,5 +1,5 @@
 import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
-import { createEffect, createMemo, createResource, createSignal, on, onCleanup, onMount } from "solid-js";
+import { createEffect, createMemo, createSignal, on, onCleanup, onMount } from "solid-js";
 import LecturesLayout from "../components/LecturesLayout";
 import LectureContent from "../components/LectureContent";
 import LectureTOC from "../components/LectureTOC";
@@ -10,6 +10,8 @@ import {
   syncAndGetSections,
   getSeasons,
 } from "../../quizzes/services/local/indexeddb/sections";
+import { db } from "../../quizzes/services/local/indexeddb/db";
+import type { CachedSection } from "../../quizzes/types/cached-section";
 import type { LectureTocEntry } from "../lib/lectureContentHtml";
 import "../styles/lectureSearchHighlight.css";
 import "../../../../public/print/paged-print.css";
@@ -32,16 +34,45 @@ export default function LectureViewPage() {
   const [toc, setToc] = createSignal<LectureTocEntry[]>([]);
   const navigate = useNavigate();
 
-  const [subjectInfo] = createResource(subjectId, (id) => getSubjectInfo(id));
-  const [seasons] = createResource(subjectId, (id) =>
-    syncAndGetSections(id).then(() => getSeasons(id)),
+  // Plain signals, NOT createResource: reading a pending resource under the
+  // router's Suspense hides the whole page until it resolves. These two only
+  // feed the breadcrumb / prev-next, so they must never block the lecture.
+  const [subjectName, setSubjectName] = createSignal("");
+  const [seasons, setSeasons] = createSignal<CachedSection[]>([]);
+
+  createEffect(
+    on(subjectId, (id) => {
+      let stale = false;
+      onCleanup(() => (stale = true));
+
+      // Subject name: instant from the local cache, network only as a fallback.
+      db.subjects
+        .get(id)
+        .then((local) => {
+          if (stale) return;
+          if (local?.name) setSubjectName(local.name);
+          else
+            getSubjectInfo(id).then((info) => {
+              if (!stale && info?.name) setSubjectName(info.name);
+            });
+        })
+        .catch(() => {});
+
+      syncAndGetSections(id)
+        .then(() => getSeasons(id))
+        .then((list) => {
+          if (!stale) setSeasons(list);
+        })
+        .catch(() => {});
+    }),
   );
+
   const lectureName = () =>
-    seasons()?.find((s) => s.id === seasonId())?.name ?? `الفصل ${seasonId()}`;
+    seasons().find((s) => s.id === seasonId())?.name ?? `الفصل ${seasonId()}`;
 
   // Previous/next across ALL seasons, ordered by id (same order as the sidebar)
   const sortedSeasons = createMemo(() =>
-    [...(seasons() ?? [])].sort((a, b) => a.id - b.id),
+    [...seasons()].sort((a, b) => a.id - b.id),
   );
   const neighbors = createMemo(() => {
     const list = sortedSeasons();
@@ -75,7 +106,7 @@ export default function LectureViewPage() {
   });
 
   const breadcrumb = () => [
-    { label: subjectInfo()?.name ?? subjectId(), href: `/` },
+    { label: subjectName() || "...", href: `/` },
     { label: lectureName(), href: `/${subjectId()}` },
     { label: heading() || "..." },
   ];

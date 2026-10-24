@@ -21,4 +21,13 @@ export type CachedLectureContent = {
   id: string; // matches CachedLecture.id (formatted_lectures.id)
   content: unknown; // Tiptap JSONContent (formatted_lectures.content.raw)
   cached_at: string;
+  // formatted_lectures.updated_at at the time this body was fetched. Used to
+  // skip re-downloading / re-rendering when nothing changed on the server.
+  updated_at?: string;
+  // Pre-rendered reading HTML (built once on this device, see
+  // LectureContent). Valid only while html_src === updated_at and
+  // html_ver === LECTURE_HTML_VERSION; otherwise it is rebuilt.
+  html?: string;
+  html_src?: string;
+  html_ver?: number;
 };

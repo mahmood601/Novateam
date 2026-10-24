@@ -1,5 +1,14 @@
-import { Editor, type JSONContent } from "@tiptap/core";
-import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
+// IMPORTANT: no static import of @tiptap/core or extensionsArr here. They
+// weigh ~1.7 MB of JS; this module is imported by the reading view, which
+// should only pay for them when a lecture's HTML really has to be built
+// (see jsonToLectureHtml, which loads them on demand).
+import type { JSONContent } from "@tiptap/core";
+
+/** Starts downloading the Tiptap renderer without running anything. */
+export function preloadLectureRenderer(): void {
+  void import("@tiptap/core");
+  void import("@/features/editor/tiptap/extensions/extensionsArr");
+}
 
 function migrateLegacyDiagramNodes<T>(value: T): T {
   if (Array.isArray(value)) {
@@ -33,7 +42,9 @@ function migrateLegacyDiagramNodes<T>(value: T): T {
 // the Markdown extension from the shared array the first time it runs
 // (and a second extension on any later call). Filtered here instead,
 // non-destructively, so this and the print path can't step on each other.
-export function jsonToLectureHtml(content: JSONContent | null): string {
+export async function jsonToLectureHtml(
+  content: JSONContent | null,
+): Promise<string> {
   if (!content) return "";
   const normalizedContent = migrateLegacyDiagramNodes(content);
 
@@ -51,6 +62,20 @@ export function jsonToLectureHtml(content: JSONContent | null): string {
     );
     return "";
   }
+
+  const [{ Editor }, { extensionsArr }] = await Promise.all([
+    import("@tiptap/core"),
+    import("@/features/editor/tiptap/extensions/extensionsArr"),
+  ]);
+
+  // Let the browser paint the "building" state before the heavy
+  // synchronous part below (schema + editor creation) blocks the thread.
+  // The timeout covers background tabs, where rAF never fires.
+  await new Promise<void>((resolve) => {
+    const done = () => resolve();
+    requestAnimationFrame(() => setTimeout(done, 0));
+    setTimeout(done, 150);
+  });
 
   const readExts = extensionsArr.filter((ext) => ext.name !== "markdown");
   const editor = new Editor({
