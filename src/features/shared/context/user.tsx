@@ -95,7 +95,7 @@ export function UserProvider(props: any) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${location.origin}/profile`,
+        redirectTo: `${location.origin}/`,
         scopes: "email profile openid",
         skipBrowserRedirect: true, // ← لا تحوّل الـ tab الحالي
       },

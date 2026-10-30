@@ -25,8 +25,57 @@ const pwaOptions: Partial<VitePWAOptions> = {
   selfDestroying: process.env.SW_DESTROY === "true",
   includeAssets: ["favicon.svg"],
   workbox: {
-    globPatterns: ["**/*.{js,css,html,mp3,woff2,ttf,otf,svg,webp,png,ico}"],
+    // PRECACHE = only what the app shell needs. The previous glob pulled in
+    // 137 files (~11 MB: every lazy chunk, images, audio, all font subsets) on
+    // the very first visit, competing with the page's own load.
+    globPatterns: ["**/*.{js,css,html,woff2,svg,ico}", "icons/*.png"],
+    globIgnores: [
+      // Heavy, rarely used chunks → cached on first use (runtimeCaching below).
+      "**/diagram-renderer-*.js",
+      "**/extensionsArr-*.js",
+      "**/EditorPage-*.js",
+      "**/QuizEditor-*.js",
+      "**/PrintPage-*.js",
+      "**/paged-print-*",
+      "**/src-*.js",
+      "**/dist-*.js",
+      // Unused font subsets (keep arabic + latin only).
+      "**/*-vietnamese-*",
+      "**/*-latin-ext-*",
+    ],
     maximumFileSizeToCacheInBytes: MAX_PRECACHE_BYTES,
+    runtimeCaching: [
+      {
+        // Hashed build chunks are immutable → safe to serve cache-first.
+        urlPattern: ({ url }) =>
+          url.pathname.startsWith("/assets/") && /\.(js|css)$/.test(url.pathname),
+        handler: "CacheFirst",
+        options: {
+          cacheName: "lazy-chunks",
+          expiration: { maxEntries: 80, maxAgeSeconds: 60 * 24 * 60 * 60 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: ({ request }) => request.destination === "image",
+        handler: "CacheFirst",
+        options: {
+          cacheName: "images",
+          expiration: { maxEntries: 150, maxAgeSeconds: 60 * 24 * 60 * 60 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: ({ request }) => request.destination === "audio",
+        handler: "CacheFirst",
+        options: {
+          cacheName: "audio",
+          rangeRequests: true, // <audio> sends Range requests
+          expiration: { maxEntries: 30 },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+    ],
     // Any navigation (refresh/deep link) offline → serve the cached app shell.
     navigateFallback: "index.html",
   },

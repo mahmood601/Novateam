@@ -2,7 +2,7 @@ import type { Component } from "solid-js";
 import { createEffect, createSignal, on, Show } from "solid-js";
 import { useRegisterSW } from "virtual:pwa-register/solid";
 import toast from "solid-toast";
-import { CircleCheck, RefreshCw } from "lucide-solid";
+import { CircleCheck, RefreshCw, X } from "lucide-solid";
 
 // A fixed id means "only ever one update toast on screen": if the effect
 // fires twice, solid-toast updates the existing toast instead of stacking a new one.
@@ -127,7 +127,7 @@ const ReloadPrompt: Component = () => {
       (t) => (
         <div
           dir="rtl"
-          class="bg-main-light dark:bg-lighter-dark-1 text-main-dark flex items-center gap-3 rounded-2xl border border-black/10 px-4 py-3 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-white"
+          class="bg-main-light dark:bg-lighter-dark-1 text-main-dark flex items-center gap-3 rounded-2xl border border-black/10 py-3 ps-4 pe-2 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-white"
           classList={{
             "translate-y-0 opacity-100": t.visible,
             "translate-y-2 opacity-0": !t.visible,
@@ -137,9 +137,17 @@ const ReloadPrompt: Component = () => {
           <p class="text-sm font-semibold">
             التطبيق أصبح متاحاً بدون اتصال بالإنترنت 🎉
           </p>
+          <button
+            aria-label="إغلاق"
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-60 transition hover:bg-black/5 active:scale-90 dark:hover:bg-white/10"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            <X size={16} />
+          </button>
         </div>
       ),
-      { duration: 4000, position: "bottom-center" },
+      // Short-lived: it's only a confirmation, not something to act on.
+      { duration: 3000, position: "bottom-center" },
     );
   };
 
