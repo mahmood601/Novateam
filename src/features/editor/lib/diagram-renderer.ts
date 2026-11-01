@@ -30,7 +30,8 @@ function peleTheme(accent?: NovaColor | null, forPrint = false): string {
     "--pele-surface-alt": dark ? "#334155" : "#f1f5f9",
     "--pele-border": dark ? "#475569" : "#cbd5e1",
     "--pele-accent": NOVA_COLOR_HEX[accent ?? "blue"],
-    "--pele-font": "inherit",
+    // Keep diagram text metrics stable regardless of user-selected app font.
+    "--pele-font": '"Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", "Readex Pro Variable", sans-serif',
     "--pele-radius": "8px",
   };
   // Series 1-7 = the 7 Nova heading colors, in heading order.

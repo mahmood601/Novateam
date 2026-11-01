@@ -61,7 +61,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
         handler: "CacheFirst",
         options: {
           cacheName: "images",
-          expiration: { maxEntries: 150, maxAgeSeconds: 60 * 24 * 60 * 60 },
+          expiration: { maxEntries: 600, maxAgeSeconds: 60 * 24 * 60 * 60 },
           cacheableResponse: { statuses: [0, 200] },
         },
       },

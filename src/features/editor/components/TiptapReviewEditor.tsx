@@ -88,6 +88,8 @@ import {
   novaPaste,
 } from "../tiptap/extensions/NovaClipboard";
 import Menu from "./DropdownMenu";
+import toast from "solid-toast";
+import { uploadLectureImage } from "../../shared/services/r2Upload";
 import {
   syncAndGetSections,
   getSeasons,
@@ -532,6 +534,44 @@ export default function TiptapReviewEditor(props: {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  // ── Upload images from the device (WebP conversion + R2 happen inside
+  //    uploadLectureImage). Used by the insert menu, paste and drag-drop.
+  const imageFilesOf = (list?: FileList | null) =>
+    [...(list ?? [])].filter((f) => f.type.startsWith("image/"));
+
+  const uploadFigures = async (files: File[]) => {
+    for (const file of files) {
+      const job = uploadLectureImage(file);
+      toast.promise(job, {
+        loading: "جاري تحويل الصورة ورفعها...",
+        success: "تم رفع الصورة",
+        error: (e: unknown) => (e instanceof Error ? e.message : "فشل الرفع"),
+      });
+      try {
+        const url = await job;
+        editor?.chain().focus().setImage({ src: url, caption: "" } as any).run();
+      } catch {
+        /* the toast above already told the user */
+      }
+    }
+  };
+
+  const pickAndUploadImages = () => {
+    // The input must be in the DOM: on iOS Safari a detached input can
+    // silently never fire `change`.
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.style.display = "none";
+    input.onchange = () => {
+      void uploadFigures(imageFilesOf(input.files));
+      input.remove();
+    };
+    document.body.appendChild(input);
+    input.click();
+  };
+
   const addFigure = async () => {
     const res = await askInput("إدراج صورة", [
       {
@@ -604,8 +644,14 @@ export default function TiptapReviewEditor(props: {
   /** Build the insert-menu items. Editor must already exist. */
   const getInsertItems = (): MenuSheetItem[] => [
     {
+      id: "image-upload",
+      label: "رفع صورة",
+      icon: ImagePlus,
+      onClick: pickAndUploadImages,
+    },
+    {
       id: "image",
-      label: "صورة",
+      label: "صورة (رابط)",
       icon: ImagePlus,
       onClick: () => {
         void addFigure();
@@ -685,6 +731,23 @@ export default function TiptapReviewEditor(props: {
       element: containerRef,
       content: raw(),
       extensions: [...extensionsArr],
+      editorProps: {
+        // Pasting / dropping image FILES uploads them. Anything else
+        // (text, tables, Nova's own clipboard format) returns false and
+        // goes down the normal paste path untouched.
+        handlePaste: (_view, event) => {
+          const files = imageFilesOf(event.clipboardData?.files);
+          if (!files.length) return false;
+          void uploadFigures(files);
+          return true;
+        },
+        handleDrop: (_view, event) => {
+          const files = imageFilesOf(event.dataTransfer?.files);
+          if (!files.length) return false;
+          void uploadFigures(files);
+          return true;
+        },
+      },
       onTransaction: () => setTick((t) => t + 1),
       onUpdate: ({ editor: e }) => handleInputChange(e.getJSON()),
     });

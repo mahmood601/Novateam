@@ -240,6 +240,34 @@
   }
 }
 /* Pele diagrams */
-.pele { display: block; max-width: 100%; margin-inline: auto; }
-.pele svg { max-width: 100%; height: auto; }
+.pele {
+  display: block;
+  max-width: 100%;
+  margin-inline: auto;
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+.pele svg {
+  max-width: 100%;
+  height: auto;
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+.pele svg text,
+.pele svg tspan {
+  font-family: var(--pele-font) !important;
+  line-height: 1;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  text-align: right;
+}
 .pele-print svg { max-width: 100%; }
+
+
+.lecture-content {
+  .pele svg text,
+.pele svg tspan {
+  line-height: .8;
+  font-size: .75rem;
+}
+}

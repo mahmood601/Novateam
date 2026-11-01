@@ -264,24 +264,9 @@ export default function FormatSheet(props: {
         transition: "height 0.2s ease",
         display: "flex",
         "flex-direction": "column",
-        "max-height": "45dvh",
+        "max-height": "65dvh",
       }}
     >
-      <div
-        class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-2"
-        dir="rtl"
-      >
-        <span class="font-medium">تنسيق</span>
-        <button
-          type="button"
-          class="rounded-full p-2"
-          aria-label="إغلاق"
-          onClick={props.onClose}
-        >
-          <X size={20} />
-        </button>
-      </div>
-
       <div
         class="sheet-track min-h-0 flex-1 overflow-y-hidden"
         style={{
@@ -294,97 +279,110 @@ export default function FormatSheet(props: {
         {/* ROOT PANEL */}
         <div
           ref={rootRef}
-          class="flex w-full flex-col gap-0.5 overflow-y-scroll p-2"
+          class="flex w-full flex-col gap-0.5 p-2"
           dir="rtl"
         >
-          <FormatRow
-            icon={Heading}
-            label="نوع النص"
-            trailingLabel={currentTextStyleLabel()}
-            onClick={() => setPanel("textStyle")}
-          />
-          <FormatRow
-            icon={Type}
-            label="الخط"
-            trailingLabel={currentFontFamilyLabel()}
-            onClick={() => setPanel("fontFamily")}
-          />
-          <FontSizeRow
-            icon={ALargeSmall}
-            label="حجم الخط"
-            value={currentFontSize()}
-            onDecrement={() => setFontSize(currentFontSize() - 1)}
-            onIncrement={() => setFontSize(currentFontSize() + 1)}
-          />
-
-          <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
-
-          <FormatRow
-            icon={Baseline}
-            label="لون النص"
-            swatch={currentColor()}
-            onClick={() => setPanel("textColor")}
-          />
-          <FormatRow
-            icon={PaintBucket}
-            label="لون خلفية النص"
-            swatch={currentBackground()}
-            onClick={() => setPanel("textBackground")}
-          />
-          <FormatRow
-            icon={Highlighter}
-            label="التظليل"
-            swatch={currentHighlight()}
-            onClick={() => setPanel("highlight")}
-          />
-
-          <Show when={isInTable()}>
-            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
-            <FormatRow
-              icon={PaintBucket}
-              label="تنسيق الجدول"
-              trailingLabel="الخلفية والحدود"
-              onClick={() => setPanel("tableFormat")}
-            />
-          </Show>
-
-          <Show when={isInBox()}>
-            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
-            <FormatRow
-              icon={PaintBucket}
-              label="تنسيق الصندوق"
-              trailingLabel="الخلفية والحدود"
-              onClick={() => setPanel("boxFormat")}
-            />
-          </Show>
-
-          <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
-
-          <div class="flex w-full items-center gap-2 px-1 py-1.5">
+          <div
+            class="border-b-darker-light-1 dark:border-b-lighter-dark-2 flex items-center justify-between border-b-2 px-3 py-1"
+            dir="rtl"
+          >
+            <span class="font-medium">تنسيق</span>
             <button
               type="button"
-              classList={{
-                "bg-darker-light-1 dark:bg-lighter-dark-2": isSubscript(),
-              }}
-              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
-              title="نص سفلي (Subscript)"
-              onClick={() => ed()?.chain().focus().toggleSubscript().run()}
+              class="rounded-full p-2"
+              aria-label="إغلاق"
+              onClick={props.onClose}
             >
-              <Subscript size={18} />
-              <span>نص سفلي</span>
+              <X size={20} />
             </button>
-            <button
-              type="button"
-              classList={{
-                "bg-darker-light-1 dark:bg-lighter-dark-2": isSuperscript(),
-              }}
-              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
-              title="نص علوي (Superscript)"
-              onClick={() => ed()?.chain().focus().toggleSuperscript().run()}
-            >
-              <Superscript size={18} />
-              <span>نص علوي</span>
-            </button>
+          </div>
+          <div
+          class="flex w-full flex-col gap-0.5 overflow-y-scroll p-2"
+          >
+            {" "}
+            <FormatRow
+              icon={Heading}
+              label="نوع النص"
+              trailingLabel={currentTextStyleLabel()}
+              onClick={() => setPanel("textStyle")}
+            />
+            <FormatRow
+              icon={Type}
+              label="الخط"
+              trailingLabel={currentFontFamilyLabel()}
+              onClick={() => setPanel("fontFamily")}
+            />
+            <FontSizeRow
+              icon={ALargeSmall}
+              label="حجم الخط"
+              value={currentFontSize()}
+              onDecrement={() => setFontSize(currentFontSize() - 1)}
+              onIncrement={() => setFontSize(currentFontSize() + 1)}
+            />
+            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+            <FormatRow
+              icon={Baseline}
+              label="لون النص"
+              swatch={currentColor()}
+              onClick={() => setPanel("textColor")}
+            />
+            <FormatRow
+              icon={PaintBucket}
+              label="لون خلفية النص"
+              swatch={currentBackground()}
+              onClick={() => setPanel("textBackground")}
+            />
+            <FormatRow
+              icon={Highlighter}
+              label="التظليل"
+              swatch={currentHighlight()}
+              onClick={() => setPanel("highlight")}
+            />
+            <Show when={isInTable()}>
+              <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+              <FormatRow
+                icon={PaintBucket}
+                label="تنسيق الجدول"
+                trailingLabel="الخلفية والحدود"
+                onClick={() => setPanel("tableFormat")}
+              />
+            </Show>
+            <Show when={isInBox()}>
+              <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+              <FormatRow
+                icon={PaintBucket}
+                label="تنسيق الصندوق"
+                trailingLabel="الخلفية والحدود"
+                onClick={() => setPanel("boxFormat")}
+              />
+            </Show>
+            <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
+            <div class="flex w-full items-center gap-2 px-1 py-1.5">
+              <button
+                type="button"
+                classList={{
+                  "bg-darker-light-1 dark:bg-lighter-dark-2": isSubscript(),
+                }}
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
+                title="نص سفلي (Subscript)"
+                onClick={() => ed()?.chain().focus().toggleSubscript().run()}
+              >
+                <Subscript size={18} />
+                <span>نص سفلي</span>
+              </button>
+              <button
+                type="button"
+                classList={{
+                  "bg-darker-light-1 dark:bg-lighter-dark-2": isSuperscript(),
+                }}
+                class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex flex-1 items-center justify-center gap-2 rounded py-2 text-sm"
+                title="نص علوي (Superscript)"
+                onClick={() => ed()?.chain().focus().toggleSuperscript().run()}
+              >
+                <Superscript size={18} />
+                <span>نص علوي</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -395,254 +393,267 @@ export default function FormatSheet(props: {
           dir="rtl"
         >
           <Show when={panel() !== "root"}>
-            <button
-              type="button"
-              class="border-b-darker-light-1 dark:border-b-lighter-dark-2 mb-1 flex w-full shrink-0 items-center gap-2 border-b-2 px-3 py-2"
-              onClick={() => setPanel("root")}
-            >
-              <ArrowRight size={18} />
-              <span class="flex-1 text-right">
-                {LEAF_TITLES[panel() as Exclude<PanelId, "root">]}
-              </span>
-            </button>
+            <div class="border-b-darker-light-1 dark:border-b-lighter-dark-2 mb-1 flex w-full shrink-0 items-center gap-2 border-b-2 px-3 py-1">
+              <button
+                type="button"
+                class="mb-1 flex flex-1 shrink-0 items-center gap-2 px-3 py-2"
+                onClick={() => setPanel("root")}
+              >
+                <ArrowRight size={18} />
+                <span class="flex-1 text-right">
+                  {LEAF_TITLES[panel() as Exclude<PanelId, "root">]}
+                </span>
+              </button>
+              <button
+                type="button"
+                class="it rounded-full p-2"
+                aria-label="إغلاق"
+                onClick={props.onClose}
+              >
+                <X size={20} />
+              </button>
+            </div>
 
             {/* Only this body scrolls; the back button above never moves. */}
             <div class="min-h-0 flex-1 overflow-y-auto">
-            <Switch>
-              <Match when={panel() === "textStyle"}>
-                <For each={TEXT_STYLE_ITEMS}>
-                  {(item) => (
-                    <ListItemRow
-                      icon={item.icon}
-                      label={item.label}
-                      active={
-                        item.level === null
-                          ? (ed()?.isActive("paragraph") ?? false)
-                          : (ed()?.isActive("heading", { level: item.level }) ??
-                            false)
-                      }
-                      onClick={() => setTextStyle(item.level)}
-                    />
-                  )}
-                </For>
-              </Match>
+              <Switch>
+                <Match when={panel() === "textStyle"}>
+                  <For each={TEXT_STYLE_ITEMS}>
+                    {(item) => (
+                      <ListItemRow
+                        icon={item.icon}
+                        label={item.label}
+                        active={
+                          item.level === null
+                            ? (ed()?.isActive("paragraph") ?? false)
+                            : (ed()?.isActive("heading", {
+                                level: item.level,
+                              }) ?? false)
+                        }
+                        onClick={() => setTextStyle(item.level)}
+                      />
+                    )}
+                  </For>
+                </Match>
 
-              <Match when={panel() === "fontFamily"}>
-                <For each={FONT_FAMILY_CHOICES}>
-                  {(choice) => (
-                    <ListItemRow
-                      label={choice.label}
-                      active={currentFontFamily() === choice.value}
-                      previewStyle={{ "font-family": choice.previewFont }}
-                      onClick={() => setFontFamily(choice.value)}
-                    />
-                  )}
-                </For>
-              </Match>
+                <Match when={panel() === "fontFamily"}>
+                  <For each={FONT_FAMILY_CHOICES}>
+                    {(choice) => (
+                      <ListItemRow
+                        label={choice.label}
+                        active={currentFontFamily() === choice.value}
+                        previewStyle={{ "font-family": choice.previewFont }}
+                        onClick={() => setFontFamily(choice.value)}
+                      />
+                    )}
+                  </For>
+                </Match>
 
-              <Match when={panel() === "textColor"}>
-                <WordColorPicker
-                  current={currentColor()}
-                  resetLabel="افتراضي"
-                  onSelect={(v) => applyColor("textColor", v)}
-                />
-              </Match>
+                <Match when={panel() === "textColor"}>
+                  <WordColorPicker
+                    current={currentColor()}
+                    resetLabel="افتراضي"
+                    onSelect={(v) => applyColor("textColor", v)}
+                  />
+                </Match>
 
-              <Match when={panel() === "boxFormat"}>
-                <BoxStylePanel
-                  editor={ed()!}
-                  onClose={() => void setBoxPanelOpen(false)}
-                />
-              </Match>
+                <Match when={panel() === "boxFormat"}>
+                  <BoxStylePanel
+                    editor={ed()!}
+                    onClose={() => void setBoxPanelOpen(false)}
+                  />
+                </Match>
 
-              <Match when={panel() === "textBackground"}>
-                <WordColorPicker
-                  current={currentBackground()}
-                  resetLabel="بلا لون"
-                  onSelect={(v) => applyColor("textBackground", v)}
-                />
-              </Match>
+                <Match when={panel() === "textBackground"}>
+                  <WordColorPicker
+                    current={currentBackground()}
+                    resetLabel="بلا لون"
+                    onSelect={(v) => applyColor("textBackground", v)}
+                  />
+                </Match>
 
-              <Match when={panel() === "highlight"}>
-                <WordColorPicker
-                  current={currentHighlight()}
-                  resetLabel="بلا تظليل"
-                  onSelect={(v) => applyColor("highlight", v)}
-                />
-              </Match>
+                <Match when={panel() === "highlight"}>
+                  <WordColorPicker
+                    current={currentHighlight()}
+                    resetLabel="بلا تظليل"
+                    onSelect={(v) => applyColor("highlight", v)}
+                  />
+                </Match>
 
-              <Match when={panel() === "tableFormat"}>
-                <div class="flex flex-col gap-4 px-1 py-2">
-                  {/* Word ▸ Table Properties ▸ Preferred width ▸ Percent */}
-                  <div class="flex flex-col gap-2">
-                    <PercentField
-                      label="عرض الجدول"
-                      value={tableWidthPct()}
-                      min={10}
-                      max={100}
-                      onCommit={(v) => {
-                        const e = ed();
-                        if (e) setTableWidthPercent(e, v);
-                      }}
-                    />
-                    <PercentField
-                      label="عرض العمود / الخلية"
-                      value={columnWidthPct()}
-                      min={5}
-                      max={95}
-                      onCommit={(v) => {
-                        const e = ed();
-                        if (e) setColumnWidthPercent(e, v);
-                      }}
-                    />
-                    <div
-                      class="px-1 text-xs"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      عرض العمود نسبةً من عرض الجدول، والأعمدة الأخرى تتقاسم
-                      الباقي ليبقى المجموع ١٠٠٪.
+                <Match when={panel() === "tableFormat"}>
+                  <div class="flex flex-col gap-4 px-1 py-2">
+                    {/* Word ▸ Table Properties ▸ Preferred width ▸ Percent */}
+                    <div class="flex flex-col gap-2">
+                      <PercentField
+                        label="عرض الجدول"
+                        value={tableWidthPct()}
+                        min={10}
+                        max={100}
+                        onCommit={(v) => {
+                          const e = ed();
+                          if (e) setTableWidthPercent(e, v);
+                        }}
+                      />
+                      <PercentField
+                        label="عرض العمود / الخلية"
+                        value={columnWidthPct()}
+                        min={5}
+                        max={95}
+                        onCommit={(v) => {
+                          const e = ed();
+                          if (e) setColumnWidthPercent(e, v);
+                        }}
+                      />
+                      <div
+                        class="px-1 text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        عرض العمود نسبةً من عرض الجدول، والأعمدة الأخرى تتقاسم
+                        الباقي ليبقى المجموع ١٠٠٪.
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+                    <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
 
-                  {/* Scope: apply the pickers below to the selected cells
+                    {/* Scope: apply the pickers below to the selected cells
                       only, or to every cell in the table at once. */}
-                  <div class="bg-darker-light-1 dark:bg-lighter-dark-2 flex items-center gap-1 rounded-full p-1 text-sm">
-                    <button
-                      type="button"
-                      class="flex-1 rounded-full py-1.5"
-                      classList={{
-                        "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
-                          tableScope() === "selected",
-                      }}
-                      onClick={() => setTableScope("selected")}
-                    >
-                      الخلايا المحددة
-                    </button>
-                    <button
-                      type="button"
-                      class="flex-1 rounded-full py-1.5"
-                      classList={{
-                        "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
-                          tableScope() === "table",
-                      }}
-                      onClick={() => setTableScope("table")}
-                    >
-                      كل الجدول
-                    </button>
+                    <div class="bg-darker-light-1 dark:bg-lighter-dark-2 flex items-center gap-1 rounded-full p-1 text-sm">
+                      <button
+                        type="button"
+                        class="flex-1 rounded-full py-1.5"
+                        classList={{
+                          "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
+                            tableScope() === "selected",
+                        }}
+                        onClick={() => setTableScope("selected")}
+                      >
+                        الخلايا المحددة
+                      </button>
+                      <button
+                        type="button"
+                        class="flex-1 rounded-full py-1.5"
+                        classList={{
+                          "bg-main-light dark:bg-lighter-dark-1 shadow-sm":
+                            tableScope() === "table",
+                        }}
+                        onClick={() => setTableScope("table")}
+                      >
+                        كل الجدول
+                      </button>
+                    </div>
+
+                    <div>
+                      <div
+                        class="mb-1 px-1 text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        خلفية الخلية
+                      </div>
+                      <WordColorPicker
+                        current={currentCellBackground()}
+                        resetLabel="بلا لون"
+                        onSelect={(v) =>
+                          applyTableAttrs({ backgroundColor: v })
+                        }
+                      />
+                    </div>
+
+                    <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                    <div>
+                      <div
+                        class="mb-1 px-1 text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        شكل الحدود
+                      </div>
+                      <div class="flex flex-wrap gap-2 px-1">
+                        <For each={BORDER_STYLE_ITEMS}>
+                          {(item) => (
+                            <button
+                              type="button"
+                              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
+                              classList={{
+                                "border-2": currentBorderStyle() === item.value,
+                              }}
+                              style={{
+                                "border-color":
+                                  currentBorderStyle() === item.value
+                                    ? "var(--color-main)"
+                                    : "var(--editor-chrome-border)",
+                                color:
+                                  currentBorderStyle() === item.value
+                                    ? "var(--color-main)"
+                                    : "inherit",
+                              }}
+                              onClick={() =>
+                                applyTableAttrs({ borderStyle: item.value })
+                              }
+                            >
+                              {item.label}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+
+                    <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                    <div>
+                      <div
+                        class="mb-1 px-1 text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        حجم الحد
+                      </div>
+                      <div class="flex flex-wrap gap-2 px-1">
+                        <For each={BORDER_WIDTH_ITEMS}>
+                          {(item) => (
+                            <button
+                              type="button"
+                              class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
+                              classList={{
+                                "border-2": currentBorderWidth() === item.value,
+                              }}
+                              style={{
+                                "border-color":
+                                  currentBorderWidth() === item.value
+                                    ? "var(--color-main)"
+                                    : "var(--editor-chrome-border)",
+                                color:
+                                  currentBorderWidth() === item.value
+                                    ? "var(--color-main)"
+                                    : "inherit",
+                              }}
+                              onClick={() =>
+                                applyTableAttrs({ borderWidth: item.value })
+                              }
+                            >
+                              {item.label}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+
+                    <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
+
+                    <div>
+                      <div
+                        class="mb-1 px-1 text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        لون الحدود
+                      </div>
+                      <WordColorPicker
+                        current={currentBorderColor()}
+                        resetLabel="افتراضي"
+                        onSelect={(v) => applyTableAttrs({ borderColor: v })}
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <div
-                      class="mb-1 px-1 text-xs"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      خلفية الخلية
-                    </div>
-                    <WordColorPicker
-                      current={currentCellBackground()}
-                      resetLabel="بلا لون"
-                      onSelect={(v) => applyTableAttrs({ backgroundColor: v })}
-                    />
-                  </div>
-
-                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
-
-                  <div>
-                    <div
-                      class="mb-1 px-1 text-xs"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      شكل الحدود
-                    </div>
-                    <div class="flex flex-wrap gap-2 px-1">
-                      <For each={BORDER_STYLE_ITEMS}>
-                        {(item) => (
-                          <button
-                            type="button"
-                            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
-                            classList={{
-                              "border-2": currentBorderStyle() === item.value,
-                            }}
-                            style={{
-                              "border-color":
-                                currentBorderStyle() === item.value
-                                  ? "var(--color-main)"
-                                  : "var(--editor-chrome-border)",
-                              color:
-                                currentBorderStyle() === item.value
-                                  ? "var(--color-main)"
-                                  : "inherit",
-                            }}
-                            onClick={() =>
-                              applyTableAttrs({ borderStyle: item.value })
-                            }
-                          >
-                            {item.label}
-                          </button>
-                        )}
-                      </For>
-                    </div>
-                  </div>
-
-                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
-
-                  <div>
-                    <div
-                      class="mb-1 px-1 text-xs"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      حجم الحد
-                    </div>
-                    <div class="flex flex-wrap gap-2 px-1">
-                      <For each={BORDER_WIDTH_ITEMS}>
-                        {(item) => (
-                          <button
-                            type="button"
-                            class="hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 rounded-full border px-3 py-1.5 text-sm"
-                            classList={{
-                              "border-2": currentBorderWidth() === item.value,
-                            }}
-                            style={{
-                              "border-color":
-                                currentBorderWidth() === item.value
-                                  ? "var(--color-main)"
-                                  : "var(--editor-chrome-border)",
-                              color:
-                                currentBorderWidth() === item.value
-                                  ? "var(--color-main)"
-                                  : "inherit",
-                            }}
-                            onClick={() =>
-                              applyTableAttrs({ borderWidth: item.value })
-                            }
-                          >
-                            {item.label}
-                          </button>
-                        )}
-                      </For>
-                    </div>
-                  </div>
-
-                  <div class="border-darker-light-2 dark:border-lighter-dark-2 border-t" />
-
-                  <div>
-                    <div
-                      class="mb-1 px-1 text-xs"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      لون الحدود
-                    </div>
-                    <WordColorPicker
-                      current={currentBorderColor()}
-                      resetLabel="افتراضي"
-                      onSelect={(v) => applyTableAttrs({ borderColor: v })}
-                    />
-                  </div>
-                </div>
-              </Match>
-            </Switch>
+                </Match>
+              </Switch>
             </div>
           </Show>
         </div>

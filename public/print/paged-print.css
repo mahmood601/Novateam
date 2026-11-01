@@ -652,15 +652,16 @@
     width: 4px;
   }
 }
-
-.pagedjs_pages,
-.tiptap,
-.lecture-content {
+ .pagedjs_pages,
+.tiptap{
   * {
     font-family: "Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", sans-serif;
   }
-
-  h1,
+} 
+.pagedjs_pages,
+.tiptap,
+.lecture-content {
+   h1,
   h2,
   h3,
   h4,
