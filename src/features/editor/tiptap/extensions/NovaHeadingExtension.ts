@@ -64,7 +64,12 @@ export const NovaHeading = Heading.extend({
       ...(this.parent?.() ?? []),
       new Plugin({
         key: new PluginKey("novaHeadingColorSync"),
-        appendTransaction: (_transactions, _oldState, newState) => {
+        appendTransaction: (transactions, _oldState, newState) => {
+          // Undo/redo restore a state whose colors were already consistent
+          // (the recolor step lives in the same history event), so skip the
+          // full-document scan there. This keeps undo/redo fast on big docs.
+          if (transactions.some((tr) => tr.getMeta("history$"))) return null;
+
           // No docChanged early-exit here on purpose: a deliberately
           // empty forced transaction (dispatched right after initial
           // load, since appendTransaction never fires for the very

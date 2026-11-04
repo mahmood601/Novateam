@@ -39,7 +39,13 @@ const NovaSuperscript = Superscript.extend({ excludes: "subscript" });
 export const extensionsArr = [
   // Highlight styles live in editor.css (injectCSS off) so they follow the theme.
   FindAndReplace.configure({ injectCSS: false, searchDebounceMs: 150 }),
-  StarterKit.configure({ heading: false, link: false, bulletList: false }), // replaced by NovaHeading/Link below
+  StarterKit.configure({
+    heading: false,
+    link: false,
+    bulletList: false,
+    // Smaller undo steps (default 500ms merged long typing bursts into one).
+    undoRedo: { newGroupDelay: 250 },
+  }), // replaced by NovaHeading/Link below
   NovaHeading,
   NovaBulletList,
   NovaAdmonition,

@@ -461,10 +461,16 @@ export default function TiptapReviewEditor(props: {
         // emitUpdate: false  → loading is NOT an edit. (In Tiptap 3 setContent
         // emits `update` by default, which used to mark the doc dirty and
         // write a draft on every open.)
-        editor?.commands.setContent(draftContent, {
-          contentType: "json",
-          emitUpdate: false,
-        });
+        // addToHistory: false → Undo can never roll back past the loaded
+        // document (it used to be able to wipe the whole lecture).
+        editor
+          ?.chain()
+          .setMeta("addToHistory", false)
+          .setContent(draftContent, {
+            contentType: "json",
+            emitUpdate: false,
+          })
+          .run();
         setRaw(draftContent);
         setDirty(true); // differs from the database, so it IS unsaved work
         lastDraftJson = JSON.stringify(editor?.getJSON());
@@ -477,10 +483,14 @@ export default function TiptapReviewEditor(props: {
       baseline = JSON.stringify(editor?.getJSON());
       return;
     }
-    editor?.commands.setContent(remote, {
-      contentType: "json",
-      emitUpdate: false, // loading is not an edit
-    });
+    editor
+      ?.chain()
+      .setMeta("addToHistory", false) // see the draft case above
+      .setContent(remote, {
+        contentType: "json",
+        emitUpdate: false, // loading is not an edit
+      })
+      .run();
     setRaw(remote);
     baseline = JSON.stringify(editor?.getJSON());
   };
@@ -1130,6 +1140,14 @@ export default function TiptapReviewEditor(props: {
         onSave={saveToSupabase}
         onUndo={() => editor?.chain().focus().undo().run()}
         onRedo={() => editor?.chain().focus().redo().run()}
+        canUndo={() => {
+          tick();
+          return !!editor?.can().undo();
+        }}
+        canRedo={() => {
+          tick();
+          return !!editor?.can().redo();
+        }}
         a4Active={a4Active()}
         onToggleA4={() => setA4Active((v) => !v)}
         subjectId={props.subjectId}
@@ -1514,6 +1532,8 @@ function EditorHeader(props: {
   onSave: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
   a4Active: boolean;
   onToggleA4: () => void;
   subjectId: string;
@@ -1521,7 +1541,7 @@ function EditorHeader(props: {
   handleEditDoctorName: () => void;
 }) {
   const iconBtn =
-    "hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex size-11 shrink-0 items-center justify-center rounded-full";
+    "hover:bg-darker-light-1 dark:hover:bg-lighter-dark-2 flex size-11 shrink-0 items-center justify-center rounded-full disabled:opacity-35";
   const statusLabel = () =>
     ({
       typing: "حفظ في قاعدة البيانات",
@@ -1585,6 +1605,7 @@ function EditorHeader(props: {
           class={iconBtn}
           title="تراجع"
           aria-label="تراجع"
+          disabled={!props.canUndo()}
           onClick={props.onUndo}
         >
           <Undo2 size={20} />
@@ -1593,6 +1614,7 @@ function EditorHeader(props: {
           class={iconBtn}
           title="إعادة"
           aria-label="إعادة"
+          disabled={!props.canRedo()}
           onClick={props.onRedo}
         >
           <Redo2 size={20} />
