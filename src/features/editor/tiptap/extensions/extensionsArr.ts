@@ -21,6 +21,7 @@ import { NovaHeading } from "./NovaHeadingExtension";
 import { NovaQuiz } from "./NovaQuiz";
 import { NovaPageBreak } from "./NovaPageBreak";
 import Link from "@tiptap/extension-link";
+import { FindAndReplace } from "@tiptap/extension-find-and-replace";
 import { ImageWithCaption } from "./ImageWithCaption";
 import NovaImageGallery from "./NovaImageGallery";
 import { NovaBox } from "./NovaBox";
@@ -36,6 +37,8 @@ const NovaSubscript = Subscript.extend({ excludes: "superscript" });
 const NovaSuperscript = Superscript.extend({ excludes: "subscript" });
 
 export const extensionsArr = [
+  // Highlight styles live in editor.css (injectCSS off) so they follow the theme.
+  FindAndReplace.configure({ injectCSS: false, searchDebounceMs: 150 }),
   StarterKit.configure({ heading: false, link: false, bulletList: false }), // replaced by NovaHeading/Link below
   NovaHeading,
   NovaBulletList,

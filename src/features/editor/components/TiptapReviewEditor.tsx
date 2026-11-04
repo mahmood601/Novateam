@@ -38,6 +38,7 @@ import {
   Columns3,
   Copy,
   Eraser,
+  Search,
   FileText,
   Grid2x2Check,
   ImagePlus,
@@ -101,6 +102,7 @@ import {
 import { useKeyboardToolbar } from "../hooks/usekeyboardToolbar";
 import MenuSheet, { type MenuSheetItem } from "./MenuSheet";
 import FormatSheet from "./FormatSheet";
+import FindReplaceSheet from "./FindReplaceSheet";
 import InputSheet, { type InputField, type InputRequest } from "./InputSheet";
 import TableGripOverlay from "../tiptap/extensions/table/TableGripOverlay";
 import {
@@ -244,6 +246,7 @@ export default function TiptapReviewEditor(props: {
   const [insertActive, setInsertActive] = createSignal(false);
   const [formatActive, setFormatActive] = createSignal(false);
   const [tableRowColActive, setTableRowColActive] = createSignal(false);
+  const [findActive, setFindActive] = createSignal(false);
 
   // "Select cells" mode: two-tap alternative to drag-to-select, which
   // prosemirror-tables only wires up for mouse `mousedown`+drag and
@@ -387,7 +390,11 @@ export default function TiptapReviewEditor(props: {
     });
 
   const anySheetOpen = () =>
-    insertActive() || formatActive() || tableRowColActive() || !!inputReq();
+    insertActive() ||
+    formatActive() ||
+    tableRowColActive() ||
+    findActive() ||
+    !!inputReq();
 
   const handleEditDoctorName = async () => {
     const res = await askInput("اسم الدكتور", [
@@ -806,6 +813,15 @@ export default function TiptapReviewEditor(props: {
     createEffect(() => {
       editorDom.setAttribute("inputmode", anySheetOpen() ? "none" : "text");
     });
+    // Ctrl/Cmd+F or Ctrl/Cmd+H opens find & replace instead of the browser's.
+    const findShortcut = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "f" || e.key === "h")) {
+        e.preventDefault();
+        setFindActive(true);
+      }
+    };
+    editorDom.addEventListener("keydown", findShortcut);
+    onCleanup(() => editorDom.removeEventListener("keydown", findShortcut));
     const enableTyping = () => editorDom.setAttribute("inputmode", "text");
     editorDom.addEventListener("pointerdown", enableTyping);
     onCleanup(() => editorDom.removeEventListener("pointerdown", enableTyping));
@@ -1296,6 +1312,15 @@ export default function TiptapReviewEditor(props: {
             >
               <CaseSensitive size={24} />
             </button>
+            <button
+              type="button"
+              class={tbBtn}
+              title="بحث واستبدال"
+              aria-label="بحث واستبدال"
+              onClick={() => setFindActive(true)}
+            >
+              <Search size={20} />
+            </button>
 
             {/* Cut / copy / paste inside the editor. Works for any selection
                 (text, table cells, boxes, images) and keeps it exactly as
@@ -1451,6 +1476,16 @@ export default function TiptapReviewEditor(props: {
               editor={() => editor}
               tick={tick}
               onClose={() => setFormatActive(false)}
+            />
+          </div>
+        </Show>
+
+        <Show when={findActive()}>
+          <div class="flex max-h-[45dvh] w-full flex-col overflow-hidden pb-1">
+            <FindReplaceSheet
+              editor={() => editor}
+              tick={tick}
+              onClose={() => setFindActive(false)}
             />
           </div>
         </Show>
