@@ -22,7 +22,7 @@ function escapeHtml(s: string) {
 function peleTheme(accent?: NovaColor | null, forPrint = false): string {
   const dark = isDarkMode();
   const vars: Record<string, string> = {
-    "--pele-bg": "transparent",
+    "--pele-bg": "#ffffff",
     "--pele-fg": dark ? "#f1f5f9" : "#0f172a",
     "--pele-muted": dark ? "#94a3b8" : "#64748b",
     "--pele-line": dark ? "#94a3b8" : "#475569",
