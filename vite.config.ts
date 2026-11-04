@@ -28,7 +28,14 @@ const pwaOptions: Partial<VitePWAOptions> = {
     // PRECACHE = only what the app shell needs. The previous glob pulled in
     // 137 files (~11 MB: every lazy chunk, images, audio, all font subsets) on
     // the very first visit, competing with the page's own load.
-    globPatterns: ["**/*.{js,css,html,woff2,svg,ico}", "icons/*.png"],
+    // Subject icons are part of the app's static catalog. Keep them in the
+    // precache manifest so adding a new icon produces a new SW revision and
+    // installed PWAs can discover it through the update prompt.
+    globPatterns: [
+      "**/*.{js,css,html,woff2,svg,ico}",
+      "icons/*.png",
+      "subjectsIcons/*.{webp,jpg,jpeg}",
+    ],
     globIgnores: [
       // Heavy, rarely used chunks → cached on first use (runtimeCaching below).
       "**/diagram-renderer-*.js",
