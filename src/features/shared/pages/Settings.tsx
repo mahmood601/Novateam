@@ -3,9 +3,11 @@ import { useTheme } from "../hooks/useTheme";
 import { useCustomFont } from "../hooks/useCustomFont";
 import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
 import { colors } from "../constants/themeColors";
+import { useShapeTheme } from "../hooks/useShapeTheme";
 
 export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
+  const { shapeTheme, setShapeTheme, shapeThemes } = useShapeTheme();
 
   // ─── خط التطبيق المخصص ───────────────────────────────────────────
   const {
@@ -103,6 +105,36 @@ export default function Settings() {
                 }}
               ></span>
             </label>
+          </div>
+        </div>
+
+        {/* ─── شكل أشكال المحاضرات (بطاقات، خطوات، ...) ─── */}
+        <div
+          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+          dir="rtl"
+        >
+          <div class="mb-3 flex items-center gap-2">
+            <span class="text-xl">🧩</span>
+            <h3 class="font-bold">شكل أشكال المحاضرات</h3>
+          </div>
+          <p class="mb-3 text-xs text-slate-400">
+            يغيّر مظهر البطاقات والخطوات وغيرها في كل المحاضرات دون تعديلها
+          </p>
+          <div class="dark:bg-lighter-dark-2 flex flex-wrap gap-2 rounded-lg p-2">
+            <For each={shapeThemes}>
+              {(t) => (
+                <button
+                  onClick={() => setShapeTheme(t.id)}
+                  class={`rounded-lg border-2 px-4 py-2 text-sm font-bold transition-all duration-200 ${
+                    shapeTheme() === t.id
+                      ? "border-main text-main"
+                      : "border-transparent"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              )}
+            </For>
           </div>
         </div>
 

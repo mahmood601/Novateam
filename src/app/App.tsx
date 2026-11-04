@@ -11,6 +11,7 @@ import "solid-devtools";
 import AppRoutes from "./AppRoutes";
 import PWAProvider from "../features/shared/components/PWAProvider";
 import { useTheme } from "../features/shared/hooks/useTheme";
+import { initShapeTheme } from "../features/shared/hooks/useShapeTheme";
 import AppErrorBoundary from "../features/shared/components/ErrorBoundary";
 import { onCleanup, onMount } from "solid-js";
 import { checkAndMigrateIfNeeded } from "../features/quizzes/services/local/indexeddb/sync";
@@ -34,6 +35,7 @@ export default function App() {
 
   onMount(() => {
     applyTheme((localStorage.getItem("theme-color") as any) || "Ola");
+    initShapeTheme(); // يطبّق شكل أشكال المحاضرات المحفوظ
     applyStoredFont(); // يطبّق خط التطبيق المخصص إن وُجد (لا يوقف باقي الإقلاع)
     void checkAndMigrateIfNeeded();
 

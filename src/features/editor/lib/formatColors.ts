@@ -82,14 +82,20 @@ export const FORMAT_COLOR_GROUPS: ColorSwatch[][] = [
 
 // Web-safe / already-bundled font choices. "Default" leaves the app's
 // normal typeface (Readex Pro Variable) in place by unsetting the mark;
-// NovaHeading and OoredooArabic-Heavy are the two display faces the app
-// already loads for print/headings (see src/styles/fonts.css).
+// the bundled print fonts are available as additional display choices
+// (see src/styles/fonts.css).
 export type FontChoice = { value: string | null; label: string; previewFont: string };
 
 export const FONT_FAMILY_CHOICES: FontChoice[] = [
   { value: null, label: "افتراضي", previewFont: "'Readex Pro Variable', sans-serif" },
   { value: "'NovaHeading', sans-serif", label: "Nova Heading", previewFont: "'NovaHeading', sans-serif" },
   { value: "'OoredooArabic-Heavy', sans-serif", label: "Ooredoo Arabic", previewFont: "'OoredooArabic-Heavy', sans-serif" },
+  { value: "'Hacen Tunisia', sans-serif", label: "Hacen Tunisia", previewFont: "'Hacen Tunisia', sans-serif" },
+  { value: "'Sora', sans-serif", label: "Sora", previewFont: "'Sora', sans-serif" },
+  { value: "'Recompense', serif", label: "Recompense", previewFont: "'Recompense', serif" },
+  { value: "'Cooper Arabic', serif", label: "كوبر Cooper Arabic", previewFont: "'Cooper Arabic', serif" },
+  { value: "'Rosemery', cursive", label: "اكليل الجبل Rosemery", previewFont: "'Rosemery', cursive" },
+  { value: "'Rubik', sans-serif", label: "روبيك Rubik", previewFont: "'Rubik', sans-serif" },
   { value: "Arial, sans-serif", label: "Arial", previewFont: "Arial, sans-serif" },
   { value: "Georgia, serif", label: "Georgia", previewFont: "Georgia, serif" },
   { value: "'Courier New', monospace", label: "Courier New", previewFont: "'Courier New', monospace" },

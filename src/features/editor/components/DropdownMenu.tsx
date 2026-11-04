@@ -1,6 +1,13 @@
 import { JSX } from "solid-js";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
-import { EllipsisVertical, FileJson, FileUp, Printer, UserPen } from "lucide-solid";
+import {
+  EllipsisVertical,
+  FileJson,
+  FileText,
+  FileUp,
+  Printer,
+  UserPen,
+} from "lucide-solid";
 import { useNavigate } from "@solidjs/router";
 
 const itemClass =
@@ -13,6 +20,7 @@ export default function Menu(props: {
   handleFileUpload: (event: Event) => void;
   handleEditDoctorName: () => void;
   onExportJson: () => void;
+  onExportMarkdown: () => void;
 }) {
   const navigate = useNavigate();
   // The file input lives OUTSIDE the dropdown: the menu unmounts its items
@@ -58,6 +66,13 @@ export default function Menu(props: {
             <DropdownMenu.Item class={itemClass} onSelect={props.onExportJson}>
               <FileJson size={18} />
               <span>تصدير JSON</span>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class={itemClass}
+              onSelect={props.onExportMarkdown}
+            >
+              <FileText size={18} />
+              <span>تصدير Markdown</span>
             </DropdownMenu.Item>
             <DropdownMenu.Item
               class={itemClass}

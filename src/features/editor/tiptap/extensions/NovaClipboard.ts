@@ -240,3 +240,38 @@ export async function novaPaste(editor: Editor): Promise<boolean> {
   }
   return false;
 }
+
+/**
+ * Paste plain clipboard text through Tiptap's Markdown parser and insert the
+ * resulting nodes at the current selection.
+ */
+export async function novaPasteMarkdown(editor: Editor): Promise<boolean> {
+  if (!editor.isEditable) return false;
+
+  try {
+    let text = "";
+    if (navigator.clipboard.read) {
+      const items = await navigator.clipboard.read();
+      const item = items.find((entry) => entry.types.includes("text/markdown"));
+      if (item) {
+        text = await (await item.getType("text/markdown")).text();
+      }
+    }
+    if (!text) text = await navigator.clipboard.readText();
+    return pasteMarkdownText(editor, text);
+  } catch {
+    // Permission denied / unsupported clipboard API.
+    return false;
+  }
+}
+
+export function pasteMarkdownText(editor: Editor, text: string): boolean {
+  if (!editor.isEditable || !text.trim()) return false;
+  return editor.commands.insertContent(text, {
+    contentType: "markdown",
+  });
+}
+
+export function looksLikeMarkdown(text: string): boolean {
+  return /(^|\n)\s*(#{1,6}\s|:::[a-z]+(?:\s|$)|```(?:mermaid|markdown)?\s*$|\|.+\|\s*\n\|[-:| ]+\||[-*+]\s+\S+|\d+[.)]\s+\S+)/m.test(text);
+}

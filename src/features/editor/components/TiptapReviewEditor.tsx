@@ -86,6 +86,10 @@ import {
   novaCopy,
   novaCut,
   novaPaste,
+  novaPasteMarkdown,
+  looksLikeMarkdown,
+  pasteMarkdownText,
+  NOVA_SLICE_MIME,
 } from "../tiptap/extensions/NovaClipboard";
 import Menu from "./DropdownMenu";
 import toast from "solid-toast";
@@ -288,10 +292,25 @@ export default function TiptapReviewEditor(props: {
       const text = e.target?.result as string;
 
       if (!file.name.toLowerCase().endsWith(".json")) {
-        editor?.commands.setContent(text, {
-          contentType: "markdown",
-          emitUpdate: true,
-        });
+        try {
+          const imported = editor?.commands.setContent(
+            text.replace(/^\uFEFF/, ""),
+            {
+              contentType: "markdown",
+              emitUpdate: true,
+            },
+          );
+          if (!imported) {
+            throw new Error("Markdown import returned false");
+          }
+        } catch (error) {
+          console.error("[TiptapReviewEditor] Markdown import failed", error);
+          await askInput("تعذر استيراد Markdown", [], {
+            message:
+              "تعذر تحليل هذا الملف. تأكد من أنه ملف Markdown صالح ثم حاول مرة أخرى.",
+            submitLabel: "حسناً",
+          });
+        }
         return;
       }
 
@@ -534,6 +553,20 @@ export default function TiptapReviewEditor(props: {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const exportMarkdown = () => {
+    if (!editor) return;
+    const markdown = editor.getMarkdown();
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${subjectId}-${seasonId}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   // ── Upload images from the device (WebP conversion + R2 happen inside
   //    uploadLectureImage). Used by the insert menu, paste and drag-drop.
   const imageFilesOf = (list?: FileList | null) =>
@@ -732,10 +765,22 @@ export default function TiptapReviewEditor(props: {
       content: raw(),
       extensions: [...extensionsArr],
       editorProps: {
-        // Pasting / dropping image FILES uploads them. Anything else
-        // (text, tables, Nova's own clipboard format) returns false and
-        // goes down the normal paste path untouched.
         handlePaste: (_view, event) => {
+          const clipboard = event.clipboardData;
+          const markdown = clipboard?.getData("text/markdown");
+          const plainText = clipboard?.getData("text/plain") ?? "";
+          const isNovaClipboard = Boolean(
+            clipboard?.types.includes(NOVA_SLICE_MIME),
+          );
+          if (
+            editor &&
+            !isNovaClipboard &&
+            (markdown || looksLikeMarkdown(plainText)) &&
+            pasteMarkdownText(editor, markdown || plainText)
+          ) {
+            return true;
+          }
+
           const files = imageFilesOf(event.clipboardData?.files);
           if (!files.length) return false;
           void uploadFigures(files);
@@ -1064,6 +1109,7 @@ export default function TiptapReviewEditor(props: {
         dirty={dirty}
         localSavedAt={localSavedAt}
         onExportJson={exportJson}
+        onExportMarkdown={exportMarkdown}
         onBack={() => navigate(-1)}
         onSave={saveToSupabase}
         onUndo={() => editor?.chain().focus().undo().run()}
@@ -1283,6 +1329,22 @@ export default function TiptapReviewEditor(props: {
             >
               <ClipboardPaste size={20} />
             </button>
+            <button
+              type="button"
+              class={tbBtn}
+              title="لصق Markdown"
+              aria-label="لصق Markdown"
+              onClick={() => {
+                if (!editor) return;
+                void novaPasteMarkdown(editor).then((inserted) => {
+                  if (!inserted) {
+                    toast.error("تعذر قراءة Markdown من الحافظة.");
+                  }
+                });
+              }}
+            >
+              <FileText size={20} />
+            </button>
 
             <For each={toolbarGroups}>
               {(group) => (
@@ -1412,6 +1474,7 @@ function EditorHeader(props: {
   dirty: () => boolean;
   localSavedAt: () => number | null;
   onExportJson: () => void;
+  onExportMarkdown: () => void;
   onBack: () => void;
   onSave: () => void;
   onUndo: () => void;
@@ -1516,6 +1579,7 @@ function EditorHeader(props: {
           handleFileUpload={props.handleFileUpload}
           handleEditDoctorName={props.handleEditDoctorName}
           onExportJson={props.onExportJson}
+          onExportMarkdown={props.onExportMarkdown}
         />
       </div>
     </div>

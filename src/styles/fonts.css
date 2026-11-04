@@ -53,3 +53,25 @@
   font-family: 'Recompense';
   src: url("/print/fonts/RECOMPENSE\ Regular.otf");
 }
+
+@font-face {
+  font-display: swap;
+  font-family: 'Cooper Arabic';
+  src: url("/print/fonts/CooperArabic.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Rosemery';
+  src: url("/print/fonts/rosemery.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: 'Rubik';
+  src: url("/print/fonts/Rubik-Regular.ttf")
+    format("truetype");
+  font-weight: normal;
+}

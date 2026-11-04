@@ -364,41 +364,6 @@
   }
 }
 
-/* ---------- placeholder الكويز خارج نطاق .callout (NovaQuiz atom node) ---------- */
-.nova-quiz-placeholder[data-color] {
-  border: 2px dashed var(--nova-color);
-  color: var(--nova-color);
-  border-radius: 4px;
-  padding: 0.75em 1em;
-  margin: 0.75em 0;
-  font-weight: bold;
-  text-align: center;
-}
-
-/* Admonitions */
-/* Base Callout */
-.nova-note {
-  --callout-color: #64748b;
-  --callout-bg: rgba(100, 116, 139, 0.08);
-
-  break-inside: avoid;
-  position: relative;
-  margin: 1.5rem 0;
-  padding: 1rem 1.25rem 1rem 1.15rem;
-  border-radius: 0.65rem;
-  border-right: 4px solid var(--callout-color);
-  /* background: linear-gradient(
-    135deg,
-    var(--callout-bg) 0%,
-    color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
-  ); */
-}
-
-.nova-note::before {
-  content: "";
-  align-items: center;
-}
-
 .running-footer {
   position: running(footer);
   width: 100%;
@@ -1026,11 +991,7 @@
   padding: 1rem 1.25rem 1rem 1.15rem;
   border-radius: 0.65rem;
   border-right: 4px solid var(--callout-color);
-  background: linear-gradient(
-    135deg,
-    var(--callout-bg) 0%,
-    color-mix(in srgb, var(--callout-bg) 60%, transparent) 100%
-  );
+  background: var(--callout-bg);
   ul li::marker,
   ol li::marker {
     color: var(--callout-color);
@@ -1057,7 +1018,7 @@
   align-items: center;
   gap: 0.55rem;
   margin-bottom: 0.55rem;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.92rem;
   letter-spacing: 0.01em;
   color: var(--callout-color);
@@ -1315,4 +1276,365 @@ img[data-align="right"],
 .lecture-body th {
   break-inside: avoid;
   page-break-inside: avoid;
+}
+
+/* =========================================================
+   Nova shapes: cards   (:::cards cols=N Title)
+   ---------------------------------------------------------
+   The document stores only meaning (title, cols, a bullet list).
+   Everything below is looks, so a theme can change it without
+   touching any lecture.
+
+   Colors: reuses the per-section tokens defined above on
+   [data-color] (--nova-color, --nova-border, --nova-bg-light,
+   --nova-bg-tint). Static hex only, no color-mix(), because
+   Paged.js does not resolve it during pagination.
+
+   Themes: set data-shape-theme on <html> (or any ancestor):
+     (none)  circle badge        — default
+     bignum  large number, white card, strong border
+     square  sharp corners, side bar, light shadow
+   ========================================================= */
+
+.nova-cards {
+  --cards-cols: 2;
+  /* Fallback slate palette for content before the first H1, which
+     has no data-color yet. */
+  --shape-accent: var(--nova-color, #64748b);
+  --shape-bar: var(--nova-border, #475569);
+  --shape-tint: var(--nova-bg-tint, #f1f5f9);
+  --shape-edge: var(--nova-bg-light, #cbd5e1);
+  /* The two values that dark mode / print / themes swap: */
+  --shape-card-bg: var(--shape-tint);
+  --shape-ink: inherit;
+  margin: 1.25rem 0;
+  text-align: center;
+}
+.nova-cards[data-cols="1"] { --cards-cols: 1; }
+.nova-cards[data-cols="2"] { --cards-cols: 2; }
+.nova-cards[data-cols="3"] { --cards-cols: 3; }
+
+/* Title bar: drawn from the data-title attribute, so no extra element
+   exists in the document. */
+.nova-cards::before {
+  content: attr(data-title);
+  display: block;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.4rem;
+  background: var(--shape-bar);
+  color: #fff;
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  break-after: avoid;
+}
+.nova-cards:not([data-title])::before { display: none; }
+
+/* `div.nova-cards > ul` is deliberately more specific than the
+   `.tiptap ul` rules in editor.css, so the list loses its bullets and
+   indent here regardless of stylesheet order. */
+div.nova-cards > ul {
+  display: grid;
+  grid-template-columns: repeat(var(--cards-cols), minmax(0, 1fr));
+  gap: 0.95rem 0.7rem; /* a little extra row gap for the badge */
+  margin: 0.95rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: nova-card;
+}
+
+div.nova-cards:not([data-cols="1"]):not([data-cols="3"]) > ul > li:last-child:nth-child(odd),
+div.nova-cards[data-cols="3"] > ul > li:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
+}
+
+div.nova-cards > ul > li {
+  counter-increment: nova-card; /* the numbers come from here */
+  position: relative;
+  display: flex;
+  flex: 1 1 calc((100% - (var(--cards-cols) - 1) * 0.7rem) / var(--cards-cols));
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--shape-edge);
+  border-radius: 0.7rem;
+  background: var(--shape-card-bg);
+  color: var(--shape-ink);
+  break-inside: avoid;
+}
+div.nova-cards > ul > li > p { margin: 0; }
+
+/* Number badge. inset-inline-start = the RIGHT corner in RTL, which
+   matches the Word samples. */
+div.nova-cards > ul > li::before {
+  content: counter(nova-card);
+  position: absolute;
+  inset-block-start: -0.55rem;
+  inset-inline-start: -0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--shape-accent);
+  color: #fff;
+  font: 700 0.8rem/1 sans-serif;
+}
+
+/* ---------- theme: bignum ---------- */
+[data-shape-theme="bignum"] .nova-cards { --shape-card-bg: #fff; }
+[data-shape-theme="bignum"] div.nova-cards > ul > li {
+  border: 1.5px solid var(--shape-bar);
+}
+[data-shape-theme="bignum"] div.nova-cards > ul > li::before {
+  inset-block-start: -1.15rem;
+  inset-inline-start: 0.2rem;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: var(--shape-card-bg);
+  padding: 0 0.25rem;
+  color: var(--shape-accent);
+  font-size: 1.9rem;
+}
+
+/* ---------- theme: square ---------- */
+[data-shape-theme="square"] .nova-cards { --shape-card-bg: #f7f7f8; }
+[data-shape-theme="square"] div.nova-cards > ul > li {
+  border: 0;
+  border-inline-start: 3px solid var(--shape-accent);
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+[data-shape-theme="square"] div.nova-cards > ul > li::before {
+  border-radius: 0.25rem;
+}
+
+/* Reading view on a phone: one column. Scoped to .lecture-content on
+   purpose, so the A4 preview and the print output keep their columns
+   even when the phone's screen is narrow. */
+@media (max-width: 520px) {
+  .lecture-content .nova-cards { --cards-cols: 1; }
+}
+
+/* Dark mode (reader + live editor). Only swaps two variables. */
+.dark .lecture-content .nova-cards,
+.dark .nova-tiptap-content .nova-cards {
+  --shape-card-bg: var(--color-lighter-dark-1, #1f2937);
+  --shape-ink: var(--color-main-light, #f1f5f9);
+}
+
+/* Print and A4 preview always sit on white paper, even in dark mode.
+   These must stay AFTER the dark block above (same specificity, the
+   later rule wins), and each theme re-states its own card color. */
+.lecture-body .nova-cards,
+.pagedjs_pages .nova-cards {
+  --shape-card-bg: var(--shape-tint);
+  --shape-ink: #1a1a1a;
+}
+[data-shape-theme="bignum"] .lecture-body .nova-cards,
+[data-shape-theme="bignum"] .pagedjs_pages .nova-cards { --shape-card-bg: #fff; }
+[data-shape-theme="square"] .lecture-body .nova-cards,
+[data-shape-theme="square"] .pagedjs_pages .nova-cards { --shape-card-bg: #f7f7f8; }
+
+/* ---------- Nova shape blocks ---------- */
+.nova-steps,
+.nova-compare,
+.nova-chips,
+.nova-case,
+.nova-summary {
+  --shape-accent: var(--nova-color, #64748b);
+  --shape-tint: var(--nova-bg-tint, #f8fafc);
+  --shape-ink: var(--nova-ink, #1a1a1a);
+  color: var(--shape-ink);
+  margin: 1.25rem 0;
+  break-inside: avoid;
+}
+
+.nova-steps,
+.nova-compare,
+.nova-case,
+.nova-summary {
+  border: 1px solid var(--shape-accent);
+  border-radius: 0.65rem;
+  padding: 1rem 1.15rem;
+  background: var(--shape-card-bg, #fff);
+}
+
+.nova-steps::before,
+.nova-compare::before,
+.nova-chips::before,
+.nova-case::before,
+.nova-summary::before {
+  display: block;
+  color: var(--shape-accent);
+  font-family: "OoredooArabic-Heavy", sans-serif;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.nova-steps[data-title]::before { content: attr(data-title); }
+.nova-compare[data-title]::before { content: attr(data-title); }
+.nova-chips[data-title]::before { content: attr(data-title); }
+.nova-case[data-title]::before { content: attr(data-title); }
+.nova-summary[data-title]::before { content: attr(data-title); }
+
+/* Steps: Claude may write "- " or "1." lines, so both <ul> and <ol> are
+   styled. The numbers always come from the CSS counter, never from the text. */
+.nova-steps > ul,
+.nova-steps > ol {
+  counter-reset: nova-step;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nova-steps > ul > li,
+.nova-steps > ol > li {
+  counter-increment: nova-step;
+  position: relative;
+  margin: 0 0 0.45rem;
+  padding: 0.2rem 0 0.2rem 0;
+  padding-inline-start: 2.3rem;
+  min-height: 1.7rem;
+}
+.nova-steps > ul > li::before,
+.nova-steps > ol > li::before {
+  content: counter(nova-step);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.15rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--shape-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Compare: its table is wrapped in div.tableWrapper by NovaTable, so the table
+   keeps the app's normal table styling (header in the section color). Only the
+   frame and title above are drawn by .nova-compare itself. */
+
+.nova-chips > ul,
+.nova-chips > ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nova-chips > ul > li,
+.nova-chips > ol > li {
+  border: 1px solid var(--shape-accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  background: var(--shape-card-bg, #fff);
+}
+
+.nova-case {
+  border-inline-start: 5px solid var(--shape-accent);
+}
+.nova-summary {
+  background: var(--shape-tint, #f8fafc);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.dark .lecture-content .nova-steps,
+.dark .lecture-content .nova-compare,
+.dark .lecture-content .nova-chips,
+.dark .lecture-content .nova-case,
+.dark .lecture-content .nova-summary,
+.dark .nova-tiptap-content .nova-steps,
+.dark .nova-tiptap-content .nova-compare,
+.dark .nova-tiptap-content .nova-chips,
+.dark .nova-tiptap-content .nova-case,
+.dark .nova-tiptap-content .nova-summary {
+  --shape-card-bg: var(--color-lighter-dark-1, #1f2937);
+  --shape-tint: var(--color-lighter-dark-2, #273449);
+  --shape-ink: var(--color-main-light, #f1f5f9);
+}
+
+.lecture-body .nova-steps,
+.lecture-body .nova-compare,
+.lecture-body .nova-chips,
+.lecture-body .nova-case,
+.lecture-body .nova-summary,
+.pagedjs_pages .nova-steps,
+.pagedjs_pages .nova-compare,
+.pagedjs_pages .nova-chips,
+.pagedjs_pages .nova-case,
+.pagedjs_pages .nova-summary {
+  --shape-card-bg: #fff;
+  --shape-tint: var(--nova-bg-tint, #f8fafc);
+  --shape-ink: #1a1a1a;
+}
+
+
+/* ---------- Shape themes for steps / chips / compare / case / summary ----------
+   Same three themes as cards (set data-shape-theme on <html>; the Settings
+   page does it via useShapeTheme.ts):
+     (none)  circle — default, defined above
+     bignum  large colored numbers, stronger outlines
+     square  sharp corners and a light shadow
+   They only change shape, weight and corners. Colors keep coming from the
+   section tokens, so every theme works in every section color, in dark mode,
+   and on print paper. */
+
+/* bignum */
+[data-shape-theme="bignum"] .nova-steps > ul > li,
+[data-shape-theme="bignum"] .nova-steps > ol > li {
+  padding-inline-start: 2.5rem;
+  min-height: 2rem;
+}
+[data-shape-theme="bignum"] .nova-steps > ul > li::before,
+[data-shape-theme="bignum"] .nova-steps > ol > li::before {
+  top: -0.15rem;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--shape-accent);
+  font-size: 1.9rem;
+  line-height: 1;
+}
+[data-shape-theme="bignum"] .nova-steps,
+[data-shape-theme="bignum"] .nova-compare,
+[data-shape-theme="bignum"] .nova-summary,
+[data-shape-theme="bignum"] .nova-chips > ul > li,
+[data-shape-theme="bignum"] .nova-chips > ol > li {
+  border-width: 1.5px;
+}
+/* .nova-case keeps its thick start edge, so only the other three sides change */
+[data-shape-theme="bignum"] .nova-case {
+  border-block-width: 1.5px;
+  border-inline-end-width: 1.5px;
+}
+[data-shape-theme="bignum"] .nova-chips > ul > li,
+[data-shape-theme="bignum"] .nova-chips > ol > li {
+  font-weight: 700;
+}
+
+/* square */
+[data-shape-theme="square"] .nova-steps,
+[data-shape-theme="square"] .nova-compare,
+[data-shape-theme="square"] .nova-case,
+[data-shape-theme="square"] .nova-summary {
+  border-radius: 0;
+}
+[data-shape-theme="square"] .nova-case {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+[data-shape-theme="square"] .nova-steps > ul > li::before,
+[data-shape-theme="square"] .nova-steps > ol > li::before,
+[data-shape-theme="square"] .nova-chips > ul > li,
+[data-shape-theme="square"] .nova-chips > ol > li {
+  border-radius: 0.25rem;
 }

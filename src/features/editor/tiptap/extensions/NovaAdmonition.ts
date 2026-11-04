@@ -1,7 +1,6 @@
 import {
   Node,
   mergeAttributes,
-  createBlockMarkdownSpec,
 } from "@tiptap/core";
 
 export const SUPPORTED_ADMONITION_TYPES = [
@@ -89,7 +88,12 @@ export const NovaAdmonition = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-nova-block="note"]' }];
+    return [
+      {
+        tag: 'div[data-nova-block="note"]',
+        contentElement: ".nova-note-content",
+      },
+    ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
@@ -113,38 +117,40 @@ export const NovaAdmonition = Node.create({
     ];
   },
 
- // بدلاً من createBlockMarkdownSpec الحالي، استخدم Tokenizer مخصص
+  // Custom tokenizer keeps the optional title round-trippable.
+//
+// Written on purpose in the SAME style as the layout-shape tokenizers in
+// NovaShapes.ts, which import correctly: one anchored regex, no `y`/`m`
+// flags (so no regex state or line-anchor behaviour to depend on), closing
+// fence found with an explicit "\n:::" instead of a multiline `^`.
 markdownTokenizer: {
   name: "novaNote",
   level: "block" as const,
-  start(src) {
-    const match = src.match(/^:::(note|warning|tip|danger|info|important)/m);
+  start(src: string) {
+    const match = /^:::(?:note|warning|tip|danger|info|important)(?:[ \t]|\n)/m.exec(src);
     return match ? (match.index ?? -1) : -1;
   },
-  tokenize(src, _tokens, lexer) {
-    const match = /^:::(note|warning|tip|danger|info|important)(?:\s+\{([^}]*)\})?(?:\s+(.+))?\n([\s\S]*?)\n:::/.exec(src);
+  tokenize(src: string, _tokens: unknown, lexer: { blockTokens: (value: string) => unknown[] }) {
+    const match =
+      /^:::(note|warning|tip|danger|info|important)(?:[ \t]+\{([^}\n]*)\})?(?:[ \t]+([^\n]*))?[ \t]*\n([\s\S]*?)\n[ \t]*:::[ \t]*(?:\n|$)/.exec(
+        src,
+      );
     if (!match) return undefined;
 
-    const type = match[1];
-    const attrsStr = match[2] || "";
-    const titleFromText = match[3]?.trim() || null;
-    const content = match[4] || "";
+    // TEMP DIAGNOSTIC (remove once import is confirmed): one line per callout.
+    // eslint-disable-next-line no-console
+    console.debug("[novaNote tokenize]", { srcLen: src.length, rawLen: match[0].length, type: match[1] });
 
-    // تحليل الـ attributes إن وجدت
-    const attrs: Record<string, string> = { type };
-    if (attrsStr) {
-      attrsStr.split(/\s+/).forEach((pair) => {
-        const [k, v] = pair.replace(/"/g, "").split("=");
-        if (k && v) attrs[k] = v;
-      });
-    }
-    if (titleFromText && !attrs.title) attrs.title = titleFromText;
+    const attrs: Record<string, string> = { type: match[1] };
+    const titleAttr = /\btitle\s*=\s*"([^"]*)"/.exec(match[2] || "");
+    if (titleAttr?.[1]) attrs.title = titleAttr[1];
+    else if (match[3]?.trim()) attrs.title = match[3].trim();
 
     return {
       type: "novaNote",
       raw: match[0],
       attrs,
-      tokens: lexer.blockTokens(content),
+      tokens: lexer.blockTokens((match[4] || "").trim()),
     };
   },
 },
@@ -154,11 +160,12 @@ parseMarkdown: (token, helpers) => {
 },
 
 renderMarkdown: (node, helpers) => {
-  let type = node.attrs?.type || "note";
-  let title = node.attrs?.title;
+  const type = node.attrs?.type || "note";
+  const title = node.attrs?.title;
   const content = helpers.renderChildren(node.content || [], "\n\n");
-  const attrParts = [type="${type}"];
-  if (title) attrParts.push(title="${title}");
-  return ` :::note {\( {attrParts.join(" ")}}\n \){content}\n:::`;
+  const attrs = title
+    ? ` {title="${String(title).replace(/"/g, '\\"')}"}`
+    : "";
+  return `:::${type}${attrs}\n${content}\n:::`;
 },
 });

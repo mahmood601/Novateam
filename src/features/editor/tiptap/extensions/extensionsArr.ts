@@ -9,6 +9,14 @@ import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { Diagram } from "./diagram";
 import { NovaAdmonition } from "./NovaAdmonition";
+import { NovaCards } from "./NovaCards";
+import {
+  NovaCase,
+  NovaChips,
+  NovaCompare,
+  NovaSteps,
+  NovaSummary,
+} from "./NovaShapes";
 import { NovaHeading } from "./NovaHeadingExtension";
 import { NovaQuiz } from "./NovaQuiz";
 import { NovaPageBreak } from "./NovaPageBreak";
@@ -32,6 +40,12 @@ export const extensionsArr = [
   NovaHeading,
   NovaBulletList,
   NovaAdmonition,
+  NovaCards,
+  NovaSteps,
+  NovaCompare,
+  NovaChips,
+  NovaCase,
+  NovaSummary,
   NovaQuiz,
   NovaPageBreak,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize
