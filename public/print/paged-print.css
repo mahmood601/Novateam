@@ -1385,6 +1385,11 @@ div.nova-cards > ul > li::before {
   font: 700 0.8rem/1 sans-serif;
 }
 
+div.nova-cards > ul > li::marker {
+  content: "";
+  font-size: 0;
+}
+
 /* ---------- theme: bignum ---------- */
 [data-shape-theme="bignum"] .nova-cards { --shape-card-bg: #fff; }
 [data-shape-theme="bignum"] div.nova-cards > ul > li {
@@ -1516,6 +1521,14 @@ div.nova-cards > ul > li::before {
   color: #fff;
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+/* The circle badge is the only marker for a step. Explicitly suppress the
+   native list marker as well; Android Chrome can otherwise paint both. */
+.nova-steps > ul > li::marker,
+.nova-steps > ol > li::marker {
+  content: "";
+  font-size: 0;
 }
 
 /* Compare: its table is wrapped in div.tableWrapper by NovaTable, so the table
