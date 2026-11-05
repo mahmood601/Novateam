@@ -445,11 +445,14 @@
 
 @media (max-width: 20cm) {
   .lecture-content table {
+    width: fit-content !important;
     min-width: 680px;
+    max-width: none;
+    table-layout: auto;
+  }
 
-    td,
-    th {
-      min-width: 50vw;
-    }
+  .lecture-content table td,
+  .lecture-content table th {
+    min-width: 50vw;
   }
 }
