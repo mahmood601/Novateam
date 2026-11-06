@@ -5,6 +5,7 @@ import LectureContent from "../components/LectureContent";
 import LectureTOC from "../components/LectureTOC";
 import LecturePager from "../components/LecturePager";
 import LectureResumeBar from "../components/LectureResumeBar";
+import LectureFooter from "../components/LectureFooter";
 import { getSubjectInfo } from "@/features/shared/services/subjects";
 import {
   syncAndGetSections,
@@ -123,6 +124,7 @@ export default function LectureViewPage() {
         }}
       />
       <LectureResumeBar subjectId={subjectId()} seasonId={seasonId()} entries={toc()} />
+      <LectureFooter subjectId={subjectId()} seasonId={seasonId()} />
       <LecturePager prev={neighbors().prev} next={neighbors().next} />
     </LecturesLayout>
   );

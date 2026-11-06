@@ -1,4 +1,9 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
+import toast from "solid-toast";
+import { useUser } from "../context/user";
+import { supabase } from "../services/supabase";
+import { isAdminRole } from "../lib/roles";
+import { clearAuthorNameCache } from "../services/authors";
 import { useTheme } from "../hooks/useTheme";
 import { useCustomFont } from "../hooks/useCustomFont";
 import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
@@ -8,6 +13,48 @@ import { useShapeTheme } from "../hooks/useShapeTheme";
 export default function Settings() {
   const { theme, setTheme, setCustomColor, customColor } = useTheme();
   const { shapeTheme, setShapeTheme, shapeThemes } = useShapeTheme();
+
+  // ─── إظهار اسمي كمضيف للأسئلة/المحاضرات (للأدمن والمساهمين فقط) ───
+  const { user, canAny } = useUser();
+  const isContributor = () =>
+    isAdminRole(user()?.role) || canAny("quiz") || canAny("lecture");
+  const [showName, setShowName] = createSignal(true);
+  const [showNameReady, setShowNameReady] = createSignal(false);
+  const [showNameSaving, setShowNameSaving] = createSignal(false);
+
+  onMount(async () => {
+    const id = user()?.id;
+    if (!id || !navigator.onLine) return;
+    const { data } = await supabase
+      .from("users")
+      .select("show_author_name")
+      .eq("id", id)
+      .maybeSingle();
+    if (data) {
+      setShowName(data.show_author_name !== false);
+      setShowNameReady(true);
+    }
+  });
+
+  const toggleShowName = async () => {
+    const id = user()?.id;
+    if (!id || showNameSaving()) return;
+    const next = !showName();
+    setShowName(next);
+    setShowNameSaving(true);
+    const { error } = await supabase
+      .from("users")
+      .update({ show_author_name: next })
+      .eq("id", id);
+    setShowNameSaving(false);
+    if (error) {
+      setShowName(!next);
+      toast.error("تعذّر حفظ الخيار، تحقق من الاتصال");
+      return;
+    }
+    clearAuthorNameCache();
+    toast.success(next ? "سيظهر اسمك للطلاب" : "تم إخفاء اسمك عن الطلاب");
+  };
 
   // ─── خط التطبيق المخصص ───────────────────────────────────────────
   const {
@@ -250,6 +297,43 @@ export default function Settings() {
             </Show>
           </div>
         </div>
+
+        {/* ─── إظهار اسمي على ما أضفته ─── */}
+        <Show when={isContributor() && showNameReady()}>
+          <div
+            class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+            dir="rtl"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-xl">🪪</span>
+                  <h3 class="font-bold">إظهار اسمي للطلاب</h3>
+                </div>
+                <p class="text-xs text-slate-400">
+                  عند التفعيل يظهر اسمك كمن أضاف الأسئلة والمحاضرات. عند الإيقاف
+                  يظهر تاريخ آخر تعديل فقط بدون اسمك.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={showName()}
+                disabled={showNameSaving()}
+                onClick={toggleShowName}
+                class={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                  showName() ? "bg-main" : "bg-slate-300 dark:bg-slate-600"
+                }`}
+              >
+                <span
+                  class={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                    showName() ? "right-0.5" : "right-[1.375rem]"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </Show>
 
         {/* ─── تشخيص الجهاز ─── */}
         <CopyDiagnosticsButton />
