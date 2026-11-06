@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, For, Match, Show, Suspense, Switch } from "solid-js";
+import { createComputed, createEffect, createMemo, createResource, createSignal, For, Match, Show, Suspense, Switch } from "solid-js";
 import { useLocation, useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import { supabase } from "../../shared/services/supabase";
 import { getSections } from "../../shared/services/sections";
@@ -167,7 +167,7 @@ export default function QuizEditor() {
         refetch();
     };
 
-    createEffect(() => {
+    createComputed(() => {
         if (user() && !isAdminRole(user()?.role)) {
             navigate("/", { replace: true });
         }
@@ -369,7 +369,8 @@ export default function QuizEditor() {
                 </div>
 
                 <div class="mx-auto max-w-4xl pb-12">
-                    <Show when={mainTab() === "passages"}>
+                    <Suspense fallback={<div class="animate-pulse p-10 text-center text-slate-400">...</div>}>
+                                 <Show when={mainTab() === "passages"}>
                         <PassageManager subjectId={subjectId() ?? ""} />
                     </Show>
 
@@ -456,6 +457,8 @@ export default function QuizEditor() {
                             </Show>
                         </Suspense>
                     </Show>
+                    </Suspense>
+   
                 </div>
             </div>
 

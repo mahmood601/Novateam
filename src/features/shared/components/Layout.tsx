@@ -6,7 +6,8 @@ import { Links } from "./Header/Links";
 
 export default function Layout(props: { children: JSX.Element }) {
   const location = () => useLocation().pathname;
-  const quizMode = () => location().includes("quiz");
+  const quizMode = () =>
+    location().includes("/quiz") && !location().includes("/edit-quiz");
   const isMainPages = () =>
     location().includes("/stats") ||
     location().includes("/settings") ||

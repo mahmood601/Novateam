@@ -390,7 +390,9 @@ export default function ManageAdmins() {
                     <div class="mt-3 flex gap-2">
                       <Show when={canGrantTo(m)}>
                         <button
-                          onClick={() => openFor(m)}
+                        onClick={() => {openFor(m)
+                          window.scrollTo({ top: 0, behavior: "smooth" })
+                        }}
                           class="rounded-xl bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-600 dark:bg-cyan-900/30"
                         >
                           + صلاحية

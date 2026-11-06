@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useUser } from "../../shared/context/user";
 
@@ -32,10 +32,8 @@ export default function SubjectHub() {
         >
           <div class="flex flex-col gap-4">
             <Show when={canQuiz()}>
-              <button
-                onClick={() => {
-                  navigate(`/dashboard/${subjectId()}/edit-quiz`, { replace: false });
-                }}
+              <A
+                href={`/dashboard/${subjectId()}/edit-quiz`}
                 class="flex items-center gap-4 rounded-[2rem] bg-white p-6 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98] dark:bg-slate-800"
               >
                 <span class="text-3xl">📋</span>
@@ -47,7 +45,7 @@ export default function SubjectHub() {
                     الأسئلة، المقالات، والمقترحات
                   </p>
                 </div>
-              </button>
+              </A>
             </Show>
 
             <Show when={canLecture()}>

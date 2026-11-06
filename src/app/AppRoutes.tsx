@@ -48,14 +48,13 @@ function LandingRoute() {
 }
 
 /**
- * غلاف يحمي المسارات ويحتوي على Suspense لجميع الصفحات المفتوحة كسستة Lazy
+ * غلاف يحمي المسارات. The shared layout owns the content Suspense boundary so
+ * the application chrome remains mounted while a lazy page loads.
  */
 function ProtectedLayout(props: ParentProps) {
   return (
     <AuthGate>
-      <Suspense fallback={<div>جاري التحميل...</div>}>
-        {props.children}
-      </Suspense>
+      {props.children}
     </AuthGate>
   );
 }
