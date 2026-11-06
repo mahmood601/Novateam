@@ -7,7 +7,6 @@ import { quizDisplayMode, setQuizDisplayMode } from "../utils/quizDisplayMode";
 import { quizState } from "../utils/quizStore";
 import AdminEditPanel from "./AdminEditPanel";
 import { useUser } from "../../shared/context/user";
-import { isAdminRole } from "../../shared/lib/roles";
 
 export default function QuizHeader(props: {
   total: number;
@@ -27,8 +26,10 @@ export default function QuizHeader(props: {
   const [geminiOpen, setGeminiOpen] = createSignal(false);
   const [editOpen, setEditOpen] = createSignal(false);
 
-  const { user } = useUser();
-  const isAdmin = () => isAdminRole(user()?.role);
+  const { can } = useUser();
+  // The in-quiz edit panel edits others' questions → needs "publish" in this subject
+  const canEditHere = () =>
+    !!props.subjectId && can("quiz", props.subjectId, "publish");
 
   createEffect(() => {
     setTimeLeft((props.total - 1) * 60);
@@ -183,7 +184,7 @@ export default function QuizHeader(props: {
           />
 
           {/* زر تعديل السؤال — يظهر فقط للأدمن */}
-          <Show when={isAdmin() && props.subjectId}>
+          <Show when={canEditHere()}>
             <button
               onClick={() => setEditOpen(true)}
               class="flex items-center justify-center rounded-full p-2 transition hover:scale-105"

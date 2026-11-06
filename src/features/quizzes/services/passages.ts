@@ -41,31 +41,45 @@ export async function insertPassage(
   return row.id as string;
 }
 
-export async function deletePassage(passageId: string): Promise<void> {
-  const { error } = await supabase
+// Both functions return true only if a row really changed. RLS refusals come
+// back as "0 rows, no error", so we count the returned rows.
+export async function deletePassage(passageId: string): Promise<boolean> {
+  const { data, error } = await supabase
     .from("passages")
     .delete()
-    .eq("id", passageId);
+    .eq("id", passageId)
+    .select("id");
 
   if (error) {
     toast.error("فشل حذف المقالة: " + error.message);
-  } else {
-    toast.success("تم حذف المقالة 🗑️");
+    return false;
   }
+  if (!data || data.length === 0) {
+    toast.error("لا تملك صلاحية حذف هذه المقالة");
+    return false;
+  }
+  toast.success("تم حذف المقالة 🗑️");
+  return true;
 }
 
 export async function updatePassage(
   passageId: string,
   content: string,
-): Promise<void> {
-  const { error } = await supabase
+): Promise<boolean> {
+  const { data, error } = await supabase
     .from("passages")
     .update({ content })
-    .eq("id", passageId);
+    .eq("id", passageId)
+    .select("id");
 
   if (error) {
     toast.error("فشل تعديل المقالة: " + error.message);
-  } else {
-    toast.success("تم تعديل المقالة ✏️");
+    return false;
   }
+  if (!data || data.length === 0) {
+    toast.error("لا تملك صلاحية تعديل هذه المقالة");
+    return false;
+  }
+  toast.success("تم تعديل المقالة ✏️");
+  return true;
 }

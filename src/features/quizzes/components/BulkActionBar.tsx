@@ -2,6 +2,7 @@ import { createSignal, For, Show } from "solid-js";
 import toast from "solid-toast";
 import { supabase } from "../../shared/services/supabase";
 import type { Section } from "../services/types";
+import { useUser } from "../../shared/context/user";
 
 export function BulkActionBar(props: {
   selectedIds: Set<string>;
@@ -10,6 +11,10 @@ export function BulkActionBar(props: {
   onClear: () => void;
   onComplete: () => void;
 }) {
+  const { can } = useUser();
+  const canMove = () => can("quiz", props.subjectId, "publish");
+  const canDelete = () => can("quiz", props.subjectId, "manage");
+
   const [moving, setMoving] = createSignal(false);
   const [targetSeasonId, setTargetSeasonId] = createSignal<number | null>(null);
   const [targetYearId, setTargetYearId] = createSignal<number | null>(null);
@@ -29,7 +34,14 @@ export function BulkActionBar(props: {
     if (targetSeasonId()) updates.season_id = targetSeasonId();
     if (targetYearId()) updates.year_id = targetYearId();
 
-    const { error } = await supabase.from("questions").update(updates).in("id", ids);
+    // .select("id") returns the rows that REALLY changed. RLS silently skips
+    // rows you may not touch (no error!), so we compare against what we asked.
+    const { data: rows, error } = await supabase
+      .from("questions")
+      .update(updates)
+      .in("id", ids)
+      .eq("subject_id", props.subjectId)
+      .select("id");
 
     setMoving(false);
 
@@ -38,7 +50,16 @@ export function BulkActionBar(props: {
       return;
     }
 
-    toast.success(`تم نقل ${count()} سؤال ✅`);
+    const done = rows?.length ?? 0;
+    if (done === 0) {
+      toast.error("لا تملك صلاحية نقل هذه الأسئلة");
+      return;
+    }
+    if (done < ids.length) {
+      toast.error(`نُقل ${done} من ${ids.length} فقط — لا تملك صلاحية الباقي`);
+    } else {
+      toast.success(`تم نقل ${done} سؤال ✅`);
+    }
     props.onClear();
     props.onComplete();
     setShowPanel(false);
@@ -49,7 +70,12 @@ export function BulkActionBar(props: {
 
     setMoving(true);
     const ids = [...props.selectedIds];
-    const { error } = await supabase.from("questions").delete().in("id", ids);
+    const { data: rows, error } = await supabase
+      .from("questions")
+      .delete()
+      .in("id", ids)
+      .eq("subject_id", props.subjectId)
+      .select("id");
 
     setMoving(false);
 
@@ -58,7 +84,16 @@ export function BulkActionBar(props: {
       return;
     }
 
-    toast.success(`تم حذف ${count()} سؤال 🗑️`);
+    const done = rows?.length ?? 0;
+    if (done === 0) {
+      toast.error("لا تملك صلاحية حذف هذه الأسئلة");
+      return;
+    }
+    if (done < ids.length) {
+      toast.error(`حُذف ${done} من ${ids.length} فقط — لا تملك صلاحية الباقي`);
+    } else {
+      toast.success(`تم حذف ${done} سؤال 🗑️`);
+    }
     props.onClear();
     props.onComplete();
   };
@@ -71,19 +106,23 @@ export function BulkActionBar(props: {
         </span>
         <span class="flex-1 text-sm font-bold">سؤال محدد</span>
 
-        <button
-          onClick={() => setShowPanel(!showPanel())}
-          class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold transition hover:bg-cyan-400"
-        >
-          نقل 📦
-        </button>
-        <button
-          onClick={handleDelete}
-          disabled={moving()}
-          class="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold transition hover:bg-red-400 disabled:opacity-50"
-        >
-          حذف 🗑️
-        </button>
+        <Show when={canMove()}>
+          <button
+            onClick={() => setShowPanel(!showPanel())}
+            class="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold transition hover:bg-cyan-400"
+          >
+            نقل 📦
+          </button>
+        </Show>
+        <Show when={canDelete()}>
+          <button
+            onClick={handleDelete}
+            disabled={moving()}
+            class="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold transition hover:bg-red-400 disabled:opacity-50"
+          >
+            حذف 🗑️
+          </button>
+        </Show>
         <button
           onClick={props.onClear}
           class="rounded-xl bg-slate-700 px-3 py-2 text-sm font-bold transition hover:bg-slate-600"

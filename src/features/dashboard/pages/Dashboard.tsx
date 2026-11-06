@@ -2,7 +2,6 @@ import { createResource, createSignal, For, Show } from "solid-js";
 import { getSubjectsOfflineFirst } from "../../quizzes/services/local/indexeddb";
 import { A } from "@solidjs/router";
 import { useUser } from "../../shared/context/user";
-import { isSuperAdminRole } from "../../shared/lib/roles";
 
 const YEARS = [
   { id: "second", name: "الثانية" },
@@ -12,25 +11,42 @@ const YEARS = [
 ];
 
 export default function Dashboard() {
-  const { user } = useUser();
+  const { can, canAny } = useUser();
   const [yearKey, setYearKey] = createSignal<string>("second");
   const [subjects] = createResource(
     () => yearKey(),
     (year) => getSubjectsOfflineFirst(year),
   );
 
+  // Only subjects where I hold a quiz or lecture grant (super-admin sees all)
+  const visible = () =>
+    (subjects() ?? []).filter(
+      (s) => can("quiz", s.id) || can("lecture", s.id),
+    );
+
   return (
     <div class="h-dvh bg-[#f8fafc] px-5 dark:bg-[#0f172a]" dir="rtl">
       {/* أضفنا mx-auto لضبط المحاذاة */}
       <div class="mx-auto flex h-full max-w-lg flex-col overflow-hidden pt-22 pb-22">
         
-        <Show when={isSuperAdminRole(user()?.role)}>
+        <Show when={canAny("subjects", "manage")}>
           <A
             href="/dashboard/manage"
             class="mb-4 flex shrink-0 items-center gap-3 rounded-4xl bg-gradient-to-r from-cyan-400 to-blue-500 p-4 text-white shadow-md"
           >
             <span class="text-2xl">🛠️</span>
             <span class="flex-1 font-bold">إدارة المواد والأقسام</span>
+            <span>←</span>
+          </A>
+        </Show>
+
+        <Show when={canAny("admins", "manage")}>
+          <A
+            href="/dashboard/admins"
+            class="mb-4 flex shrink-0 items-center gap-3 rounded-4xl bg-gradient-to-r from-fuchsia-400 to-purple-500 p-4 text-white shadow-md"
+          >
+            <span class="text-2xl">👥</span>
+            <span class="flex-1 font-bold">إدارة الأدمنز والصلاحيات</span>
             <span>←</span>
           </A>
         </Show>
@@ -71,16 +87,18 @@ export default function Dashboard() {
             }
           >
             <Show
-              when={(subjects() ?? []).length > 0}
+              when={visible().length > 0}
               fallback={
                 <p class="py-8 text-center text-slate-400">
-                  لا توجد مواد لهذه السنة 📭
+                  {(subjects() ?? []).length > 0
+                    ? "لم تُمنح صلاحية على مواد هذه السنة بعد 🔒"
+                    : "لا توجد مواد لهذه السنة 📭"}
                 </p>
               }
             >
               {/* التعديل الجوهري: نقل overflow-y-auto إلى الحاوية المباشرة لعناصر قائمة SolidJS */}
               <div class="flex flex-1 min-h-0 flex-col gap-2 overflow-y-auto pl-1">
-                <For each={subjects()}>
+                <For each={visible()}>
                   {(sub) => (
                     <A
                       href={`/dashboard/${sub.id}`}

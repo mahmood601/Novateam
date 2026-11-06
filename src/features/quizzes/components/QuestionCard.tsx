@@ -1,6 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { supabase } from "../../shared/services/supabase";
-import { deleteQuestion } from "../services/questions";
+import { deleteQuestion, setQuestionStatus } from "../services/questions";
+import { useUser } from "../../shared/context/user";
 import { uploadQuestionImage, deleteQuestionImage } from "../../shared/services/imageUpload";
 import ImageLightbox from "./ImageLightbox";
 import toast from "solid-toast";
@@ -18,8 +19,38 @@ export function QuestionCard(props: {
   onToggleSelect: (id: string) => void;
   selectionMode: boolean;
 }) {
+  const { user, can } = useUser();
   const [open, setOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
+  const [changingStatus, setChangingStatus] = createSignal(false);
+
+  // ── What may THIS admin do with THIS question? ──────────────────
+  // (UI only. Postgres enforces the same rules with RLS + a trigger.)
+  const status = () => props.question.status ?? "published";
+  const isOwn = () => !!user()?.id && props.question.user_id === user()?.id;
+  const canPublish = () => can("quiz", props.subjectId, "publish");
+  const canDelete = () => can("quiz", props.subjectId, "manage");
+  // publishers edit anything; contributors only their own unpublished questions
+  const canEdit = () =>
+    canPublish() ||
+    (can("quiz", props.subjectId, "contribute") &&
+      isOwn() &&
+      status() !== "published");
+
+  const changeStatus = async (next: "published" | "pending") => {
+    if (next === "pending" && !confirm("إلغاء نشر السؤال؟ سيختفي عن الطلاب.")) {
+      return;
+    }
+    setChangingStatus(true);
+    const { error } = await setQuestionStatus(props.question.$id, next);
+    setChangingStatus(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(next === "published" ? "تم نشر السؤال ✓" : "أُلغي نشر السؤال");
+    props.onRefetch();
+  };
   const [localImageUrl, setLocalImageUrl] = createSignal<string | null>(
     props.question.image_url ?? null,
   );
@@ -42,10 +73,7 @@ export function QuestionCard(props: {
     const error = await deleteQuestion(props.subjectId, props.question.$id);
     setDeleting(false);
 
-    if (error) {
-      toast.error("فشل الحذف، حاول مرة أخرى");
-      return;
-    }
+    if (error) return; // deleteQuestion already showed the reason
     toast.success("تم حذف السؤال");
     props.onRefetch();
   };
@@ -88,6 +116,17 @@ export function QuestionCard(props: {
           <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500 dark:bg-slate-700">
             {props.question.$id.slice(0, 8)}
           </span>
+          <Show when={status() !== "published"}>
+            <span
+              class={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                status() === "pending"
+                  ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30"
+                  : "bg-slate-100 text-slate-500 dark:bg-slate-700"
+              }`}
+            >
+              {status() === "pending" ? "⏳ بانتظار المراجعة" : "مسودة"}
+            </span>
+          </Show>
         </div>
 
         <div class="flex flex-wrap gap-1">
@@ -164,25 +203,35 @@ export function QuestionCard(props: {
                   class="max-h-48 w-full cursor-zoom-in object-contain bg-slate-100 dark:bg-slate-900"
                   onClick={() => setLightbox(true)}
                 />
-                <button
-                  class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow disabled:opacity-50"
-                  disabled={deletingImage()}
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (!confirm("حذف الصورة؟")) return;
-                    setDeletingImg(true);
-                    await deleteQuestionImage(url());
-                    await supabase
-                      .from("questions")
-                      .update({ image_url: null })
-                      .eq("id", props.question.$id);
-                    setLocalImageUrl(null);
-                    toast.success("تم حذف الصورة");
-                    setDeletingImg(false);
-                  }}
-                >
-                  {deletingImage() ? "…" : "✕"}
-                </button>
+                <Show when={canEdit()}>
+                  <button
+                    class="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow disabled:opacity-50"
+                    disabled={deletingImage()}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm("حذف الصورة؟")) return;
+                      setDeletingImg(true);
+                      // Update the row FIRST: if RLS refuses (0 rows) we must not
+                      // delete the file of a question we don't own.
+                      const { data: rows, error } = await supabase
+                        .from("questions")
+                        .update({ image_url: null })
+                        .eq("id", props.question.$id)
+                        .select("id");
+                      if (error || !rows || rows.length === 0) {
+                        toast.error("لا تملك صلاحية تعديل هذا السؤال");
+                        setDeletingImg(false);
+                        return;
+                      }
+                      await deleteQuestionImage(url());
+                      setLocalImageUrl(null);
+                      toast.success("تم حذف الصورة");
+                      setDeletingImg(false);
+                    }}
+                  >
+                    {deletingImage() ? "…" : "✕"}
+                  </button>
+                </Show>
               </div>
               <Show when={lightbox()}>
                 <ImageLightbox src={url()} onClose={() => setLightbox(false)} />
@@ -192,7 +241,7 @@ export function QuestionCard(props: {
         }}
       </Show>
 
-      <Show when={open() && !localImageUrl()}>
+      <Show when={open() && !localImageUrl() && canEdit()}>
         {() => {
           const [uploading, setUploadingImg] = createSignal(false);
           return (
@@ -211,10 +260,17 @@ export function QuestionCard(props: {
                   setUploadingImg(true);
                   try {
                     const uploadedUrl = await uploadQuestionImage(file);
-                    await supabase
+                    const { data: rows, error } = await supabase
                       .from("questions")
                       .update({ image_url: uploadedUrl })
-                      .eq("id", props.question.$id);
+                      .eq("id", props.question.$id)
+                      .select("id");
+                    if (error || !rows || rows.length === 0) {
+                      // refused: don't leave an orphan file in the bucket
+                      await deleteQuestionImage(uploadedUrl);
+                      toast.error("لا تملك صلاحية تعديل هذا السؤال");
+                      return;
+                    }
                     setLocalImageUrl(uploadedUrl);
                     toast.success("تم رفع الصورة ✓");
                   } catch {
@@ -245,19 +301,41 @@ export function QuestionCard(props: {
           class="mt-4 flex gap-2 border-t border-slate-100 pt-4 dark:border-slate-700"
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            onClick={() => props.onEdit(props.question)}
-            class="flex-1 rounded-xl bg-amber-50 py-2 text-sm font-bold text-amber-600 hover:bg-amber-100 dark:bg-amber-900/20"
-          >
-            تعديل ✏️
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting()}
-            class="flex-1 rounded-xl bg-red-50 py-2 text-sm font-bold text-red-600 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20"
-          >
-            {deleting() ? "جاري الحذف..." : "حذف 🗑️"}
-          </button>
+          <Show when={canPublish() && status() !== "published"}>
+            <button
+              onClick={() => changeStatus("published")}
+              disabled={changingStatus()}
+              class="flex-1 rounded-xl bg-green-50 py-2 text-sm font-bold text-green-600 hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/20"
+            >
+              نشر ✓
+            </button>
+          </Show>
+          <Show when={canPublish() && status() === "published"}>
+            <button
+              onClick={() => changeStatus("pending")}
+              disabled={changingStatus()}
+              class="flex-1 rounded-xl bg-slate-100 py-2 text-sm font-bold text-slate-500 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-700"
+            >
+              إلغاء النشر
+            </button>
+          </Show>
+          <Show when={canEdit()}>
+            <button
+              onClick={() => props.onEdit(props.question)}
+              class="flex-1 rounded-xl bg-amber-50 py-2 text-sm font-bold text-amber-600 hover:bg-amber-100 dark:bg-amber-900/20"
+            >
+              تعديل ✏️
+            </button>
+          </Show>
+          <Show when={canDelete()}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting()}
+              class="flex-1 rounded-xl bg-red-50 py-2 text-sm font-bold text-red-600 hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20"
+            >
+              {deleting() ? "جاري الحذف..." : "حذف 🗑️"}
+            </button>
+          </Show>
         </div>
       </Show>
     </div>

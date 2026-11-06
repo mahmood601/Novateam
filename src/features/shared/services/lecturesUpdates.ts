@@ -8,6 +8,9 @@ export async function upsertLecture({
   seasonId,
   rawContent,
   userId,
+  // The caller says what it INTENDS. Postgres has the last word: without
+  // "publish" permission a "published" request is saved as "pending".
+  status = "published",
 }) {
   const { data, error } = await supabase
     .from("formatted_lectures")
@@ -16,7 +19,7 @@ export async function upsertLecture({
         subject_id: subjectId,
         season_id: seasonId,
         content: { raw: rawContent },
-        status: "published", // يمكنك تعديل الحالة حسب الحاجة
+        status,
         created_by: userId,
         updated_at: new Date().toISOString(),
       },
@@ -138,7 +141,7 @@ export async function updateLectureContent({
   const { data, error } = await supabase
     .from("formatted_lectures")
     .update({
-      content_json: { raw: rawContent },
+      content: { raw: rawContent },
       updated_by: userId,
       updated_at: new Date().toISOString(),
     })
@@ -159,11 +162,11 @@ export async function updateLectureContent({
 // تحديث (Update) — حالة النشر فقط
 // ============================================
 export async function updateLectureStatus(subjectId, seasonId, status, userId) {
-  if (!["draft", "published"].includes(status)) {
+  if (!["draft", "pending", "published"].includes(status)) {
     return {
       data: null,
       error: {
-        message: "حالة غير صالحة، يجب أن تكون draft أو published",
+        message: "حالة غير صالحة، يجب أن تكون draft أو pending أو published",
         code: "invalid_status",
       },
     };
@@ -193,15 +196,25 @@ export async function updateLectureStatus(subjectId, seasonId, status, userId) {
 // حذف (Delete)
 // ============================================
 export async function deleteLecture(subjectId, seasonId) {
-  const { error } = await supabase
+  // .select("id") matters: when RLS refuses a DELETE, Postgres does NOT raise
+  // an error — it just deletes 0 rows. Counting the returned rows is the only
+  // way to tell "deleted" from "silently refused".
+  const { data, error } = await supabase
     .from("formatted_lectures")
     .delete()
     .eq("subject_id", subjectId)
-    .eq("season_id", seasonId);
+    .eq("season_id", seasonId)
+    .select("id");
 
   if (error) {
     console.error("[deleteLecture] فشل الحذف:", error.message);
     return { success: false, error: mapError(error) };
+  }
+  if (!data || data.length === 0) {
+    return {
+      success: false,
+      error: { message: "لا تملك صلاحية حذف هذه المحاضرة", code: "denied" },
+    };
   }
 
   return { success: true, error: null };
@@ -219,9 +232,17 @@ function mapError(error) {
   if (error.code === "23503") {
     return { message: "المادة أو القسم المحدد غير موجود", code: error.code };
   }
+  // رمز 42501 = رفضت سياسة RLS العملية (لا صلاحية)
+  if (error.code === "42501") {
+    return {
+      message: "لا تملك صلاحية تعديل هذه المحاضرة (منشورة أو تخص مستخدماً آخر)",
+      code: error.code,
+    };
+  }
   // رمز PGRST116 = لم يتم إيجاد أي صف (single() بدون نتيجة)
+  // ومع RLS يعني أيضاً أن العملية رُفضت بصمت (صفر صفوف)
   if (error.code === "PGRST116") {
-    return { message: "المحاضرة غير موجودة", code: error.code };
+    return { message: "المحاضرة غير موجودة أو لا تملك صلاحية عليها", code: error.code };
   }
   // خطأ شبكة عام
   if (error.message?.includes("fetch")) {
@@ -235,4 +256,24 @@ function mapError(error) {
     message: "حدث خطأ غير متوقع، حاول مرة أخرى",
     code: error.code ?? "unknown",
   };
+}
+
+// ============================================
+// حالات المحاضرات لمادة (للوحة التحكم)
+// ============================================
+export async function getLectureStatuses(
+  subjectId: string,
+): Promise<Map<number, string>> {
+  const { data, error } = await supabase
+    .from("formatted_lectures")
+    .select("season_id, status")
+    .eq("subject_id", subjectId);
+
+  const map = new Map<number, string>();
+  if (error) {
+    console.error("[getLectureStatuses]", error.message);
+    return map;
+  }
+  for (const row of data ?? []) map.set(row.season_id, row.status);
+  return map;
 }

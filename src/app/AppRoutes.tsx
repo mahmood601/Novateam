@@ -5,7 +5,7 @@ import Login from "../features/shared/pages/Login";
 import AuthCallback from "../features/shared/components/auth/AuthCallback";
 import NotFound from "../features/shared/pages/NotFound";
 import AdminGate from "../features/dashboard/components/AdminGate";
-import SuperAdminGate from "../features/dashboard/components/SuperAdminGate";
+import PermGate from "../features/dashboard/components/PermGate";
 import AuthGate from "@/features/shared/components/AuthGate";
 
 // Lazy Components
@@ -16,6 +16,7 @@ const ManageSubjects = lazy(() => import("../features/dashboard/pages/ManageSubj
 const ManageSections = lazy(() => import("../features/dashboard/pages/ManageSections"));
 const SectionPicker = lazy(() => import("../features/dashboard/pages/SubjectHub"));
 const EditorPage = lazy(() => import("../features/editor/pages/EditorPage"));
+const ManageAdmins = lazy(() => import("../features/dashboard/pages/ManageAdmins"));
 
 const SearchPage = lazy(() => import("../features/shared/pages/Search"));
 const StatsPage = lazy(() => import("../features/shared/pages/Stats"));
@@ -59,6 +60,42 @@ function ProtectedLayout(props: ParentProps) {
   );
 }
 
+// ── Permission-aware route wrappers ──────────────────────────────────────────
+// AdminGate only checks "is this person staff at all?". These check the actual
+// grant. They are a UI convenience: Postgres (RLS) enforces the same rules.
+function ManageGate(props: ParentProps) {
+  return (
+    <PermGate scope="subjects" min="manage" any>
+      {props.children}
+    </PermGate>
+  );
+}
+const ManageSectionsRoute = () => (
+  <PermGate scope="subjects" min="manage" subjectParam>
+    <ManageSections />
+  </PermGate>
+);
+const QuizEditorRoute = () => (
+  <PermGate scope="quiz" subjectParam>
+    <QuizEditor />
+  </PermGate>
+);
+const LectureEditorRoute = () => (
+  <PermGate scope="lecture" subjectParam>
+    <LectureEditor />
+  </PermGate>
+);
+const LectureWriterRoute = () => (
+  <PermGate scope="lecture" subjectParam>
+    <EditorPage />
+  </PermGate>
+);
+const ManageAdminsRoute = () => (
+  <PermGate scope="admins" min="manage" any>
+    <ManageAdmins />
+  </PermGate>
+);
+
 export default function AppRoutes() {
   return (
     <>
@@ -88,15 +125,17 @@ export default function AppRoutes() {
         {/* مسارات الـ Dashboard */}
         <Route path="/dashboard" component={AdminGate}>
           <Route path="/" component={Dashboard} />
-          {/* Super-admin only: manage subjects and sections */}
-          <Route path="/manage" component={SuperAdminGate}>
+          {/* Needs a "subjects" grant (super-admins always pass) */}
+          <Route path="/manage" component={ManageGate}>
             <Route path="/" component={ManageSubjects} />
-            <Route path="/:subject" component={ManageSections} />
+            <Route path="/:subject" component={ManageSectionsRoute} />
           </Route>
+          {/* Needs the "admins" grant: promote / grant / demote */}
+          <Route path="/admins" component={ManageAdminsRoute} />
           <Route path="/:subject" component={SectionPicker} />
-          <Route path="/:subject/edit-quiz" component={QuizEditor} />
-          <Route path="/:subject/edit-lecture" component={LectureEditor} />
-          <Route path="/:subject/edit-lecture/:season/editor" component={EditorPage} />
+          <Route path="/:subject/edit-quiz" component={QuizEditorRoute} />
+          <Route path="/:subject/edit-lecture" component={LectureEditorRoute} />
+          <Route path="/:subject/edit-lecture/:season/editor" component={LectureWriterRoute} />
         </Route>
 
         <Route path="/print" component={PrintPage} />

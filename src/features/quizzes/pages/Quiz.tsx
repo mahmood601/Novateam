@@ -16,7 +16,10 @@ import {
   syncPassagesOfflineFirst,
   getPassagesForSubject,
   Question,
+  type Passage,
 } from "../services/local/indexeddb";
+import { syncAndGetSections } from "../services/local/indexeddb/sections";
+import type { CachedSection } from "../types/cached-section";
 import {
   getQuestionsWithFilters,
   getAnswersWithFilters,
@@ -27,6 +30,7 @@ import {
   filtersKey,
   activeFilterCount,
   type QuizFilters,
+  type QuizFilterResult,
 } from "../services/local/indexeddb/quizFilters";
 import { useAudio } from "../../shared/hooks/useAudio";
 import { unwrap } from "solid-js/store";
@@ -56,11 +60,22 @@ export default function Quiz() {
   const [toolsSheetOpen, setToolsSheetOpen] = createSignal(false);
 
   const { playSound } = useAudio();
-  const [subjectInfo] = createResource(async () => {
-    const yearKey = localStorage.getItem("year") ?? "";
-    const subjects = await getSubjectsOfflineFirst(yearKey);
-    return subjects.find((item) => item.id === subject);
-  });
+  // ── WHY every resource below has `initialValue` and is read through `.latest` ──
+  // Solid's <Suspense> shows its fallback whenever a resource READ THROUGH `()`
+  // is loading — on the first load AND on every refetch (e.g. changing a
+  // filter). That blanked the whole quiz (header, feed, scroll position) each time.
+  // `initialValue` marks a resource as "already has a value", and `.latest`
+  // returns the last value WITHOUT registering with Suspense: the old content
+  // stays on screen while new data loads, so nothing flashes.
+  const [subjectInfo] = createResource(
+    async () => {
+      const yearKey = localStorage.getItem("year") ?? "";
+      const subjects = await getSubjectsOfflineFirst(yearKey);
+      return subjects.find((item) => item.id === subject);
+    },
+    { initialValue: undefined },
+  );
+  const subjectName = () => subjectInfo.latest?.name ?? subject;
 
   // مفتاح الموضع المحفوظ مبني على تركيبة الفلتر الحالية — كل تركيبة
   // عندها موضعها الخاص المحفوظ.
@@ -110,21 +125,51 @@ export default function Quiz() {
 
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [filterResult, { refetch: refetchQuestions, mutate: mutateFilterResult }] = createResource(
-    () => [subject, filters()] as const,
-    ([subj, f]) => getQuestionsWithFilters(subj, f),
-    { deferStream: true },
-  );
-  const questions = () => filterResult()?.questions;
+  const [filterResult, { refetch: refetchQuestions, mutate: mutateFilterResult }] =
+    createResource<QuizFilterResult | undefined, readonly [string, QuizFilters]>(
+      () => [subject, filters()] as const,
+      ([subj, f]) => getQuestionsWithFilters(subj, f),
+      { initialValue: undefined },
+    );
+  const questions = () => filterResult.latest?.questions;
   const weakAttemptsMap = createMemo(
-    () => filterResult()?.weakAttemptsMap ?? new Map<string, number>(),
+    () => filterResult.latest?.weakAttemptsMap ?? new Map<string, number>(),
   );
 
   // ─── Passages ─────────────────────────────────────────────────────────────
-  const [passages] = createResource(async () => {
-    await syncPassagesOfflineFirst(subject);
-    return (await getPassagesForSubject(subject)).reverse();
-  });
+  // Offline-first for real: show what is already on the device IMMEDIATELY and
+  // refresh from the network in the background. Before, the screen waited for
+  // a Supabase request (every 10 minutes) before showing any question.
+  const [passages, { mutate: mutatePassages }] = createResource(
+    async () => {
+      const local = (await getPassagesForSubject(subject)).reverse();
+      syncPassagesOfflineFirst(subject).then(async () => {
+        const fresh = (await getPassagesForSubject(subject)).reverse();
+        const same =
+          fresh.length === local.length &&
+          fresh.every(
+            (p, i) => p.$id === local[i]?.$id && p.content === local[i]?.content,
+          );
+        if (!same) mutatePassages(fresh);
+      });
+      return local;
+    },
+    { initialValue: [] as Passage[] },
+  );
+  const passageMap = createMemo(
+    () => new Map(passages.latest.map((p) => [p.$id, p])),
+  );
+
+  // Season / year names for the badge on each question: ONE lookup for the
+  // whole page. Before, every question loaded the same list from IndexedDB
+  // on its own (3 lookups per question → thousands for a big subject).
+  const [sections, { mutate: mutateSections }] = createResource(
+    () => syncAndGetSections(subject, (fresh) => mutateSections(fresh)),
+    { initialValue: [] as CachedSection[] },
+  );
+  const sectionNames = createMemo(
+    () => new Map(sections.latest.map((s) => [s.id, s.name])),
+  );
 
   // ─── Ordered Questions ────────────────────────────────────────────────────────
 
@@ -160,7 +205,7 @@ export default function Quiz() {
   const currentPassage = createMemo(() => {
     const q = currentQuestion();
     if (!q?.passage_id) return null;
-    return passages()?.find((p) => p.$id === q.passage_id) ?? null;
+    return passageMap().get(q.passage_id) ?? null;
   });
 
   // خريطة الأسئلة المُجابة — تُستخدم لعرض كل سؤال بحالته في وضع التمرير
@@ -316,7 +361,7 @@ export default function Quiz() {
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <QuizHeader
-             subjectName={subjectInfo()?.name ?? subject}
+             subjectName={subjectName()}
             index={quizState.index}
             isDisabled={quizState.isOptionDisabled}
             total={orderedQs().length}
@@ -370,22 +415,35 @@ export default function Quiz() {
             </p>
           </div>
 
-          <QuizFeed
-            questions={orderedQs()}
-            passages={passages()}
-            subject={subject}
-            subjectName={subjectInfo()?.name ?? subject}
-            answeredMap={answeredMap()}
-            weakAttemptsMap={weakAttemptsMap()}
-            startIndex={quizState.index}
-            onSelect={handleOptionSelect}
-            onIndexChange={(idx) => setQuizState("index", idx)}
-            onFinish={finishQuiz}
-          />
+          {/* The page chrome stays on screen; only this area shows a spinner,
+              and only until the FIRST load (never again when filters change). */}
+          <Show
+            when={filterResult.latest}
+            fallback={
+              <div class="flex flex-1 items-center justify-center text-sm text-gray-400">
+                جاري التحميل...
+              </div>
+            }
+          >
+            <QuizFeed
+              questions={orderedQs()}
+              passageMap={passageMap()}
+              sectionNames={sectionNames()}
+              subject={subject}
+              subjectName={subjectName()}
+              answeredMap={answeredMap()}
+              weakAttemptsMap={weakAttemptsMap()}
+              startIndex={quizState.index}
+              onSelect={handleOptionSelect}
+              onIndexChange={(idx) => setQuizState("index", idx)}
+              onFinish={finishQuiz}
+            />
+          </Show>
         </div>
 
         <QuizFilterSheet
           subject={subject}
+          sections={sections.latest}
           open={filterSheetOpen()}
           filters={filters()}
           onChange={setFilters}

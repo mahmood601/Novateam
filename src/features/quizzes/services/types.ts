@@ -7,6 +7,8 @@ export type Section = {
   name: string;
 };
 
+export type QuestionStatus = "draft" | "pending" | "published";
+
 export type QuestionUI = {
   $id: string;
   subject_id: string;
@@ -23,6 +25,8 @@ export type QuestionUI = {
   yearValue?: string;
   passage_id?: string | null;
   image_url?: string | null;
+  /** draft | pending | published — only staff ever see non-published rows */
+  status?: QuestionStatus;
 };
 
 export type PassageUI = {

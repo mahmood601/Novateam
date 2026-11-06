@@ -14,6 +14,7 @@ import type { QuestionUI } from "../services/types";
 import { ManualForm } from "./ManualForm";
 import { db, type Question } from "../services/local/indexeddb";
 import toast from "solid-toast";
+import { useUser } from "../../shared/context/user";
 
 export default function AdminEditPanel(props: {
   open: boolean;
@@ -25,6 +26,7 @@ export default function AdminEditPanel(props: {
 }) {
   const [sections] = createResource(() => props.subjectId, getSections);
   const [deleting, setDeleting] = createSignal(false);
+  const { can } = useUser();
 
   const handleDelete = async () => {
     const q = props.question;
@@ -109,13 +111,15 @@ export default function AdminEditPanel(props: {
             />
           </Show>
 
-          <button
-            onClick={handleDelete}
-            disabled={deleting()}
-            class="w-full rounded-2xl bg-red-50 py-3 text-sm font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20"
-          >
-            {deleting() ? "جاري الحذف..." : "حذف السؤال نهائياً 🗑️"}
-          </button>
+          <Show when={can("quiz", props.subjectId, "manage")}>
+            <button
+              onClick={handleDelete}
+              disabled={deleting()}
+              class="w-full rounded-2xl bg-red-50 py-3 text-sm font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-50 dark:bg-red-900/20"
+            >
+              {deleting() ? "جاري الحذف..." : "حذف السؤال نهائياً 🗑️"}
+            </button>
+          </Show>
         </div>
       </div>
     </Show>

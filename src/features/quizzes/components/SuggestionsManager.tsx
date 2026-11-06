@@ -40,13 +40,14 @@ export function SuggestionsManager(props: {
   const getSeasonName = (id: number | null) => seasons().find((s) => s.id === id)?.name ?? "غير محدد";
 
   const handleApprove = async (suggestion: any) => {
-    const { error } = await supabase
+    const { data: rows, error } = await supabase
       .from("questions")
       .update({ season_id: suggestion.suggested_season_id })
-      .eq("id", suggestion.question_id);
+      .eq("id", suggestion.question_id)
+      .select("id");
 
-    if (error) {
-      toast.error("فشل التطبيق");
+    if (error || !rows || rows.length === 0) {
+      toast.error(error ? "فشل التطبيق" : "لا تملك صلاحية تعديل هذا السؤال");
       return;
     }
 

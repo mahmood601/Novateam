@@ -7,7 +7,9 @@ const AUTO_ADVANCE_DELAY = 700;
 
 type FeedProps = {
   questions: Question[];
-  passages: Passage[] | undefined;
+  passageMap: Map<string, Passage>;
+  /** season/year id → name, built ONCE by the page (no per-question lookups) */
+  sectionNames: Map<number, string>;
   subject: string;
   subjectName: string;
   answeredMap: Map<string, { selectedIndex: number; isCorrect: boolean }>;
@@ -22,9 +24,7 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
   const slideEls: (HTMLDivElement | undefined)[] = [];
 
   const passageFor = (q: Question) =>
-    q.passage_id
-      ? (props.passages?.find((p) => p.$id === q.passage_id) ?? null)
-      : null;
+    q.passage_id ? (props.passageMap.get(q.passage_id) ?? null) : null;
 
   const scrollToIndex = (idx: number, smooth = true) => {
     slideEls[idx]?.scrollIntoView({
@@ -143,6 +143,8 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
                     handleSelect(qq, optIdx, content, i())
                   }
                   passage={passageFor(q)}
+                  seasonName={q.season_id ? props.sectionNames.get(q.season_id) : undefined}
+                  yearName={q.year_id ? props.sectionNames.get(q.year_id) : undefined}
                   weakAttempts={props.weakAttemptsMap?.get(q.$id)}
                 />
               </div>

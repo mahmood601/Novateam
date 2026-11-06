@@ -1,9 +1,13 @@
 import { createResource, createSignal, For, Show } from "solid-js";
-import toast from "solid-toast";
 import { deletePassage, getPassages, updatePassage } from "../services/passages";
 import type { PassageUI } from "../services/types";
+import { useUser } from "../../shared/context/user";
 
 export function PassageManager(props: { subjectId: string }) {
+  const { can } = useUser();
+  // passages have no draft/pending state: editing needs "publish", deleting "manage"
+  const canEditPassage = () => can("quiz", props.subjectId, "publish");
+  const canDeletePassage = () => can("quiz", props.subjectId, "manage");
   const [passages, { refetch }] = createResource(() => getPassages(props.subjectId));
   const [editingId, setEditingId] = createSignal<string | null>(null);
   const [editText, setEditText] = createSignal("");
@@ -17,18 +21,16 @@ export function PassageManager(props: { subjectId: string }) {
   const saveEdit = async () => {
     if (!editingId()) return;
     setSavingId(editingId());
-    await updatePassage(editingId()!, editText());
+    const ok = await updatePassage(editingId()!, editText());
     setSavingId(null);
+    if (!ok) return; // keep the editor open so the text isn't lost
     setEditingId(null);
-    toast.success("تم حفظ المقالة");
     refetch();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذه المقالة؟ سيتم إلغاء ربطها بجميع الأسئلة.")) return;
-    await deletePassage(id);
-    toast.success("تم حذف المقالة");
-    refetch();
+    if (await deletePassage(id)) refetch();
   };
 
   return (
@@ -83,18 +85,22 @@ export function PassageManager(props: { subjectId: string }) {
                   </button>
                 </Show>
                 <Show when={editingId() !== p.$id}>
-                  <button
-                    onClick={() => startEdit(p)}
-                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
-                  >
-                    تعديل ✏️
-                  </button>
-                  <button
-                    onClick={() => handleDelete(p.$id)}
-                    class="rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-500 dark:bg-red-900/20"
-                  >
-                    حذف 🗑️
-                  </button>
+                  <Show when={canEditPassage()}>
+                    <button
+                      onClick={() => startEdit(p)}
+                      class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                    >
+                      تعديل ✏️
+                    </button>
+                  </Show>
+                  <Show when={canDeletePassage()}>
+                    <button
+                      onClick={() => handleDelete(p.$id)}
+                      class="rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-500 dark:bg-red-900/20"
+                    >
+                      حذف 🗑️
+                    </button>
+                  </Show>
                 </Show>
               </div>
             </div>

@@ -201,20 +201,31 @@ export function SmartImporter(props: {
 
     let successCount = 0;
     let failCount = 0;
+    let pendingCount = 0;
 
     for (const q of questions) {
-      const { error: qErr } = await supabase.from("questions").insert(q);
+      // ask for the status back: a contributor's rows are saved as "pending"
+      const { data: row, error: qErr } = await supabase
+        .from("questions")
+        .insert(q)
+        .select("status")
+        .single();
       if (qErr) {
         failCount++;
         setFailed(failCount);
       } else {
         successCount++;
+        if (row?.status && row.status !== "published") pendingCount++;
         setCurrent(successCount);
       }
     }
 
     setTimeout(() => toast.dismiss(toastId), 2000);
     setLoading(false);
+
+    if (pendingCount > 0) {
+      toast.success(`أُرسل ${pendingCount} سؤال للمراجعة قبل ظهورها للطلاب ✅`);
+    }
 
     if (successCount > 0) {
       setRawText("");

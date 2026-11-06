@@ -1,5 +1,5 @@
-import { createMemo, createResource, For, Show } from "solid-js";
-import { syncAndGetSections } from "../services/local/indexeddb/sections";
+import { createMemo, For, Show } from "solid-js";
+import type { CachedSection } from "../types/cached-section";
 import {
   activeFilterCount,
   type QuizFilters,
@@ -24,20 +24,20 @@ function Chip(props: { label: string; active: boolean; onClick: () => void }) {
 
 export default function QuizFilterSheet(props: {
   subject: string;
+  /** loaded once by the quiz page and shared (no second lookup here) */
+  sections: CachedSection[];
   open: boolean;
   filters: QuizFilters;
   onChange: (next: QuizFilters) => void;
   onClose: () => void;
 }) {
-  const [sections] = createResource(() => props.subject, syncAndGetSections);
-
   const seasons = createMemo(() =>
-    (sections() ?? [])
+    (props.sections ?? [])
       .filter((s) => s.type === "season")
       .sort((a, b) => Number(a.value) - Number(b.value)),
   );
   const years = createMemo(() =>
-    (sections() ?? [])
+    (props.sections ?? [])
       .filter((s) => s.type === "year")
       .sort((a, b) => Number(b.value) - Number(a.value)),
   );

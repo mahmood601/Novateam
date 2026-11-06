@@ -273,7 +273,7 @@ export default function TiptapReviewEditor(props: {
   const seasonName = () =>
     seasons()?.find((s) => String(s.id) === String(seasonId))?.name ?? `الفصل ${seasonId}`;
 
-  const { user } = useUser();
+  const { user, can } = useUser();
   const [raw, setRaw] = createSignal<JSONContent | null>(null);
   const [status, setStatus] = createSignal<
     "typing" | "saving" | "saved" | "error"
@@ -513,9 +513,14 @@ export default function TiptapReviewEditor(props: {
   const saveToSupabase = async () => {
     if (!editor) return;
 
+    // What I INTEND to do. Postgres re-checks it: if my permission is
+    // lower than the UI thinks, the save still can't go live.
+    const canPublish = can("lecture", props.subjectId, "publish");
+
     const res = await askInput("حفظ في قاعدة البيانات", [], {
-      message:
-        "هل أنت متأكد أنك تريد حفظ التغييرات في قاعدة البيانات؟ سيتم استبدال النسخة الحالية للجميع.",
+      message: canPublish
+        ? "هل أنت متأكد أنك تريد حفظ التغييرات في قاعدة البيانات؟ سيتم استبدال النسخة الحالية للجميع."
+        : "سيُحفظ عملك كمسودة بانتظار مراجعة المشرف، ولن يظهر للطلاب قبل اعتماده.",
       submitLabel: "نعم، احفظ",
     });
     if (!res) return;
@@ -523,16 +528,22 @@ export default function TiptapReviewEditor(props: {
     setStatus("saving");
     // Always read the live document: never send a stale/empty snapshot.
     const content = editor.getJSON();
-    const { error } = await upsertLecture({
+    const { data, error } = await upsertLecture({
       subjectId: props.subjectId,
       seasonId: props.seasonId,
       rawContent: content,
       userId: user()?.id,
+      status: canPublish ? "published" : "pending",
     });
 
     if (error) {
+      // The local draft is kept (we return before clearDraft), so nothing is lost.
       setStatus("error");
+      toast.error(error.message);
       return;
+    }
+    if (data?.status && data.status !== "published") {
+      toast.success("حُفظت المحاضرة وهي بانتظار مراجعة المشرف ✅");
     }
     setDirty(false);
     baseline = JSON.stringify(content); // what is in the database now

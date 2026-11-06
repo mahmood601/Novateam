@@ -83,6 +83,7 @@ export async function syncQuestionsInBackground(subject: string): Promise<boolea
         .from("questions")
         .select(SELECT)
         .eq("subject_id", subject)
+        .eq("status", "published") // staff can read pending/draft rows: never cache them
         .gt("updated_at", lastSync)
         .order("updated_at", { ascending: true });
 
@@ -94,7 +95,8 @@ export async function syncQuestionsInBackground(subject: string): Promise<boolea
       const { data: remoteIds, error: idsErr } = await supabase
         .from("questions")
         .select("id")
-        .eq("subject_id", subject);
+        .eq("subject_id", subject)
+        .eq("status", "published");
 
       if (!idsErr && remoteIds) {
         const remoteSet = new Set(remoteIds.map((r: any) => r.id));
@@ -126,6 +128,7 @@ export async function syncQuestionsInBackground(subject: string): Promise<boolea
       .from("questions")
       .select(SELECT)
       .eq("subject_id", subject)
+      .eq("status", "published")
       .order("updated_at", { ascending: true });
 
     if (error || !data) return false;

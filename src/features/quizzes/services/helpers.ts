@@ -40,5 +40,6 @@ export function toCamel(row: any): QuestionUI {
     yearName: row.year?.name,
     yearValue: row.year?.value,
     passage_id: row.passage_id ?? null,
+    status: row.status ?? "published",
   };
 }

@@ -65,7 +65,13 @@ export async function checkSubjectForUpdates(
 
     // ─── في تحديث — اكتشف ماذا تغيّر ─────────────
     const changes = await diffSubject(subject, lastSync);
-    if (changes.length === 0) return;
+    if (changes.length === 0) {
+      // Something bumped the subject's timestamp but nothing the student can see
+      // changed (e.g. staff edited pending/draft rows). Advance the marker, or
+      // this whole diff (3 requests + a full local scan) repeats on every visit.
+      localStorage.setItem(`sync_${subject}`, remoteModified);
+      return;
+    }
 
     const alreadyPending = updateStore.pending.some(
       (p) => p.subject === subject,
@@ -82,6 +88,9 @@ export async function checkSubjectForUpdates(
   }
 }
 
+// NOTE (permissions): every query below filters status = "published".
+// Students never receive other rows anyway (RLS hides them), but staff CAN read
+// pending/draft rows — without this filter those would land in the local quiz cache.
 async function diffSubject(
   subject: string,
   lastSync: string,
@@ -91,6 +100,7 @@ async function diffSubject(
     .from("questions")
     .select("id, question")
     .eq("subject_id", subject)
+    .eq("status", "published")
     .gt("updated_at", lastSync);
 
   if (error || !changed) return [];
@@ -113,7 +123,8 @@ async function diffSubject(
   const { data: remoteIds } = await supabase
     .from("questions")
     .select("id")
-    .eq("subject_id", subject);
+    .eq("subject_id", subject)
+    .eq("status", "published");
 
   const remoteIdSet = new Set(remoteIds?.map((r: any) => r.id) ?? []);
 
@@ -160,6 +171,7 @@ export async function applyUpdate(
         .from("questions")
         .select(SELECT)
         .eq("subject_id", subject)
+        .eq("status", "published")
         .gt("updated_at", lastSync);
 
       if (!error && updated && updated.length > 0) {
@@ -179,7 +191,8 @@ export async function applyUpdate(
       const { data, error } = await supabase
         .from("questions")
         .select(SELECT)
-        .eq("subject_id", subject);
+        .eq("subject_id", subject)
+        .eq("status", "published");
 
       if (error || !data) return false;
 

@@ -9,7 +9,6 @@ import { createResource, createSignal, For, Show } from "solid-js";
 import { supabase } from "../../shared/services/supabase";
 import { getSeasons } from "../services/local/indexeddb";
 import { useUser } from "../../shared/context/user";
-import { isAdminRole } from "../../shared/lib/roles";
 import toast from "solid-toast";
 
 const TELEGRAM_TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN ?? "";
@@ -36,8 +35,10 @@ export default function SuggestSection(props: {
   currentSeasonId: number | null;
   questionText?: string;
 }) {
-  const { user } = useUser();
-  const isAdmin = () => isAdminRole(user()?.role);
+  const { can } = useUser();
+  // Edit directly only if I may PUBLISH in this subject. Everyone else
+  // (students, contributors) goes through the suggestion queue instead.
+  const isAdmin = () => can("quiz", props.subject, "publish");
 
   const [open, setOpen] = createSignal(false);
   const [selected, setSelected] = createSignal<number | null>(null);
@@ -45,25 +46,34 @@ export default function SuggestSection(props: {
   const [submitting, setSubmitting] = createSignal(false);
   const [done, setDone] = createSignal(false);
 
-  const [seasons] = createResource(() => getSeasons(props.subject));
+  // Loaded only when the panel is opened. This component exists once PER
+  // QUESTION, so loading eagerly meant one IndexedDB lookup per question.
+  // `.latest` + initialValue: opening the panel must not trigger <Suspense>.
+  const [seasons] = createResource(
+    () => (open() ? props.subject : null),
+    getSeasons,
+    { initialValue: [] as Awaited<ReturnType<typeof getSeasons>> },
+  );
 
   const getSeasonName = (id: number | null) =>
-    seasons()?.find((s) => s.id === id)?.name ?? "غير محدد";
+    seasons.latest.find((s) => s.id === id)?.name ?? "غير محدد";
 
   // ─── أدمن: تعديل مباشر ───────────────────────────────────────────
   const submitAdmin = async () => {
     if (!selected()) return;
     setSubmitting(true);
 
-    const { error } = await supabase
+    const { data: rows, error } = await supabase
       .from("questions")
       .update({ season_id: selected() })
-      .eq("id", props.questionId);
+      .eq("id", props.questionId)
+      .select("id");
 
     setSubmitting(false);
 
-    if (error) {
-      toast.error("فشل التعديل");
+    // RLS refusals come back as "0 rows, no error"
+    if (error || !rows || rows.length === 0) {
+      toast.error(error ? "فشل التعديل" : "لا تملك صلاحية تعديل هذا السؤال");
     } else {
       toast.success(`تم تغيير الفصل إلى: ${getSeasonName(selected())} ✓`);
       setDone(true);
@@ -201,7 +211,7 @@ export default function SuggestSection(props: {
               <Show when={seasons.loading}>
                 <p class="text-center text-sm text-slate-400">جاري التحميل...</p>
               </Show>
-              <For each={seasons()}>
+              <For each={seasons.latest}>
                 {(season) => (
                   <button
                     onClick={() => setSelected(season.id)}

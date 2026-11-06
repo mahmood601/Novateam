@@ -3,12 +3,20 @@ import toast from "solid-toast";
 import { setQStore } from "../stores/QStores";
 import { reconcile } from "solid-js/store";
 import { toSnake, toCamel, emptyQStore } from "./helpers";
-import { QuestionUI } from "./types";
+import { QuestionStatus, QuestionUI } from "./types";
+
+// Postgres (RLS) answers "you may not" to UPDATE/DELETE with NO error and ZERO
+// rows. Every write below asks for the affected rows back and counts them.
+const DENIED = "لا تملك صلاحية على هذا السؤال (أو أنه لم يعد موجوداً)";
 
 export async function insertQuestion(subjectId: string, data: any) {
-  const { error } = await supabase
+  // Ask the database what status the row actually got: a contributor's
+  // question is saved as "pending" no matter what the client sent.
+  const { data: row, error } = await supabase
     .from("questions")
-    .insert({ ...toSnake(data), subject_id: subjectId });
+    .insert({ ...toSnake(data), subject_id: subjectId })
+    .select("status")
+    .single();
 
   if (error) {
     toast.error("there is an error 😕: " + error.message);
@@ -16,7 +24,11 @@ export async function insertQuestion(subjectId: string, data: any) {
   }
 
   setQStore(reconcile(emptyQStore as any));
-  toast.success("Question added successfully 🎉");
+  if (row?.status && row.status !== "published") {
+    toast.success("أُضيف السؤال وهو بانتظار مراجعة المشرف ✅");
+  } else {
+    toast.success("Question added successfully 🎉");
+  }
 }
 
 export async function updateQuestion(
@@ -24,14 +36,19 @@ export async function updateQuestion(
   questionId: string,
   data: any,
 ) {
-  const { error } = await supabase
+  const { data: rows, error } = await supabase
     .from("questions")
     .update({ ...toSnake(data), subject_id: subjectId })
-    .eq("id", questionId);
+    .eq("id", questionId)
+    .select("id");
 
   if (error) {
     toast.error("there is an error 😕: " + error.message);
     return { error: error.message };
+  }
+  if (!rows || rows.length === 0) {
+    toast.error(DENIED);
+    return { error: DENIED };
   }
 
   setQStore(reconcile(emptyQStore as any));
@@ -39,18 +56,39 @@ export async function updateQuestion(
 }
 
 export async function deleteQuestion(subjectId: string, questionId: string) {
-  const { error } = await supabase
+  const { data: rows, error } = await supabase
     .from("questions")
     .delete()
     .eq("id", questionId)
-    .eq("subject_id", subjectId);
+    .eq("subject_id", subjectId)
+    .select("id");
 
   if (error) {
     toast.error("there is an error 😕: " + error.message);
     return { error: error.message };
   }
+  if (!rows || rows.length === 0) {
+    toast.error(DENIED);
+    return { error: DENIED };
+  }
 
   toast.success("Question deleted successfully 🎉");
+}
+
+/** Publish / unpublish. Needs "publish" on the subject (checked by Postgres). */
+export async function setQuestionStatus(
+  questionId: string,
+  status: QuestionStatus,
+): Promise<{ error: string | null }> {
+  const { data, error } = await supabase
+    .from("questions")
+    .update({ status })
+    .eq("id", questionId)
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!data || data.length === 0) return { error: DENIED };
+  return { error: null };
 }
 
 export async function listQuestions(

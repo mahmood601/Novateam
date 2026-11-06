@@ -1,18 +1,10 @@
-import { createResource, createSignal, For, Show } from "solid-js";
-import { getSeasonName, getYearName } from "../services/local/indexeddb";
+import { createSignal, For, Show } from "solid-js";
 import ImageLightbox from "./ImageLightbox";
 import SuggestSection from "./SuggestSection";
 
 export default function QuizBox(props: any) {
-  const [yearName] = createResource(
-    () => props.currentQuestion?.year_id,
-    (yearId) => getYearName(props.subject, yearId ?? null),
-  );
-
-  const [seasonName] = createResource(
-    () => props.currentQuestion?.season_id,
-    (seasonId) => getSeasonName(props.subject, seasonId ?? null),
-  );
+  // seasonName / yearName now arrive as plain props (looked up once by the page).
+  // They used to be two createResource calls PER QUESTION.
 
   const [lightboxOpen, setLightboxOpen] = createSignal(false);
 
@@ -22,14 +14,14 @@ export default function QuizBox(props: any) {
       <Show when={props.currentQuestion}>
         <div class="mb-2 flex items-center flex-row-reverse gap-2">
           <div class="text-xs border-secondary flex w-fit rounded-full h-fit border-2 font-bold ml-2">
-            <Show when={seasonName()}>
+            <Show when={props.seasonName}>
               <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-2">
-                {seasonName()}
+                {props.seasonName}
               </p>
             </Show>
-            <Show when={yearName()}>
+            <Show when={props.yearName}>
                 <p dir="rtl" class="bg-secondary text-main-light rounded-full px-2 py-1 flex items-center text-xs font-bold">
-                {yearName()}
+                {props.yearName}
               </p>
             </Show>
           </div>

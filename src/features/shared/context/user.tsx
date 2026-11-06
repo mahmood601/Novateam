@@ -10,6 +10,14 @@ import {
 } from "solid-js";
 import { ensureUserExists, updateUserProfile } from "../services/user";
 import { parseRole, type Role } from "../lib/roles";
+import {
+  hasAnyPerm,
+  hasPerm,
+  type Grant,
+  type Level,
+  type Scope,
+} from "../lib/permissions";
+import { fetchMyGrants } from "../services/grants";
 
 type User = {
   id: string;
@@ -24,6 +32,12 @@ type UserContextType = {
   user: Accessor<User | null>;
   setUser: Setter<User | null>;
   isLoading: Accessor<boolean>;
+  /** The signed-in admin's grants (empty for students / super-admins). */
+  grants: Accessor<Grant[]>;
+  /** May I do `min` on `scope` in this subject? (UI convenience; Postgres enforces.) */
+  can: (scope: Scope, subjectId: string | null | undefined, min?: Level) => boolean;
+  /** Do I hold ANY grant of this scope? */
+  canAny: (scope: Scope, min?: Level) => boolean;
   fetchUser: (opts?: FetchUserOpts) => Promise<void>;
   login: (provider: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -71,9 +85,67 @@ function clearCachedUser() {
   }
 }
 
+// ─── Cached grants (same offline rule as the cached user) ────────────────────
+const GRANTS_CACHE_KEY = "grants";
+
+function readCachedGrants(userId: string | undefined): Grant[] {
+  if (!userId) return [];
+  try {
+    const raw = localStorage.getItem(GRANTS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as { userId: string; grants: Grant[] };
+    return parsed.userId === userId && Array.isArray(parsed.grants)
+      ? parsed.grants
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedGrants(userId: string, grants: Grant[]) {
+  try {
+    localStorage.setItem(GRANTS_CACHE_KEY, JSON.stringify({ userId, grants }));
+  } catch {
+    // not fatal
+  }
+}
+
+function clearCachedGrants() {
+  try {
+    localStorage.removeItem(GRANTS_CACHE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export function UserProvider(props: any) {
   const [user, setUser] = createSignal<User | null>(readCachedUser());
   const [isLoading, setIsLoading] = createSignal(false);
+  const [grants, setGrants] = createSignal<Grant[]>(
+    readCachedGrants(user()?.id),
+  );
+
+  const can = (
+    scope: Scope,
+    subjectId: string | null | undefined,
+    min: Level = "contribute",
+  ) => hasPerm(user()?.role, grants(), scope, subjectId, min);
+  const canAny = (scope: Scope, min: Level = "contribute") =>
+    hasAnyPerm(user()?.role, grants(), scope, min);
+
+  // Only plain admins have grants. A failed fetch keeps the cached copy.
+  const refreshGrants = async (u: User) => {
+    if (u.role !== "admin") {
+      clearCachedGrants();
+      setGrants([]);
+      return;
+    }
+    const fresh = await fetchMyGrants(u.id);
+    if (fresh) {
+      writeCachedGrants(u.id, fresh);
+      setGrants(fresh);
+    }
+  };
 
   const updateProfile = async (updates: {
     name?: string;
@@ -136,6 +208,7 @@ export function UserProvider(props: any) {
 
   const logout = async () => {
     clearCachedUser();
+    clearCachedGrants();
     setUser(null);
     await supabase.auth.signOut();
   };
@@ -206,6 +279,7 @@ export function UserProvider(props: any) {
 
       writeCachedUser(userInfo);
       setUser(userInfo);
+      await refreshGrants(userInfo);
     } catch (err) {
       console.error("Auth error:", err);
       // Unexpected failure (almost always network). Do NOT clear the cache.
@@ -222,6 +296,7 @@ export function UserProvider(props: any) {
       if (event === "SIGNED_OUT") {
         // The only moment we're allowed to forget the user.
         clearCachedUser();
+    clearCachedGrants();
         setUser(null);
         return;
       }
@@ -244,6 +319,9 @@ export function UserProvider(props: any) {
         user,
         setUser,
         isLoading,
+        grants,
+        can,
+        canAny,
         fetchUser,
         login,
         logout,

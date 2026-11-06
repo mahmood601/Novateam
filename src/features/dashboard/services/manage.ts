@@ -106,6 +106,21 @@ function usageMessage(
     : null;
 }
 
+export const NO_PERMISSION =
+  "لا تملك صلاحية لهذا الإجراء (أو أن العنصر لم يعد موجوداً)";
+
+/** Every subject (for the permission picker). */
+export async function listAllSubjects(): Promise<
+  Pick<SubjectRow, "id" | "name" | "year_key">[]
+> {
+  const { data, error } = await supabase
+    .from("subjects")
+    .select("id, name, year_key")
+    .order("name");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 // ─── Subject writes ───────────────────────────────────────────────────────────
 
 export async function createSubject(s: SubjectRow): Promise<Result> {
@@ -134,15 +149,18 @@ export async function updateSubject(
 ): Promise<Result> {
   if (!patch.name.trim()) return fail("الاسم مطلوب");
 
-  const { error } = await supabase
+  // .select("id"): a refused UPDATE returns no error, just 0 rows (see NO_PERMISSION)
+  const { data, error } = await supabase
     .from("subjects")
     .update({
       name: patch.name.trim(),
       year_key: patch.year_key,
       semester: patch.semester,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
   if (error) return fail(error.message);
+  if (!data || data.length === 0) return fail(NO_PERMISSION);
 
   await db.subjects.put({ id, name: patch.name.trim(), year_keys: [patch.year_key] });
   return { ok: true };
@@ -160,8 +178,13 @@ export async function deleteSubject(id: string): Promise<Result> {
       .eq("subject_id", id);
     if (secErr) return fail(secErr.message);
 
-    const { error } = await supabase.from("subjects").delete().eq("id", id);
+    const { data, error } = await supabase
+      .from("subjects")
+      .delete()
+      .eq("id", id)
+      .select("id");
     if (error) return fail(error.message);
+    if (!data || data.length === 0) return fail(NO_PERMISSION);
   } catch (e: any) {
     return fail(e.message ?? "خطأ غير معروف");
   }
@@ -197,15 +220,17 @@ export async function updateSection(
   if (!patch.name.trim() || !patch.value.trim()) return fail("الاسم والقيمة مطلوبان");
   if (!/^\d+$/.test(patch.value.trim())) return fail("القيمة يجب أن تكون رقماً");
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("sections")
     .update({
       type: patch.type,
       value: patch.value.trim(),
       name: patch.name.trim(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
   if (error) return fail(error.message);
+  if (!data || data.length === 0) return fail(NO_PERMISSION);
   await db.sections.delete(id);
   return { ok: true };
 }
@@ -215,11 +240,13 @@ export async function deleteSection(section: SectionRow): Promise<Result> {
     const blocked = usageMessage("القسم", await sectionUsage(section.id));
     if (blocked) return fail(blocked);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("sections")
       .delete()
-      .eq("id", section.id);
+      .eq("id", section.id)
+      .select("id");
     if (error) return fail(error.message);
+    if (!data || data.length === 0) return fail(NO_PERMISSION);
   } catch (e: any) {
     return fail(e.message ?? "خطأ غير معروف");
   }

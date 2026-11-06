@@ -1,5 +1,6 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import { A } from "@solidjs/router";
+import { useUser } from "../../shared/context/user";
 import toast from "solid-toast";
 import {
   createSubject,
@@ -24,6 +25,13 @@ const inputCls =
 export default function ManageSubjects() {
   const [yearKey, setYearKey] = createSignal("second");
   const [subjects, { refetch }] = createResource(yearKey, listSubjects);
+
+  // Creating / deleting a subject needs an ALL-subjects grant; editing a
+  // subject or its sections works with a grant on just that subject.
+  const { can } = useUser();
+  const canCreate = () => can("subjects", null, "manage");
+  const visible = () =>
+    (subjects() ?? []).filter((s) => can("subjects", s.id, "manage"));
 
   // null = form closed, editing() = id of the subject being edited (or null for new)
   const [form, setForm] = createSignal<SubjectRow | null>(null);
@@ -68,12 +76,14 @@ export default function ManageSubjects() {
           <h1 class="text-xl font-black text-slate-800 dark:text-white">
             إدارة المواد
           </h1>
-          <button
-            onClick={openNew}
-            class="rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-2 text-sm font-bold text-white shadow-md"
-          >
-            + مادة
-          </button>
+          <Show when={canCreate()}>
+            <button
+              onClick={openNew}
+              class="rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-2 text-sm font-bold text-white shadow-md"
+            >
+              + مادة
+            </button>
+          </Show>
         </div>
 
         {/* Year tabs */}
@@ -174,10 +184,10 @@ export default function ManageSubjects() {
         <div class="flex flex-col gap-2 rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
           <Show when={!subjects.loading} fallback={<p class="py-6 text-center text-slate-400">جاري التحميل... ⏳</p>}>
             <Show
-              when={(subjects() ?? []).length > 0}
+              when={visible().length > 0}
               fallback={<p class="py-6 text-center text-slate-400">لا توجد مواد 📭</p>}
             >
-              <For each={subjects()}>
+              <For each={visible()}>
                 {(s) => (
                   <div class="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                     <div class="flex-1">
@@ -193,9 +203,11 @@ export default function ManageSubjects() {
                     <button onClick={() => openEdit(s)} class="rounded-xl bg-amber-50 px-3 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30">
                       تعديل
                     </button>
-                    <button onClick={() => remove(s)} class="rounded-xl bg-red-50 px-3 py-1 text-xs font-bold text-red-600 dark:bg-red-900/30">
-                      حذف
-                    </button>
+                    <Show when={canCreate()}>
+                      <button onClick={() => remove(s)} class="rounded-xl bg-red-50 px-3 py-1 text-xs font-bold text-red-600 dark:bg-red-900/30">
+                        حذف
+                      </button>
+                    </Show>
                   </div>
                 )}
               </For>

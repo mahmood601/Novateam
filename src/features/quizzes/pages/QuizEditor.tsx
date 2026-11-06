@@ -24,7 +24,7 @@ const PAGE_SIZE = 10;
 export default function QuizEditor() {
     const params = useParams();
     const location = useLocation();
-    const { user } = useUser();
+    const { user, can } = useUser();
     const navigate = useNavigate();
 
     const subjectId = () => params.subject;
@@ -77,6 +77,9 @@ export default function QuizEditor() {
 
     const filterSeasonId = () => (searchParams.season ? Number(searchParams.season) : null);
     const filterYearId = () => (searchParams.year ? Number(searchParams.year) : null);
+    // "" = all, otherwise draft | pending | published (staff only ever see non-published rows)
+    const filterStatus = () => (typeof searchParams.status === "string" ? searchParams.status : "");
+    const canPublish = () => can("quiz", subjectId(), "publish");
 
     const [sections] = createResource(() => getSections(subjectId() ?? ""));
 
@@ -85,8 +88,9 @@ export default function QuizEditor() {
             p: page(),
             seasonId: filterSeasonId(),
             yearId: filterYearId(),
+            status: filterStatus(),
         }),
-        async ({ p, seasonId, yearId }) => {
+        async ({ p, seasonId, yearId, status }) => {
             let query = supabase
                 .from("questions")
                 .select(
@@ -98,6 +102,7 @@ export default function QuizEditor() {
 
             if (seasonId) query = query.eq("season_id", seasonId);
             if (yearId) query = query.eq("year_id", yearId);
+            if (status) query = query.eq("status", status);
 
             const { data: rows, count, error } = await query
                 .range(p * PAGE_SIZE, p * PAGE_SIZE + PAGE_SIZE - 1)
@@ -129,6 +134,7 @@ export default function QuizEditor() {
                 yearName: row.year?.name,
                 yearValue: row.year?.value,
                 image_url: row.image_url,
+                status: row.status ?? "published",
             }));
 
             const userIds = questions.map((q) => q.user_id).filter(Boolean) as string[];
@@ -183,6 +189,7 @@ export default function QuizEditor() {
                         </div>
                     </div>
                     <div class="flex flex-col-reverse items-center gap-2 lg:flex-row">
+                        <Show when={canPublish()}>
                         <button
                             onClick={() => {
                                 if (selectionMode()) {
@@ -199,6 +206,7 @@ export default function QuizEditor() {
                         >
                             {selectionMode() ? "✕" : "☑"}
                         </button>
+                        </Show>
                         <button
                             onClick={() => {
                                 setEditTarget(null);
@@ -305,11 +313,28 @@ export default function QuizEditor() {
                                     </select>
                                 </div>
                             </div>
-                            <Show when={filterSeasonId() || filterYearId()}>
+                            <div class="mt-3 flex flex-col gap-1">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                    الحالة
+                                </label>
+                                <select
+                                    class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                                    onChange={(e) => {
+                                        setPage(0);
+                                        setSearchParams({ status: e.currentTarget.value || undefined });
+                                    }}
+                                >
+                                    <option value="" selected={filterStatus() === ""}>الكل</option>
+                                    <option value="pending" selected={filterStatus() === "pending"}>⏳ بانتظار المراجعة</option>
+                                    <option value="published" selected={filterStatus() === "published"}>منشور</option>
+                                    <option value="draft" selected={filterStatus() === "draft"}>مسودة</option>
+                                </select>
+                            </div>
+                            <Show when={filterSeasonId() || filterYearId() || filterStatus()}>
                                 <button
                                     onClick={() => {
                                         setPage(0);
-                                        setSearchParams({ season: undefined, year: undefined });
+                                        setSearchParams({ season: undefined, year: undefined, status: undefined });
                                     }}
                                     class="mt-2 text-xs text-red-400 underline"
                                 >
@@ -333,12 +358,14 @@ export default function QuizEditor() {
                     >
                         🗒️ المقالات
                     </button>
-                    <button
-                        onClick={() => setMainTab("suggestions")}
-                        class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "suggestions" ? "bg-white text-green-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
-                    >
-                        💡 المقترحات
-                    </button>
+                    <Show when={canPublish()}>
+                        <button
+                            onClick={() => setMainTab("suggestions")}
+                            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "suggestions" ? "bg-white text-green-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                        >
+                            💡 المقترحات
+                        </button>
+                    </Show>
                 </div>
 
                 <div class="mx-auto max-w-4xl pb-12">
@@ -346,7 +373,7 @@ export default function QuizEditor() {
                         <PassageManager subjectId={subjectId() ?? ""} />
                     </Show>
 
-                    <Show when={mainTab() === "suggestions"}>
+                    <Show when={mainTab() === "suggestions" && canPublish()}>
                         <SuggestionsManager subjectId={subjectId() ?? ""} sections={sections() ?? []} onApplied={refetch} />
                     </Show>
 
