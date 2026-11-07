@@ -12,7 +12,7 @@ export default function QuizBox(props: any) {
       {/* شارة الفصل والسنة + بادج "صعب" */}
       <Show when={props.currentQuestion}>
         <div class="mb-3 mt-2 flex text-xs w-full items-center flex-row-reverse gap-2">
-          <div class="text-xs mb-1 border-secondary flex w-3/4 rounded-full h-fit border-2 overflow-x-scroll font-bold ">
+          <div class="text-xs mb-1 border-secondary flex w-fit rounded-full h-fit border-2 overflow-x-scroll font-bold ">
             <Show when={props.seasonName}>
               <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-1 ml-3 text-nowrap overflow-x-scroll">
                 {props.seasonName}

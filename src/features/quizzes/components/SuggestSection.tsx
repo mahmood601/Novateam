@@ -9,7 +9,7 @@ import { supabase } from "../../shared/services/supabase";
 import { getSeasons } from "../services/local/indexeddb";
 import { useUser } from "../../shared/context/user";
 import toast from "solid-toast";
-import { ClipboardPen, MailOpen } from "lucide-solid";
+import { ClipboardPen } from "lucide-solid";
 
 const TELEGRAM_TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN ?? "";
 const TELEGRAM_CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID ?? "";
