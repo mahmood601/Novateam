@@ -5,6 +5,7 @@ import {
   createResource,
   createSignal,
   on,
+  onCleanup,
   onMount,
   Show,
   Suspense,
@@ -42,12 +43,51 @@ import QuizFeed from "../components/QuizFeed";
 import Result from "../components/Result";
 import { recordActivityToday } from "../services/local/streak";
 import { toast } from "solid-toast";
+import QuizFooter from "../components/QuizFooter";
+import LeftArrow from "@/features/shared/components/Icons/LeftArrow";
 
 export default function Quiz() {
   const subject = useParams().subject ?? "";
   // section غير موجود عند الدخول عبر الرابط الجديد (/:subject/quiz) —
   // موجود بس عند الدخول عبر رابط قديم محفوظ (season_id-N / year_id-N).
   const section = useParams().section ?? "";
+
+  // Header helpers
+  const [timeLeft, setTimeLeft] = createSignal(0);
+  const [isPaused, setIsPaused] = createSignal(false);
+  createEffect(() => {
+    setTimeLeft((orderedQs().length - 1) * 60);
+  });
+
+  const { audioEnabled, setAudio } = useAudio();
+
+  onMount(() => {
+    const timer = setInterval(() => {
+      if (isPaused()) return;
+      if (
+        quizState.index == orderedQs().length - 1 &&
+        quizState.isOptionDisabled
+      )
+        return;
+      if (timeLeft() <= 0) return;
+      if (timeLeft() === 60) {
+        // تنبيه آخر دقيقة
+        toast("⏰ دقيقة أخيرة!", { duration: 3000 });
+      }
+      setTimeLeft((t) => t - 1);
+      if (timeLeft() - 1 <= 0) {
+        addAnswersToProgress(unwrap(quizState.userAnswers));
+        setQuizState("showResult", true);
+      }
+    }, 1000);
+    onCleanup(() => clearInterval(timer));
+  });
+
+  const formatTime = () => {
+    const m = Math.floor(timeLeft() / 60);
+    const s = timeLeft() % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
 
   // الفلاتر: تُبنى مبدئياً من رابط الدخول القديم إذا وُجد (متوافقة
   // رجعياً)، وإلا فاضية = كل الفصول + كل السنين (الافتراضي الجديد).
@@ -125,12 +165,17 @@ export default function Quiz() {
 
   // ─── Data Fetching ────────────────────────────────────────────────────────────
 
-  const [filterResult, { refetch: refetchQuestions, mutate: mutateFilterResult }] =
-    createResource<QuizFilterResult | undefined, readonly [string, QuizFilters]>(
-      () => [subject, filters()] as const,
-      ([subj, f]) => getQuestionsWithFilters(subj, f),
-      { initialValue: undefined },
-    );
+  const [
+    filterResult,
+    { refetch: refetchQuestions, mutate: mutateFilterResult },
+  ] = createResource<
+    QuizFilterResult | undefined,
+    readonly [string, QuizFilters]
+  >(
+    () => [subject, filters()] as const,
+    ([subj, f]) => getQuestionsWithFilters(subj, f),
+    { initialValue: undefined },
+  );
   const questions = () => filterResult.latest?.questions;
   const weakAttemptsMap = createMemo(
     () => filterResult.latest?.weakAttemptsMap ?? new Map<string, number>(),
@@ -148,7 +193,8 @@ export default function Quiz() {
         const same =
           fresh.length === local.length &&
           fresh.every(
-            (p, i) => p.$id === local[i]?.$id && p.content === local[i]?.content,
+            (p, i) =>
+              p.$id === local[i]?.$id && p.content === local[i]?.content,
           );
         if (!same) mutatePassages(fresh);
       });
@@ -194,7 +240,9 @@ export default function Quiz() {
     }
 
     return [
-      ...passageOrder.flatMap((passageId) => passageGroups.get(passageId) ?? []),
+      ...passageOrder.flatMap(
+        (passageId) => passageGroups.get(passageId) ?? [],
+      ),
       ...noPassage,
     ];
   });
@@ -210,7 +258,10 @@ export default function Quiz() {
 
   // خريطة الأسئلة المُجابة — تُستخدم لعرض كل سؤال بحالته في وضع التمرير
   const answeredMap = createMemo(() => {
-    const map = new Map<string, { selectedIndex: number; isCorrect: boolean }>();
+    const map = new Map<
+      string,
+      { selectedIndex: number; isCorrect: boolean }
+    >();
     for (const a of quizState.userAnswers) {
       map.set(a.$id, {
         selectedIndex: (a as any).selectedIndex ?? 7,
@@ -264,8 +315,15 @@ export default function Quiz() {
   const handleSolveCurrent = async () => {
     const q = currentQuestion();
     if (!q) return;
-    const record = buildAnswerRecord(q, q.correctIndex, q.options?.[q.correctIndex] ?? "");
-    setQuizState("userAnswers", (prev) => [...prev.filter((a) => a.$id !== q.$id), record]);
+    const record = buildAnswerRecord(
+      q,
+      q.correctIndex,
+      q.options?.[q.correctIndex] ?? "",
+    );
+    setQuizState("userAnswers", (prev) => [
+      ...prev.filter((a) => a.$id !== q.$id),
+      record,
+    ]);
     setQuizState({ selectedOption: q.correctIndex, isOptionDisabled: true });
     await addAnswersToProgress([record]);
   };
@@ -284,9 +342,15 @@ export default function Quiz() {
     const records = all.map((q) =>
       buildAnswerRecord(q, q.correctIndex, q.options?.[q.correctIndex] ?? ""),
     );
-    setQuizState({ userAnswers: records, selectedOption: 7, isOptionDisabled: false });
+    setQuizState({
+      userAnswers: records,
+      selectedOption: 7,
+      isOptionDisabled: false,
+    });
     await addAnswersToProgress(records);
-    toast(`✅ تم حل ${all.length.toLocaleString("ar")} سؤال`, { duration: 2500 });
+    toast(`✅ تم حل ${all.length.toLocaleString("ar")} سؤال`, {
+      duration: 2500,
+    });
   };
 
   // إلغاء حل الكل — يمسح إجابات الأسئلة الظاهرة حالياً من قاعدة
@@ -294,7 +358,11 @@ export default function Quiz() {
   // "محلولة" لما تدخل الكويز مرة ثانية.
   const handleClearAll = async () => {
     const ids = orderedQs().map((q) => q.$id);
-    setQuizState({ userAnswers: [], selectedOption: 7, isOptionDisabled: false });
+    setQuizState({
+      userAnswers: [],
+      selectedOption: 7,
+      isOptionDisabled: false,
+    });
     await deleteAnswersByIds(ids);
     toast("🗑️ تم إلغاء حل كل الأسئلة", { duration: 2500 });
   };
@@ -348,6 +416,14 @@ export default function Quiz() {
     }
   });
 
+  // آخر سؤال انجاب؟ → يظهر زر "إظهار النتيجة" بالفوتر
+  // (كان محسوب جوّا QuizFeed، نقلناه هون لأن الزر صار بالفوتر)
+  const isLastAnswered = createMemo(() => {
+    const qs = orderedQs();
+    const last = qs[qs.length - 1];
+    return !!last && answeredMap().has(last.$id);
+  });
+
   const finishQuiz = () => {
     addAnswersToProgress(unwrap(quizState.userAnswers));
     setQuizState("showResult", true);
@@ -357,28 +433,57 @@ export default function Quiz() {
     <Suspense fallback={<LoadingSpinner />}>
       <Show
         when={!quizState.showResult}
-        fallback={<Result subject={subject} section={section || "quiz"} answers={quizState.userAnswers} />}
+        fallback={
+          <Result
+            subject={subject}
+            section={section || "quiz"}
+            answers={quizState.userAnswers}
+          />
+        }
       >
         <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
-          <QuizHeader
-             subjectName={subjectName()}
-            index={quizState.index}
-            isDisabled={quizState.isOptionDisabled}
-            total={orderedQs().length}
-            currentQuestion={currentQuestion()}
-            passage={currentPassage()?.content}
-            userAnswer={quizState.userAnswers[quizState.index]}
-            subjectId={subject}
-            onQuestionChanged={handleQuestionChanged}
-            onTimeWarning={() => toast("⏰ دقيقة أخيرة!", { duration: 3000 })}
-            onTimeUp={() => {
-              addAnswersToProgress(unwrap(quizState.userAnswers));
-              setQuizState("showResult", true);
-            }}
-          />
+          <header class="p-5">
+            <div class="flex items-center justify-between">
+              <button onClick={() => history.back()}>
+                <LeftArrow />
+              </button>
+              <h1 class="text-xl font-bold">{subjectName()}</h1>
+              <button>
+                <svg
+                  on:click={(e) => {
+                    e.stopPropagation();
+                    setAudio(!audioEnabled());
+                  }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26px"
+                  height="26px"
+                  viewBox="0 0 24 24"
+                >
+                  <g fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3.158 13.93a3.75 3.75 0 0 1 0-3.86a1.5 1.5 0 0 1 .993-.7l1.693-.339a.45.45 0 0 0 .258-.153L8.17 6.395c1.182-1.42 1.774-2.129 2.301-1.938S11 5.572 11 7.42v9.162c0 1.847 0 2.77-.528 2.962c-.527.19-1.119-.519-2.301-1.938L6.1 15.122a.45.45 0 0 0-.257-.153L4.15 14.63a1.5 1.5 0 0 1-.993-.7Z" />
+                    <Show
+                      when={audioEnabled()}
+                      fallback={
+                        <path stroke-linecap="round" d="m15 15l6-6m0 6l-6-6" />
+                      }
+                    >
+                      <path
+                        stroke-linecap="round"
+                        d="M15.536 8.464a5 5 0 0 1 .027 7.044m4.094-9.165a8 8 0 0 1 .044 11.27"
+                      />
+                    </Show>
+                  </g>
+                </svg>
+              </button>
+            </div>
 
-          {/* شريط الفلترة + أدوات الحل داخل الكويز */}
-          <div class="dark:bg-lighter-dark-1 flex items-center justify-between border-b border-gray-100 bg-white px-4 py-1.5 dark:border-lighter-dark-2">
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-1">
+              <span>
+                {quizState.index + 1} / {orderedQs().length}
+              </span>
+
+
+                                 <div class="dark:bg-lighter-dark-1 dark:border-lighter-dark-2 flex items-center justify-between bg-white px-4">
             <div class="flex items-center gap-2">
               <button
                 type="button"
@@ -390,7 +495,13 @@ export default function Quiz() {
                     activeFilterCount(filters()) === 0,
                 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
                   <path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z" />
                 </svg>
                 فلترة
@@ -400,7 +511,6 @@ export default function Quiz() {
                   </span>
                 </Show>
               </button>
-
               <button
                 type="button"
                 onClick={() => setToolsSheetOpen(true)}
@@ -409,14 +519,57 @@ export default function Quiz() {
                 🛠️ أدوات
               </button>
             </div>
-
-            <p class="text-[11px] text-gray-400">
-              {orderedQs().length.toLocaleString("ar")} سؤال
-            </p>
           </div>
 
-          {/* The page chrome stays on screen; only this area shows a spinner,
-              and only until the FIRST load (never again when filters change). */}
+              <div class="text-secondary flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 dark:bg-gray-800">
+                <span>{formatTime()}</span>
+                <button onClick={() => setIsPaused(!isPaused())}>
+                  <Show
+                    when={isPaused()}
+                    fallback={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M16 19q-.825 0-1.412-.587T14 17V7q0-.825.588-1.412T16 5t1.413.588T18 7v10q0 .825-.587 1.413T16 19m-8 0q-.825 0-1.412-.587T6 17V7q0-.825.588-1.412T8 5t1.413.588T10 7v10q0 .825-.587 1.413T8 19"
+                        />
+                      </svg>
+                    }
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-1 13c0 .55-.45 1-1 1s-1-.45-1-1V9c0-.55.45-1 1-1s1 .45 1 1zm5.02-2.22l-2.4 1.92a.998.998 0 0 1-1.62-.78v-3.84c0-.84.97-1.3 1.62-.78l2.4 1.92c.5.4.5 1.16 0 1.56"
+                      />
+                    </svg>
+                  </Show>
+                </button>
+              </div>
+            </div>
+
+
+   
+
+            <div class="mt-4 h-2 w-full rounded-full bg-gray-200">
+              <div
+                class="bg-main h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${((quizState.index + 1) / orderedQs().length) * 100}%`,
+                }}
+              />
+            </div>
+          </header>
+
+
           <Show
             when={filterResult.latest}
             fallback={
@@ -436,29 +589,38 @@ export default function Quiz() {
               startIndex={quizState.index}
               onSelect={handleOptionSelect}
               onIndexChange={(idx) => setQuizState("index", idx)}
-              onFinish={finishQuiz}
             />
           </Show>
+
+          <QuizFilterSheet
+            subject={subject}
+            sections={sections.latest}
+            open={filterSheetOpen()}
+            filters={filters()}
+            onChange={setFilters}
+            onClose={() => setFilterSheetOpen(false)}
+          />
+          <QuizToolsSheet
+            open={toolsSheetOpen()}
+            hasCurrentQuestion={!!currentQuestion()}
+            onSolveCurrent={handleSolveCurrent}
+            onResetCurrent={handleResetCurrent}
+            onSolveAll={handleSolveAll}
+            onClearAll={handleClearAll}
+            onClose={() => setToolsSheetOpen(false)}
+          />
+
+          <QuizFooter
+            isDisabled={quizState.isOptionDisabled}
+            currentQuestion={currentQuestion()}
+            passage={currentPassage()?.content}
+            userAnswer={quizState.userAnswers[quizState.index]}
+            subjectId={subject}
+            onQuestionChanged={handleQuestionChanged}
+            canFinish={isLastAnswered()}
+            onFinish={finishQuiz}
+          />
         </div>
-
-        <QuizFilterSheet
-          subject={subject}
-          sections={sections.latest}
-          open={filterSheetOpen()}
-          filters={filters()}
-          onChange={setFilters}
-          onClose={() => setFilterSheetOpen(false)}
-        />
-
-        <QuizToolsSheet
-          open={toolsSheetOpen()}
-          hasCurrentQuestion={!!currentQuestion()}
-          onSolveCurrent={handleSolveCurrent}
-          onResetCurrent={handleResetCurrent}
-          onSolveAll={handleSolveAll}
-          onClearAll={handleClearAll}
-          onClose={() => setToolsSheetOpen(false)}
-        />
       </Show>
     </Suspense>
   );

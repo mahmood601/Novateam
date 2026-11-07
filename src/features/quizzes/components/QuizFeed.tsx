@@ -155,13 +155,7 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
     </div>
   );
 }
-export default function QuizFeed(props: FeedProps & { onFinish: () => void }) {
-  const isLastAnswered = () => {
-    const last = props.questions.length - 1;
-    const lastQ = props.questions[last];
-    return last >= 0 && lastQ && props.answeredMap.has(lastQ.$id);
-  };
-
+export default function QuizFeed(props: FeedProps) {
   return (
     <div class="relative flex h-full flex-1 flex-col overflow-hidden">
       <Show
@@ -169,17 +163,6 @@ export default function QuizFeed(props: FeedProps & { onFinish: () => void }) {
         fallback={<FeedAxis {...props} axis="horizontal" />}
       >
         <FeedAxis {...props} axis="vertical" />
-      </Show>
-
-      <Show when={isLastAnswered()}>
-        <div class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
-          <button
-            onClick={props.onFinish}
-            class="bg-main pointer-events-auto animate-[fadeIn_.25s_ease-in-out] rounded-full px-6 py-3 text-sm font-bold text-white shadow-lg"
-          >
-            إظهار النتيجة
-          </button>
-        </div>
       </Show>
     </div>
   );

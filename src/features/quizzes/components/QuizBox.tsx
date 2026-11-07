@@ -1,7 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import ImageLightbox from "./ImageLightbox";
 import SuggestSection from "./SuggestSection";
-import ContentCredit from "../../shared/components/ContentCredit";
 
 export default function QuizBox(props: any) {
   // seasonName / yearName now arrive as plain props (looked up once by the page).
@@ -67,8 +66,8 @@ export default function QuizBox(props: any) {
       </Show>
 
       {/* نص السؤال */}
-      <div class="flex flex-row-reverse p-3 font-bold text-md">
-        <pre dir="rtl" class="text-md font-bold">
+      <div class="flex flex-row-reverse p-3 text-xl leading-relaxed font-bold">
+        <pre dir="rtl" class="font-sans">
           {props.index + 1}.{" "}
         </pre>
         <p dir="rtl">{props.currentQuestion?.question}:</p>
@@ -159,15 +158,6 @@ export default function QuizBox(props: any) {
           </p>
           {props.explanation}
         </div>
-      </Show>
-
-      {/* من أضاف السؤال + آخر تعديل — يظهر بعد الإجابة كي لا يشتّت أثناء الحل */}
-      <Show when={props.isDisabled && props.currentQuestion}>
-        <ContentCredit
-          class="mt-3 justify-end"
-          createdBy={props.currentQuestion.created_by ?? props.currentQuestion.user_id}
-          updatedAt={props.currentQuestion.updated_at}
-        />
       </Show>
     </div>
   );
