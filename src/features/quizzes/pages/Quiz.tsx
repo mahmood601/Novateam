@@ -476,7 +476,7 @@ export default function Quiz() {
               </button>
             </div>
 
-            <div class="mt-5 flex text-xs flex-wrap items-center justify-between gap-1">
+            <div class="mt-5 flex text-sm flex-wrap items-center justify-between gap-1">
               <span>
                 {quizState.index + 1} / {orderedQs().length}
               </span>

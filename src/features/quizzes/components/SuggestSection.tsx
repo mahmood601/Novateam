@@ -119,7 +119,7 @@ export default function SuggestSection(props: {
       {/* الزر */}
       <button
         onClick={() => setOpen(true)}
-        class="hover:border-main hover:text-main "
+        class="hover:border-main hover:text-main p-2"
         title="اقترح فصلاً أصح"
       >
         <ClipboardPen size={18} />
