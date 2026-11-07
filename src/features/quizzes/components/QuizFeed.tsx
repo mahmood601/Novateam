@@ -124,7 +124,7 @@ function FeedAxis(props: FeedProps & { axis: QuizDisplayMode }) {
               ref={(el) => (slideEls[i()] = el)}
               data-idx={i()}
               classList={{
-                "w-full flex-shrink-0 snap-start px-5 pt-2 pb-8": true,
+                "w-full flex-shrink-0 snap-start pt-2 pb-8": true,
                 "min-h-full": props.axis === "vertical",
                 "h-full overflow-y-auto": props.axis === "horizontal",
               }}

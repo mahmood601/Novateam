@@ -35,7 +35,6 @@ import {
 } from "../services/local/indexeddb/quizFilters";
 import { useAudio } from "../../shared/hooks/useAudio";
 import { unwrap } from "solid-js/store";
-import QuizHeader from "../components/QuizHeader";
 import QuizFilterSheet from "../components/QuizFilterSheet";
 import QuizToolsSheet from "../components/QuizToolsSheet";
 import { quizState, setQuizState } from "../utils/quizStore";
@@ -441,8 +440,8 @@ export default function Quiz() {
           />
         }
       >
-        <div class="dark:text-main-light bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
-          <header class="p-5">
+        <div class="dark:text-main-light p-5 bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
+          <header>
             <div class="flex items-center justify-between">
               <button onClick={() => history.back()}>
                 <LeftArrow />
@@ -477,51 +476,50 @@ export default function Quiz() {
               </button>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-1">
+            <div class="mt-5 flex text-xs flex-wrap items-center justify-between gap-1">
               <span>
                 {quizState.index + 1} / {orderedQs().length}
               </span>
 
+              <div class="dark:bg-lighter-dark-1 dark:border-lighter-dark-2 flex items-center justify-between bg-white">
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFilterSheetOpen(true)}
+                    class="relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                    classList={{
+                      "bg-main text-white": activeFilterCount(filters()) > 0,
+                      "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300":
+                        activeFilterCount(filters()) === 0,
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z" />
+                    </svg>
+                    فلترة
+                    <Show when={activeFilterCount(filters()) > 0}>
+                      <span class="bg-secondary flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black text-white">
+                        {activeFilterCount(filters())}
+                      </span>
+                    </Show>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setToolsSheetOpen(true)}
+                    class="dark:bg-lighter-dark-2 flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:text-gray-300"
+                  >
+                    🛠️ أدوات
+                  </button>
+                </div>
+              </div>
 
-                                 <div class="dark:bg-lighter-dark-1 dark:border-lighter-dark-2 flex items-center justify-between bg-white px-4">
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setFilterSheetOpen(true)}
-                class="relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
-                classList={{
-                  "bg-main text-white": activeFilterCount(filters()) > 0,
-                  "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300":
-                    activeFilterCount(filters()) === 0,
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z" />
-                </svg>
-                فلترة
-                <Show when={activeFilterCount(filters()) > 0}>
-                  <span class="bg-secondary flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black text-white">
-                    {activeFilterCount(filters())}
-                  </span>
-                </Show>
-              </button>
-              <button
-                type="button"
-                onClick={() => setToolsSheetOpen(true)}
-                class="dark:bg-lighter-dark-2 flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:text-gray-300"
-              >
-                🛠️ أدوات
-              </button>
-            </div>
-          </div>
-
-              <div class="text-secondary flex items-center gap-2 rounded-full bg-gray-100 px-3 py-2 dark:bg-gray-800">
+              <div class="text-secondary flex items-center gap-2 rounded-full py-1 ">
                 <span>{formatTime()}</span>
                 <button onClick={() => setIsPaused(!isPaused())}>
                   <Show
@@ -556,10 +554,7 @@ export default function Quiz() {
               </div>
             </div>
 
-
-   
-
-            <div class="mt-4 h-2 w-full rounded-full bg-gray-200">
+            <div class="mt-2 h-2 w-full rounded-full bg-gray-200">
               <div
                 class="bg-main h-full rounded-full transition-all duration-300"
                 style={{
@@ -568,7 +563,6 @@ export default function Quiz() {
               />
             </div>
           </header>
-
 
           <Show
             when={filterResult.latest}

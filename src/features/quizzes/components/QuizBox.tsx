@@ -1,6 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
 import ImageLightbox from "./ImageLightbox";
-import SuggestSection from "./SuggestSection";
 
 export default function QuizBox(props: any) {
   // seasonName / yearName now arrive as plain props (looked up once by the page).
@@ -10,12 +9,12 @@ export default function QuizBox(props: any) {
 
   return (
     <div class="bg-main-light dark:bg-main-dark">
-      {/* شارة الفصل والسنة + بادج "صعب" + زر الاقتراح */}
+      {/* شارة الفصل والسنة + بادج "صعب" */}
       <Show when={props.currentQuestion}>
-        <div class="mb-2 flex items-center flex-row-reverse gap-2">
-          <div class="text-xs border-secondary flex w-fit rounded-full h-fit border-2 font-bold ml-2">
+        <div class="mb-3 mt-2 flex text-xs w-full items-center flex-row-reverse gap-2">
+          <div class="text-xs mb-1 border-secondary flex w-3/4 rounded-full h-fit border-2 overflow-x-scroll font-bold ">
             <Show when={props.seasonName}>
-              <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-2">
+              <p dir="rtl" class="text-secondary flex-1 h-full py-1 px-1 ml-3 text-nowrap overflow-x-scroll">
                 {props.seasonName}
               </p>
             </Show>
@@ -30,20 +29,12 @@ export default function QuizBox(props: any) {
           <Show when={props.weakAttempts}>
             <span
               dir="rtl"
-              class="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
+              class="flex items-center gap-1 shrink-0 rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
             >
-              ⚠️ أخطأت {props.weakAttempts} {props.weakAttempts === 1 ? "مرة" : "مرات"}
+               أخطأت {props.weakAttempts} {props.weakAttempts === 1 ? "مرة" : "مرات"}
             </span>
           </Show>
 
-          {/* زر اقتراح الفصل */}
-          <SuggestSection
-            questionId={props.currentQuestion.$id}
-            subject={props.subject}
-            subjectName={props.subjectName}
-            currentSeasonId={props.currentQuestion.season_id}
-            questionText={props.currentQuestion.question}
-          />
         </div>
       </Show>
 
@@ -66,7 +57,7 @@ export default function QuizBox(props: any) {
       </Show>
 
       {/* نص السؤال */}
-      <div class="flex flex-row-reverse p-3 text-xl leading-relaxed font-bold">
+      <div class="flex flex-row-reverse mt-3 text-md leading-relaxed font-bold">
         <pre dir="rtl" class="font-sans">
           {props.index + 1}.{" "}
         </pre>

@@ -1,9 +1,9 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal, Show, Suspense } from "solid-js";
 import FavoriteButton from "./Favorite";
 import GeminiPanel from "../../shared/components/GeminiPanel";
 import { quizDisplayMode, setQuizDisplayMode } from "../utils/quizDisplayMode";
-import { quizState } from "../utils/quizStore";
 import AdminEditPanel from "./AdminEditPanel";
+import SuggestSection from "./SuggestSection";
 import { useUser } from "../../shared/context/user";
 import ContentCredit from "../../shared/components/ContentCredit";
 
@@ -26,10 +26,8 @@ export default function QuizFooter(props: {
   const canEditHere = () =>
     !!props.subjectId && can("quiz", props.subjectId, "publish");
 
-
-
   return (
-    <footer class="bg-main-light  dark:bg-main-dark shrink-0 px-4 pt-1 pb-2">
+    <footer class="bg-main-light dark:bg-main-dark shrink-0 px-4 pt-1 pb-2">
       {/* زر النتيجة — يظهر بعد الإجابة على آخر سؤال */}
       <Show when={props.canFinish}>
         <button
@@ -55,8 +53,7 @@ export default function QuizFooter(props: {
       </Show>
 
       <div class="flex items-center justify-center gap-4">
-
-        <div class="flex justify-between w-fit items-center">
+        <div class="bg-darker-light-1 dark:bg-lighter-dark-2 flex w-fit items-center justify-between rounded-full px-3 py-1">
           <FavoriteButton
             question={props.currentQuestion}
             userAnswer={props.userAnswer?.answerContent}
@@ -140,35 +137,43 @@ export default function QuizFooter(props: {
           />
 
           {/* زر تعديل السؤال — يظهر فقط للأدمن */}
-          <Show when={canEditHere()}>
-            <button
-              onClick={() => setEditOpen(true)}
-              class="flex items-center justify-center rounded-full p-2 transition hover:scale-105"
-              title="تعديل السؤال (أدمن)"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-                viewBox="0 0 24 24"
+          <Suspense>
+            <Show when={canEditHere()}>
+              <button
+                onClick={() => setEditOpen(true)}
+                class="flex items-center justify-center rounded-full p-2 transition hover:scale-105"
+                title="تعديل السؤال (أدمن)"
               >
-                <path
-                  fill="currentColor"
-                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zm17.71-10.04a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-1.42 0l-1.83 1.83l3.75 3.75z"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zm17.71-10.04a1 1 0 0 0 0-1.42l-2.5-2.5a1 1 0 0 0-1.42 0l-1.83 1.83l3.75 3.75z"
+                  />
+                </svg>
+              </button>
 
-            <AdminEditPanel
-              open={editOpen()}
-              onClose={() => setEditOpen(false)}
-              subjectId={props.subjectId!}
-              question={props.currentQuestion}
-              onQuestionChanged={() => props.onQuestionChanged?.()}
-            />
-          </Show>
+              <AdminEditPanel
+                open={editOpen()}
+                onClose={() => setEditOpen(false)}
+                subjectId={props.subjectId!}
+                question={props.currentQuestion}
+                onQuestionChanged={() => props.onQuestionChanged?.()}
+              />
+            </Show>
+          </Suspense>
+
+          <SuggestSection
+            questionId={props.currentQuestion.$id}
+            subject={props.subjectId!}
+            currentSeasonId={props.currentQuestion.season_id}
+            questionText={props.currentQuestion.question}
+          />
         </div>
-
       </div>
     </footer>
   );
