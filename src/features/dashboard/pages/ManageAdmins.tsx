@@ -21,7 +21,7 @@ import {
 import { listAllSubjects } from "../services/manage";
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white p-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200";
+  "w-full rounded-xl border border-line-light bg-surface-light p-2 text-sm text-ink-light dark:border-line-dark dark:bg-base-dark dark:text-ink-dark";
 
 type Form = {
   userId: string;
@@ -165,10 +165,10 @@ export default function ManageAdmins() {
       .join(" · ");
 
   return (
-    <div class="min-h-dvh bg-[#f8fafc] px-5 dark:bg-[#0f172a]" dir="rtl">
+    <div class="min-h-dvh bg-base-light px-5 dark:bg-base-dark" dir="rtl">
       <div class="mx-auto flex max-w-lg flex-col gap-4 pt-22 pb-28">
         <div class="flex items-center justify-between">
-          <h1 class="text-xl font-black text-slate-800 dark:text-white">
+          <h1 class="text-xl font-black text-ink-light dark:text-ink-dark">
             إدارة الأدمنز
           </h1>
           <Show when={canDelegate()}>
@@ -183,13 +183,13 @@ export default function ManageAdmins() {
 
         <Show when={form()}>
           {(f) => (
-            <div class="flex flex-col gap-3 rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
+            <div class="flex flex-col gap-3 rounded-4xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
               {/* user picker */}
               <Show
                 when={f().userId}
                 fallback={
                   <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500">المستخدم</label>
+                    <label class="text-xs font-bold text-ink-soft-light">المستخدم</label>
                     <input
                       class={inputCls}
                       placeholder="ابحث بالاسم (حرفان على الأقل)"
@@ -199,12 +199,12 @@ export default function ManageAdmins() {
                       {(h) => (
                         <button
                           onClick={() => patch({ userId: h.id, userName: h.name })}
-                          class="flex items-center justify-between rounded-xl bg-slate-50 p-2 text-right text-sm dark:bg-slate-900"
+                          class="flex items-center justify-between rounded-xl bg-base-light p-2 text-right text-sm dark:bg-base-dark"
                         >
-                          <span class="font-bold text-slate-700 dark:text-slate-200">
+                          <span class="font-bold text-ink-light dark:text-ink-dark">
                             {h.name}
                           </span>
-                          <span class="text-[10px] text-slate-400">
+                          <span class="text-[10px] text-ink-muted-light">
                             {h.role === "student" ? "طالب" : "أدمن"}
                           </span>
                         </button>
@@ -219,7 +219,7 @@ export default function ManageAdmins() {
                   </span>
                   <button
                     onClick={() => patch({ userId: "", userName: "" })}
-                    class="text-xs text-slate-400"
+                    class="text-xs text-ink-muted-light"
                   >
                     تغيير
                   </button>
@@ -228,7 +228,7 @@ export default function ManageAdmins() {
 
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-bold text-slate-500">النوع</label>
+                  <label class="text-xs font-bold text-ink-soft-light">النوع</label>
                   <select
                     class={inputCls}
                     value={f().scope}
@@ -244,7 +244,7 @@ export default function ManageAdmins() {
 
                 <Show when={f().scope !== "admins"}>
                   <div class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-slate-500">المادة</label>
+                    <label class="text-xs font-bold text-ink-soft-light">المادة</label>
                     <select
                       class={inputCls}
                       value={f().subject}
@@ -263,7 +263,7 @@ export default function ManageAdmins() {
 
               <Show when={!fixedLevel(f().scope)}>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-bold text-slate-500">المستوى</label>
+                  <label class="text-xs font-bold text-ink-soft-light">المستوى</label>
                   <select
                     class={inputCls}
                     value={f().level}
@@ -277,7 +277,7 @@ export default function ManageAdmins() {
               </Show>
 
               <div class="flex flex-col gap-1">
-                <label class="text-xs font-bold text-slate-500">
+                <label class="text-xs font-bold text-ink-soft-light">
                   ينتهي في (اختياري — مفيد للمتطوعين الخارجيين)
                 </label>
                 <input
@@ -298,7 +298,7 @@ export default function ManageAdmins() {
                 </button>
                 <button
                   onClick={() => setForm(null)}
-                  class="rounded-2xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-500 dark:bg-slate-700"
+                  class="rounded-2xl bg-chip-light px-5 py-3 text-sm font-bold text-ink-soft-light dark:bg-chip-dark"
                 >
                   إلغاء
                 </button>
@@ -309,7 +309,7 @@ export default function ManageAdmins() {
 
         <Show
           when={!staff.loading}
-          fallback={<p class="py-6 text-center text-slate-400">جاري التحميل... ⏳</p>}
+          fallback={<p class="py-6 text-center text-ink-muted-light">جاري التحميل... ⏳</p>}
         >
           <Show
             when={!staff.error}
@@ -320,12 +320,12 @@ export default function ManageAdmins() {
             <div class="flex flex-col gap-3">
               <For each={staff()}>
                 {(m) => (
-                  <div class="rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
+                  <div class="rounded-4xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
                     <div class="flex items-center gap-2">
-                      <p class="flex-1 font-bold text-slate-700 dark:text-slate-200">
+                      <p class="flex-1 font-bold text-ink-light dark:text-ink-dark">
                         {m.name || "بدون اسم"}
                         <Show when={m.id === me()}>
-                          <span class="mr-1 text-[10px] text-slate-400">(أنت)</span>
+                          <span class="mr-1 text-[10px] text-ink-muted-light">(أنت)</span>
                         </Show>
                       </p>
                       <span
@@ -342,7 +342,7 @@ export default function ManageAdmins() {
                     <Show
                       when={m.role === "admin"}
                       fallback={
-                        <p class="mt-2 text-xs text-slate-400">
+                        <p class="mt-2 text-xs text-ink-muted-light">
                           صلاحيات كاملة — تُدار من قاعدة البيانات فقط
                         </p>
                       }
@@ -361,13 +361,13 @@ export default function ManageAdmins() {
                               <span
                                 class={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${
                                   isGrantActive(g)
-                                    ? "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                                    ? "bg-chip-light text-ink-soft-light dark:bg-chip-dark dark:text-ink-soft-dark"
                                     : "bg-red-50 text-red-400 line-through dark:bg-red-900/20"
                                 }`}
                               >
                                 {chipText(g)}
                                 <Show when={g.expires_at}>
-                                  <span class="font-normal text-slate-400">
+                                  <span class="font-normal text-ink-muted-light">
                                     ⏳ {new Date(g.expires_at!).toLocaleDateString("ar")}
                                   </span>
                                 </Show>

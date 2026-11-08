@@ -43,7 +43,7 @@ export default function Box(props: {
   return (
     <A
       href={props.link}
-      class="hover:border-main dark:border-lighter-dark-2 w-80 h-45 bg-main-light relative flex justify-between rounded-2xl border p-5 gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
+      class="hover:border-main dark:border-lighter-dark-2 w-80 h-45 bg-main-light relative flex justify-between rounded-2xl border p-5 gap-2 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-surface-dark"
     >
       {/* المعلومات */}
       <div class="flex flex-1 flex-col items-center justify-center gap-2">

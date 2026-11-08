@@ -11,8 +11,8 @@ export default function NotFound() {
     >
       <div class="text-7xl">🔭</div>
       <h1 class="text-6xl font-black text-main">404</h1>
-      <p class="text-xl font-bold dark:text-white">الصفحة غير موجودة</p>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+      <p class="text-xl font-bold dark:text-ink-dark">الصفحة غير موجودة</p>
+      <p class="text-sm text-ink-soft-light dark:text-ink-muted-dark">
         يبدو أن هذا الرابط لا يوجد أو تم حذفه
       </p>
       <A

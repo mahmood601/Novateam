@@ -75,7 +75,7 @@ const ReloadPrompt: Component = () => {
       (t) => (
         <div
           dir="rtl"
-          class="bg-main-light dark:bg-lighter-dark-1 text-main-dark w-[min(92vw,22rem)] rounded-2xl border border-black/10 p-4 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-white"
+          class="bg-main-light dark:bg-lighter-dark-1 text-ink-light w-[min(92vw,22rem)] rounded-2xl border border-black/10 p-4 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-ink-dark"
           classList={{
             "translate-y-0 opacity-100": t.visible,
             "translate-y-2 opacity-0": !t.visible,
@@ -127,7 +127,7 @@ const ReloadPrompt: Component = () => {
       (t) => (
         <div
           dir="rtl"
-          class="bg-main-light dark:bg-lighter-dark-1 text-main-dark flex items-center gap-3 rounded-2xl border border-black/10 py-3 ps-4 pe-2 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-white"
+          class="bg-main-light dark:bg-lighter-dark-1 text-ink-light flex items-center gap-3 rounded-2xl border border-black/10 py-3 ps-4 pe-2 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-ink-dark"
           classList={{
             "translate-y-0 opacity-100": t.visible,
             "translate-y-2 opacity-0": !t.visible,

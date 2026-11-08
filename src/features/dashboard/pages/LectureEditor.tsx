@@ -11,7 +11,7 @@ import { useUser } from "../../shared/context/user";
 const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
   published: { text: "منشورة", cls: "bg-green-50 text-green-600" },
   pending: { text: "بانتظار المراجعة", cls: "bg-amber-50 text-amber-600" },
-  draft: { text: "مسودة", cls: "bg-slate-100 text-slate-500" },
+  draft: { text: "مسودة", cls: "bg-chip-light text-ink-soft-light" },
 };
 
 export default function LectureEditor() {
@@ -53,7 +53,7 @@ export default function LectureEditor() {
           <Show
             when={(seasons() ?? []).length > 0}
             fallback={
-              <div class="text-muted-foreground rounded-4xl border border-dashed px-4 py-10 text-center text-sm dark:bg-slate-800">
+              <div class="text-muted-foreground rounded-4xl border border-dashed px-4 py-10 text-center text-sm dark:bg-surface-dark">
                 لا توجد فصول متاحة الآن.
               </div>
             }
@@ -68,7 +68,7 @@ export default function LectureEditor() {
                     <div class="flex flex-col gap-2">
                       <A
                         href={`/dashboard/${subjectId}/edit-lecture/${season.id}/editor`}
-                        class="hover:border-main dark:border-lighter-dark-2 bg-main-light relative flex flex-row-reverse items-center justify-between gap-2 rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-gray-800"
+                        class="hover:border-main dark:border-lighter-dark-2 bg-main-light relative flex flex-row-reverse items-center justify-between gap-2 rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-surface-dark"
                       >
                         <div class="flex flex-col items-end gap-1">
                           <p class="text-foreground text-right text-sm font-bold">
@@ -100,7 +100,7 @@ export default function LectureEditor() {
                       <Show when={canPublish() && status() === "published"}>
                         <button
                           onClick={() => changeStatus(season.id, "draft")}
-                          class="rounded-xl bg-slate-100 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-200 dark:bg-slate-700"
+                          class="rounded-xl bg-chip-light py-1.5 text-xs font-bold text-ink-soft-light hover:bg-darker-light-2 dark:bg-chip-dark"
                         >
                           إلغاء النشر
                         </button>
@@ -113,7 +113,7 @@ export default function LectureEditor() {
           </Show>
         }
       >
-        <div class="text-muted-foreground rounded-3xl px-4 py-10 text-center text-sm shadow-md dark:bg-slate-800">
+        <div class="text-muted-foreground rounded-3xl px-4 py-10 text-center text-sm shadow-md dark:bg-surface-dark">
           جاري تحميل الفصول...
         </div>
       </Show>

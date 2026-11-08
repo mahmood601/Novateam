@@ -62,12 +62,12 @@ export default function SubjectsPage() {
         <div class="bg-rainbow-graident fixed z-100 flex h-screen w-screen items-center justify-center">
           <div class="bg-main-light flex h-fit w-11/12 flex-col items-center rounded-md p-10 text-center">
             <div class="bg-darker-light-1 flex w-fit flex-row-reverse items-center justify-center gap-2 rounded-md p-2">
-              <label dir="rtl" class="text-main-dark font-bold" for="year">
+              <label dir="rtl" class="text-ink-light font-bold" for="year">
                 اختر السنة:
               </label>
               <select
                 dir="rtl"
-                class="text-main-dark border-main-dark focus:ring-main rounded-md bg-transparent p-2 focus:ring-2 focus:outline-none"
+                class="text-ink-light border-main-dark focus:ring-main rounded-md bg-transparent p-2 focus:ring-2 focus:outline-none"
                 id="year"
                 onInput={(e) => {
                   const val = e.currentTarget.value;
@@ -80,7 +80,7 @@ export default function SubjectsPage() {
                 </option>
                 <For each={years}>
                   {(year) => (
-                    <option value={year.id} class="text-main-dark bg-white">
+                    <option value={year.id} class="text-ink-light bg-surface-light">
                       {year.name}
                     </option>
                   )}
@@ -99,7 +99,7 @@ export default function SubjectsPage() {
           <Show
             when={!yearSubjects.loading && (yearSubjects()?.length ?? 0) > 0}
             fallback={
-              <div class="py-10 text-center text-gray-400">
+              <div class="py-10 text-center text-ink-muted-light">
                 لا توجد مواد مسجلة لهذه السنة في قاعدة البيانات المحلية.
               </div>
             }

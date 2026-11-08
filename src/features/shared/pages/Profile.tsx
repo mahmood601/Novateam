@@ -47,8 +47,8 @@ export default function Profile() {
 
   return (
     <div class="dark:bg-main-dark bg-darker-light-1 flex h-dvh  flex-col overflow-hidden px-5 pt-14">
-      <div class="flex w-full items-center justify-center dark:text-white">
-        <h1 class="flex-1 py-5 text-right text-2xl font-bold tracking-wide dark:text-white">
+      <div class="flex w-full items-center justify-center dark:text-ink-dark">
+        <h1 class="flex-1 py-5 text-right text-2xl font-bold tracking-wide dark:text-ink-dark">
           الملف الشخصي
         </h1>
       </div>
@@ -56,7 +56,7 @@ export default function Profile() {
         <Show
           when={user()}
           fallback={
-            <div class="flex w-full flex-col items-center justify-center gap-5 pt-5 dark:text-white">
+            <div class="flex w-full flex-col items-center justify-center gap-5 pt-5 dark:text-ink-dark">
               <Li
                 Icon={CalendarSvg()}
                 type="السنة"
@@ -80,7 +80,7 @@ export default function Profile() {
                         value={yearValue()}
                         onChange={(e) => setYearValue(e.currentTarget.value)}
                         aria-placeholder="اختر السنة"
-                        class="text-main-dark focus:ring-main w-auto rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                        class="text-ink-light focus:ring-main w-auto rounded-xl bg-chip-light px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-chip-dark"
                         dir="rtl"
                       >
                         <For each={Object.entries(years)}>
@@ -100,7 +100,7 @@ export default function Profile() {
                       </button>
                       <button
                         onClick={() => setEditingYear(false)}
-                        class="text-xs text-slate-400"
+                        class="text-xs text-ink-muted-light"
                       >
                         إلغاء
                       </button>

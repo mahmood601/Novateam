@@ -26,14 +26,14 @@ export default function WeakQuestionsPage() {
   return (
     <div class="bg-main-light dark:bg-main-dark min-h-screen" dir="rtl">
       {/* Header */}
-      <div class="sticky top-0 z-10  backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-800 px-4 py-3">
+      <div class="sticky top-0 z-10  backdrop-blur-xl bg-surface-light/80 dark:bg-base-dark/80 border-b border-line-light dark:border-line-dark px-4 py-3">
         <div class="flex flex-row-reverse items-center justify-between">
           <button onClick={() => history.back()} class="p-1">
             <LeftArrow />
           </button>
           <h1 class="text-lg font-bold">الأسئلة الصعبة</h1>
           <Show when={stats()}>
-            <span class="text-xs text-slate-400">
+            <span class="text-xs text-ink-muted-light">
               {stats()!.rate}% إجمالي
             </span>
           </Show>
@@ -52,7 +52,7 @@ export default function WeakQuestionsPage() {
               <div class="flex flex-col items-center justify-center py-20 gap-4 text-center">
                 <span class="text-5xl">🎉</span>
                 <p class="font-bold text-lg">ممتاز!</p>
-                <p class="text-sm text-slate-400">
+                <p class="text-sm text-ink-muted-light">
                   لا توجد أسئلة صعبة بعد — استمر في المذاكرة
                 </p>
                 <button
@@ -69,7 +69,7 @@ export default function WeakQuestionsPage() {
               <p class="font-bold text-red-600 dark:text-red-400">
                 🎯 {weakQuestions()!.length} سؤال يحتاج مراجعة
               </p>
-              <p class="text-xs text-slate-400 mt-1">
+              <p class="text-xs text-ink-muted-light mt-1">
                 مرتبة من الأصعب للأسهل
               </p>
             </div>
@@ -97,7 +97,7 @@ function WeakQuestionCard(props: { question: Question }) {
 
   return (
     <div
-      class="rounded-2xl bg-white dark:bg-slate-800 shadow-sm overflow-hidden cursor-pointer"
+      class="rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm overflow-hidden cursor-pointer"
       onClick={() => setExpanded((v) => !v)}
     >
       {/* Header */}
@@ -114,7 +114,7 @@ function WeakQuestionCard(props: { question: Question }) {
             <span class="rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-xs font-bold text-red-500">
               ✗ {attempts()}
             </span>
-            <span class="text-[10px] text-slate-400">خطأ</span>
+            <span class="text-[10px] text-ink-muted-light">خطأ</span>
           </div>
         </div>
 
@@ -126,7 +126,7 @@ function WeakQuestionCard(props: { question: Question }) {
 
       {/* الخيارات والإجابة */}
       <Show when={expanded()}>
-        <div class="border-t border-slate-100 dark:border-slate-700 p-4 space-y-2">
+        <div class="border-t border-line-light dark:border-line-dark p-4 space-y-2">
           <For each={props.question.options}>
             {(option, idx) => (
               <Show when={option}>
@@ -134,7 +134,7 @@ function WeakQuestionCard(props: { question: Question }) {
                   class={`rounded-xl px-4 py-2 text-sm ${
                     props.question.correctIndex?.toString().includes(idx().toString())
                       ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold"
-                      : "bg-slate-50 dark:bg-slate-700/50"
+                      : "bg-base-light dark:bg-chip-dark/50"
                   }`}
                 >
                   {idx() + 1}. {option}
@@ -158,7 +158,7 @@ function WeakQuestionCard(props: { question: Question }) {
             <img
               src={props.question.image_url!}
               alt="صورة السؤال"
-              class="w-full rounded-xl object-contain max-h-48 bg-slate-100"
+              class="w-full rounded-xl object-contain max-h-48 bg-chip-light"
             />
           </Show>
         </div>

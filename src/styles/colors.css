@@ -1,0 +1,202 @@
+/*
+ * colors.css — the single place that defines the app's UI colors.
+ *
+ * How it is organised
+ *   1. @theme            → every color token (and its default value).
+ *                          Tailwind turns each `--color-x` into utilities
+ *                          (bg-x, text-x, border-x …) and plain CSS can use
+ *                          `var(--color-x)`.
+ *   2. [data-theme=...]  → ready-made brand presets (main / secondary / ...).
+ *   3. shadcn aliases    → generic names (`--background`, `--foreground` …)
+ *                          that point at the tokens above.
+ *
+ * Runtime customisation (Settings → advanced colors) works by setting the
+ * same `--color-*` variables inline on <html>; see
+ * features/shared/lib/colorOverrides.ts. Nothing here has to change for that.
+ *
+ * Light / dark convention: neutral tokens come in pairs, `-light` and
+ * `-dark`, used as `bg-surface-light dark:bg-surface-dark`. That keeps both
+ * modes independently customisable.
+ *
+ * NOT in this file on purpose (team visual identity):
+ *   - editor colors   → features/editor/lib/*Colors.ts, editor/styles/*.css
+ *   - print colors    → styles/print.css, public/print/paged-print.css
+ *   - lecture shapes  → the --nova-* variables in lectures/styles/lectureView.css
+ *   - landing page    → features/shared/styles/landing.css
+ */
+
+@theme {
+  /* ───────── Brand (same in light and dark) ───────── */
+  --color-main: #b118d7; /* primary */
+  --color-secondary: #ffae58;
+  --color-true: #32c79f; /* success */
+  --color-warn: #e50000; /* error / danger */
+
+  /* ───────── Backgrounds ───────── */
+  /* page background */
+  --color-main-light: #ffffff;
+  --color-main-dark: #131a2b;
+  /* soft background (bars, sidebars, hover) */
+  --color-darker-light-1: #f4f6f9;
+  --color-lighter-dark-1: #182136;
+  /* strong background + borders (dividers, tracks) */
+  --color-darker-light-2: #e5e9f0;
+  --color-lighter-dark-2: #27324a;
+  /* cards and sheets */
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1b243a;
+  /* deep background: inputs, wells, dashboard pages, body */
+  --color-base-light: #f6f8fb;
+  --color-base-dark: #0c1322;
+  /* chips, pills, small buttons */
+  --color-chip-light: #edf1f6;
+  --color-chip-dark: #2b3752;
+  /* borders */
+  --color-line-light: #d9e0e9;
+  --color-line-dark: #34425f;
+
+  /* ───────── Text ───────── */
+  --color-ink-light: #1b2536; /* primary text */
+  --color-ink-dark: #f1f5f9;
+  --color-ink-soft-light: #55657d; /* secondary text */
+  --color-ink-soft-dark: #b8c4d8;
+  --color-ink-muted-light: #7686a0; /* hints, placeholders */
+  --color-ink-muted-dark: #8494ae;
+
+  /* ───────── Fixed (not customisable) ───────── */
+  --color-header: #191919;
+  --color-dark-hover: #444444;
+}
+
+/* ───────── Brand presets ─────────
+   Selected through <html data-theme="...">. A preset only changes brand
+   colors; neutrals stay whatever the user chose. */
+[data-theme="Ola"] {
+  --color-main: #b118d7;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Nizar"] {
+  --color-main: #32c79f;
+  --color-secondary: #8e00d0;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Belal"] {
+  --color-main: #7e354d;
+  --color-secondary: #e6a9ec;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Rama"] {
+  --color-main: #d77418;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+[data-theme="Maram"] {
+  --color-main: #1887d7;
+  --color-secondary: #ffae58;
+  --color-warn: #e50000;
+  --color-true: #32c79f;
+}
+
+/* ───────── shadcn-style aliases ─────────
+   Generic names used by base styles and a few components. They only point
+   at the tokens above, so customising a token updates these too. */
+:root {
+  --background: var(--color-base-light);
+  --foreground: var(--color-ink-light);
+  --card: var(--color-surface-light);
+  --card-foreground: var(--color-ink-light);
+  --popover: var(--color-surface-light);
+  --popover-foreground: var(--color-ink-light);
+  --primary: var(--color-main);
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #ffffff;
+  --muted: var(--color-chip-light);
+  --muted-foreground: var(--color-ink-soft-light);
+  --accent: #dbeafe;
+  --accent-foreground: #1e3a8a;
+  --destructive: var(--color-warn);
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: var(--color-surface-light);
+  --switch-background: #d1d5db;
+  --ring: var(--color-main);
+  --chart-1: #2563eb;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  --sidebar: var(--color-surface-light);
+  --sidebar-foreground: var(--color-ink-light);
+  --sidebar-primary: var(--color-main);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: var(--color-ink-light);
+  --sidebar-border: var(--color-line-light);
+  --sidebar-ring: var(--color-main);
+}
+
+.dark {
+  --background: var(--color-base-dark);
+  --foreground: var(--color-ink-dark);
+  --card: var(--color-surface-dark);
+  --card-foreground: var(--color-ink-dark);
+  --popover: var(--color-surface-dark);
+  --popover-foreground: var(--color-ink-dark);
+  --muted: var(--color-chip-dark);
+  --muted-foreground: var(--color-ink-muted-dark);
+  --accent: #1e3a8a;
+  --accent-foreground: #dbeafe;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #374151;
+  --sidebar: var(--color-surface-dark);
+  --sidebar-foreground: var(--color-ink-dark);
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: var(--color-ink-dark);
+  --sidebar-border: var(--color-line-dark);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}

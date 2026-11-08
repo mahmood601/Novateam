@@ -1,7 +1,6 @@
-import { JSX, onMount, Show } from "solid-js";
+import { JSX, Show } from "solid-js";
 import Header from "./Header/Header";
 import { useIsRouting, useLocation } from "@solidjs/router";
-import { useTheme } from "../hooks/useTheme";
 import { Links } from "./Header/Links";
 
 export default function Layout(props: { children: JSX.Element }) {
@@ -14,15 +13,10 @@ export default function Layout(props: { children: JSX.Element }) {
     location().includes("/dashboard") ||
     location().includes("/profile");
 
-  const { theme, applyTheme } = useTheme();
   // True while a navigation is pending (e.g. a lazy page is still loading).
   // The router keeps the old page on screen until then, so without this the
   // tap on a link looks like it did nothing.
   const isRouting = useIsRouting();
-
-  onMount(() => {
-    applyTheme(theme());
-  });
 
   return (
     <div class="dark:bg-main-dark bg-main-light relative max-h-screen">

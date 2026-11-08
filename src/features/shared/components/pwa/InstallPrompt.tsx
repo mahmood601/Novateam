@@ -108,7 +108,7 @@ export default function InstallPrompt() {
         return (
           <div
             dir="rtl"
-            class="bg-main-light dark:bg-lighter-dark-1 text-main-dark relative w-[min(92vw,22rem)] rounded-2xl border border-black/10 p-4 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-white"
+            class="bg-main-light dark:bg-lighter-dark-1 text-ink-light relative w-[min(92vw,22rem)] rounded-2xl border border-black/10 p-4 shadow-xl transition-all duration-300 dark:border-white/10 dark:text-ink-dark"
             classList={{
               "translate-y-0 opacity-100": t.visible,
               "translate-y-2 opacity-0": !t.visible,

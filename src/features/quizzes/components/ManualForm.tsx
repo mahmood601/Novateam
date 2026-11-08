@@ -115,7 +115,7 @@ export function ManualForm(props: {
         placeholder="نص السؤال..."
         rows={3}
         dir="rtl"
-        class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-fuchsia-300 dark:bg-slate-900 dark:text-white"
+        class="w-full rounded-2xl border-2 border-transparent bg-base-light p-4 transition outline-none focus:border-fuchsia-300 dark:bg-base-dark dark:text-ink-dark"
       />
 
       <input
@@ -123,11 +123,11 @@ export function ManualForm(props: {
         onInput={(e) => setExplanation(e.currentTarget.value)}
         placeholder="الشرح (اختياري)"
         dir="rtl"
-        class="w-full rounded-2xl border-2 border-transparent bg-slate-50 p-4 transition outline-none focus:border-amber-300 dark:bg-slate-900 dark:text-white"
+        class="w-full rounded-2xl border-2 border-transparent bg-base-light p-4 transition outline-none focus:border-amber-300 dark:bg-base-dark dark:text-ink-dark"
       />
 
-      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+      <div class="space-y-3 rounded-2xl border border-line-light bg-base-light p-4 dark:border-line-dark dark:bg-base-dark">
+        <p class="text-sm font-bold text-ink-soft-light dark:text-ink-muted-dark">
           🖼️ صورة (اختياري)
         </p>
 
@@ -136,7 +136,7 @@ export function ManualForm(props: {
             <img
               src={imageUrl()!}
               alt="صورة السؤال"
-              class="max-h-48 w-full rounded-xl object-contain bg-slate-100"
+              class="max-h-48 w-full rounded-xl object-contain bg-chip-light"
             />
             <button
               type="button"
@@ -175,9 +175,9 @@ export function ManualForm(props: {
         </Show>
 
         <Show when={!imageUrl()}>
-          <label class={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-5 transition hover:border-cyan-300 dark:border-slate-600 ${imageUploading() ? "opacity-50 pointer-events-none" : ""}`}>
+          <label class={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-line-light p-5 transition hover:border-cyan-300 dark:border-line-dark ${imageUploading() ? "opacity-50 pointer-events-none" : ""}`}>
             <span class="text-2xl">{imageUploading() ? "⏳" : "📷"}</span>
-            <span class="text-xs text-slate-400">
+            <span class="text-xs text-ink-muted-light">
               {imageUploading() ? "جاري الرفع..." : "اضغط لرفع صورة"}
             </span>
             <input
@@ -213,7 +213,7 @@ export function ManualForm(props: {
                 class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-all ${
                   correctIndex() == i()
                     ? "border-green-400 bg-green-400 text-white"
-                    : "border-slate-200 bg-white text-slate-400 dark:border-slate-600 dark:bg-slate-800"
+                    : "border-line-light bg-surface-light text-ink-muted-light dark:border-line-dark dark:bg-surface-dark"
                 }`}
                 title="اضغط لتعيين هذا الخيار كإجابة صحيحة"
               >
@@ -225,7 +225,7 @@ export function ManualForm(props: {
                 placeholder={`الخيار ${i() + 1}${i() < 2 ? " *" : ""}`}
                 required={i() < 2}
                 dir="rtl"
-                class="flex min-w-0 flex-1 rounded-xl bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-slate-900 dark:text-white"
+                class="flex min-w-0 flex-1 rounded-xl bg-base-light p-3 outline-none focus:ring-2 focus:ring-fuchsia-200 dark:bg-base-dark dark:text-ink-dark"
               />
               <Show when={i() >= 2}>
                 <button
@@ -251,14 +251,14 @@ export function ManualForm(props: {
         </Show>
       </div>
 
-      <div class="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
-        <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+      <div class="space-y-3 rounded-2xl border border-line-light bg-base-light p-4 dark:border-line-dark dark:bg-base-dark">
+        <p class="text-sm font-bold text-ink-soft-light dark:text-ink-muted-dark">
           🗒️ مقالة (اختياري)
         </p>
 
         <Show when={!showNewPassage()}>
           <select
-            class="w-full rounded-xl bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-800 dark:text-white"
+            class="w-full rounded-xl bg-surface-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-surface-dark dark:text-ink-dark"
             onChange={(e) => setPassageId(e.currentTarget.value || null)}
           >
             <option value="">بدون مقالة</option>
@@ -291,7 +291,7 @@ export function ManualForm(props: {
             placeholder="أدخل نص المقالة الجديدة..."
             rows={4}
             dir="rtl"
-            class="w-full rounded-xl bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-800 dark:text-white"
+            class="w-full rounded-xl bg-surface-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-surface-dark dark:text-ink-dark"
           />
         </Show>
 
@@ -308,7 +308,7 @@ export function ManualForm(props: {
         </button>
       </div>
 
-      <p class="text-center text-xs text-slate-400">
+      <p class="text-center text-xs text-ink-muted-light">
         اضغط على الرقم لتحديد الإجابة الصحيحة
       </p>
 

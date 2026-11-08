@@ -36,7 +36,7 @@ export default function PermGate(props: {
             dir="rtl"
           >
             <span class="text-5xl">🔒</span>
-            <p class="font-bold text-slate-700 dark:text-slate-200">
+            <p class="font-bold text-ink-light dark:text-ink-dark">
               ليس لديك صلاحية لهذه الصفحة
             </p>
             <A

@@ -13,7 +13,7 @@ function Chip(props: { label: string; active: boolean; onClick: () => void }) {
       class="rounded-full border-2 px-3 py-1 text-xs font-bold whitespace-nowrap transition-all duration-150"
       classList={{
         "border-main bg-main text-white": props.active,
-        "border-gray-200 bg-white text-gray-500 dark:border-lighter-dark-2 dark:bg-lighter-dark-1 dark:text-gray-300":
+        "border-line-light bg-surface-light text-ink-soft-light dark:border-lighter-dark-2 dark:bg-lighter-dark-1 dark:text-ink-soft-dark":
           !props.active,
       }}
     >
@@ -74,11 +74,11 @@ export default function QuizFilterSheet(props: {
       >
         <div
           dir="rtl"
-          class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-white p-4 pb-6 animate-[fadeIn_.15s_ease-in-out]"
+          class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-surface-light p-4 pb-6 animate-[fadeIn_.15s_ease-in-out]"
           onClick={(e) => e.stopPropagation()}
         >
           <div class="mb-3 flex items-center justify-between">
-            <p class="text-sm font-bold dark:text-white">فلترة الأسئلة</p>
+            <p class="text-sm font-bold dark:text-ink-dark">فلترة الأسئلة</p>
             <Show when={activeFilterCount(props.filters) > 0}>
               <button
                 type="button"
@@ -92,7 +92,7 @@ export default function QuizFilterSheet(props: {
 
           <Show when={seasons().length > 0}>
             <div class="mb-1.5 flex items-center justify-between">
-              <p class="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+              <p class="text-[10px] font-bold tracking-wider text-ink-muted-light uppercase">
                 الفصل {(props.filters.seasonIds?.length ?? 0) > 0 && `(${props.filters.seasonIds!.length})`}
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function QuizFilterSheet(props: {
 
           <Show when={years().length > 0}>
             <div class="mb-1.5 flex items-center justify-between">
-              <p class="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+              <p class="text-[10px] font-bold tracking-wider text-ink-muted-light uppercase">
                 السنة {(props.filters.yearIds?.length ?? 0) > 0 && `(${props.filters.yearIds!.length})`}
               </p>
             </div>
@@ -138,7 +138,7 @@ export default function QuizFilterSheet(props: {
             </div>
           </Show>
 
-          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-ink-muted-light uppercase">
             أخرى
           </p>
           <div class="flex flex-wrap gap-1.5">

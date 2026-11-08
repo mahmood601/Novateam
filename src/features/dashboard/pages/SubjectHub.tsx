@@ -13,11 +13,11 @@ export default function SubjectHub() {
   const canLecture = () => can("lecture", subjectId(), "contribute");
 
   return (
-    <div class="flex min-h-dvh flex-col items-center justify-center bg-[#f8fafc] px-5 pb-10 dark:bg-[#0f172a]" dir="rtl">
+    <div class="flex min-h-dvh flex-col items-center justify-center bg-base-light px-5 pb-10 dark:bg-base-dark" dir="rtl">
       <div class="mx-auto w-full max-w-sm">
         <div class="mb-4 text-center">
-          <p class="mb-1 text-sm text-slate-400">المادة</p>
-          <h1 class="text-2xl font-black text-slate-800 dark:text-white">
+          <p class="mb-1 text-sm text-ink-muted-light">المادة</p>
+          <h1 class="text-2xl font-black text-ink-light dark:text-ink-dark">
             {subjectId()}
           </h1>
         </div>
@@ -25,7 +25,7 @@ export default function SubjectHub() {
         <Show
           when={canQuiz() || canLecture()}
           fallback={
-            <p class="rounded-4xl bg-white p-6 text-center text-sm text-slate-400 shadow-sm dark:bg-slate-800">
+            <p class="rounded-4xl bg-surface-light p-6 text-center text-sm text-ink-muted-light shadow-sm dark:bg-surface-dark">
               لم تُمنح صلاحية على هذه المادة 🔒
             </p>
           }
@@ -34,14 +34,14 @@ export default function SubjectHub() {
             <Show when={canQuiz()}>
               <A
                 href={`/dashboard/${subjectId()}/edit-quiz`}
-                class="flex items-center gap-4 rounded-[2rem] bg-white p-6 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98] dark:bg-slate-800"
+                class="flex items-center gap-4 rounded-[2rem] bg-surface-light p-6 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98] dark:bg-surface-dark"
               >
                 <span class="text-3xl">📋</span>
                 <div>
-                  <p class="font-black text-slate-800 dark:text-white">
+                  <p class="font-black text-ink-light dark:text-ink-dark">
                     إدارة الأسئلة
                   </p>
-                  <p class="text-xs text-slate-400">
+                  <p class="text-xs text-ink-muted-light">
                     الأسئلة، المقالات، والمقترحات
                   </p>
                 </div>
@@ -53,14 +53,14 @@ export default function SubjectHub() {
                 onClick={() => {
                   navigate(`/dashboard/${subjectId()}/edit-lecture`, { replace: false });
                 }}
-                class="flex items-center gap-4 rounded-[2rem] bg-white p-6 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98] dark:bg-slate-800"
+                class="flex items-center gap-4 rounded-[2rem] bg-surface-light p-6 text-right shadow-sm transition-all hover:shadow-md active:scale-[0.98] dark:bg-surface-dark"
               >
                 <span class="text-3xl">✍️</span>
                 <div>
-                  <p class="font-black text-slate-800 dark:text-white">
+                  <p class="font-black text-ink-light dark:text-ink-dark">
                     محرر المحاضرات
                   </p>
-                  <p class="text-xs text-slate-400">
+                  <p class="text-xs text-ink-muted-light">
                     تنسيق المحتوى النظري للمادة
                   </p>
                 </div>

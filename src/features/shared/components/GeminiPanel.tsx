@@ -106,12 +106,12 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
 
       {/* Panel */}
       <div
-        class="fixed right-0 bottom-0 left-0 z-[301] flex flex-col rounded-t-3xl bg-white shadow-2xl dark:bg-slate-900"
+        class="fixed right-0 bottom-0 left-0 z-[301] flex flex-col rounded-t-3xl bg-surface-light shadow-2xl dark:bg-base-dark"
         style={{ "max-height": "75dvh" }}
         dir="rtl"
       >
         {/* Header */}
-        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-700">
+        <div class="flex items-center justify-between border-b border-line-light px-5 py-4 dark:border-line-dark">
           <div class="flex items-center gap-2">
             <span class="text-xl">✨</span>
             <h3 class="font-bold">مساعد Nova AI</h3>
@@ -123,7 +123,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
           </div>
           <button
             onClick={props.onClose}
-            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            class="text-ink-muted-light hover:text-ink-soft-light dark:hover:text-ink-dark"
           >
             ✕
           </button>
@@ -132,7 +132,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
         {/* Chat */}
         <div class="flex-1 space-y-3 overflow-y-auto p-4">
           <Show when={messages().length === 0}>
-            <div class="rounded-2xl bg-slate-50 p-4 text-center text-sm text-slate-500 dark:bg-slate-800">
+            <div class="rounded-2xl bg-base-light p-4 text-center text-sm text-ink-soft-light dark:bg-surface-dark">
               اسأل عن هذا السؤال أو اطلب شرحاً للإجابة
             </div>
           </Show>
@@ -148,7 +148,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
                       ? "bg-main rounded-br-sm text-white"
                       : msg.depleted
                         ? "rounded-bl-sm bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
-                        : "rounded-bl-sm bg-slate-100 dark:bg-slate-800"
+                        : "rounded-bl-sm bg-chip-light dark:bg-surface-dark"
                   }`}
                 >
                   <Markdown text={msg.text} />
@@ -157,7 +157,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
                 {/* زر التحويل عند نفاد الرصيد */}
                 <Show when={msg.depleted && isUserLimit()}>
                   <div class="flex max-w-[85%] flex-col items-end gap-2">
-                    <p class="text-center text-xs text-slate-400">
+                    <p class="text-center text-xs text-ink-muted-light">
                       احصل على مفتاحك المجاني من Google AI Studio واستمر بدون
                       قيود
                     </p>
@@ -178,7 +178,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
 
           <Show when={loading()}>
             <div class="flex justify-end">
-              <div class="rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
+              <div class="rounded-2xl bg-chip-light px-4 py-3 dark:bg-surface-dark">
                 <span class="gemini-dots">
                   <span />
                   <span />
@@ -190,11 +190,11 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
         </div>
 
         {/* Input */}
-        <div class="flex gap-2 border-t border-slate-100 p-3 dark:border-slate-700">
+        <div class="flex gap-2 border-t border-line-light p-3 dark:border-line-dark">
           <Show
             when={!depleted()}
             fallback={
-              <p class="flex-1 py-2 text-center text-xs text-slate-400">
+              <p class="flex-1 py-2 text-center text-xs text-ink-muted-light">
                 أضف مفتاحك للاستمرار
               </p>
             }
@@ -211,7 +211,7 @@ ${props.passage? `النص: ${props.passage ?? ""}` : ""}
               onInput={(e) => setInput(e.currentTarget.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="اكتب سؤالك..."
-              class="flex-1 rounded-full bg-slate-100 px-4 py-2 text-sm outline-none dark:bg-slate-800"
+              class="flex-1 rounded-full bg-chip-light px-4 py-2 text-sm outline-none dark:bg-surface-dark"
               dir="rtl"
             />
           </Show>

@@ -77,18 +77,18 @@ export default function AdminEditPanel(props: {
 
       {/* Panel */}
       <div
-        class="fixed right-0 bottom-0 left-0 z-[301] flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-3xl bg-white shadow-2xl dark:bg-slate-900"
+        class="fixed right-0 bottom-0 left-0 z-[301] flex max-h-[90dvh] flex-col overflow-y-auto rounded-t-3xl bg-surface-light shadow-2xl dark:bg-base-dark"
         dir="rtl"
       >
         {/* Header */}
-        <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900">
+        <div class="sticky top-0 z-10 flex items-center justify-between border-b border-line-light bg-surface-light px-5 py-4 dark:border-line-dark dark:bg-base-dark">
           <div class="flex items-center gap-2">
             <span class="text-xl">✏️</span>
             <h3 class="font-bold">تعديل السؤال (أدمن)</h3>
           </div>
           <button
             onClick={props.onClose}
-            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            class="text-ink-muted-light hover:text-ink-soft-light dark:hover:text-ink-dark"
           >
             ✕
           </button>
@@ -98,7 +98,7 @@ export default function AdminEditPanel(props: {
           <Show
             when={sections() && props.question}
             fallback={
-              <p class="text-center text-sm text-slate-400">
+              <p class="text-center text-sm text-ink-muted-light">
                 جاري تحميل البيانات...
               </p>
             }

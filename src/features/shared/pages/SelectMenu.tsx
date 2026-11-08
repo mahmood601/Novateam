@@ -35,10 +35,10 @@ export default function SelectMenu() {
     <div class="bg-main-light dark:bg-main-dark flex h-dvh w-screen justify-center gap-3 overflow-hidden pt-16 text-center">
       <Tabs class="flex min-h-0 flex-1 flex-col items-center">
         <Tabs.List class="dark:bg-lighter-dark-1 group dark:border-lighter-dark-2 border-darker-light-2 relative mb-3 flex w-fit flex-row-reverse justify-between rounded-2xl border p-2 shadow-sm transition-all duration-300">
-          <Tabs.Trigger class="dark:text-main-light z-10 p-2" value="lectures">
+          <Tabs.Trigger class="dark:text-ink-dark z-10 p-2" value="lectures">
             المحاضرات
           </Tabs.Trigger>
-          <Tabs.Trigger class="dark:text-main-light z-10 p-2" value="quizzes">
+          <Tabs.Trigger class="dark:text-ink-dark z-10 p-2" value="quizzes">
             أسئلة الدورات
           </Tabs.Trigger>
           <Tabs.Indicator class="bg-main/60 dark:bg-main absolute top-1 bottom-1 left-0 h-auto rounded-md transition-all duration-300" />
@@ -144,7 +144,7 @@ function SectionBox(props: {
               onClick={() =>
                 props.setActiveIndex(isActive() ? null : props.index)
               }
-              class="dark:text-main-light w-full"
+              class="dark:text-ink-dark w-full"
               aria-expanded={isActive()}
             >
               <p class="text-center text-lg font-bold">{props.text}</p>
@@ -167,7 +167,7 @@ function SectionBox(props: {
       >
         <A
           onClick={() => props.setActiveIndex(isActive() ? null : props.index)}
-          class="dark:text-main-light w-full"
+          class="dark:text-ink-dark w-full"
           href={props.link!}
         >
           <p class="text-center text-lg font-bold">{props.text}</p>

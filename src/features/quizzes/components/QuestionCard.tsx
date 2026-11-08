@@ -87,10 +87,10 @@ export function QuestionCard(props: {
           setOpen(!open());
         }
       }}
-      class={`cursor-pointer rounded-[2rem] border p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-700 ${
+      class={`cursor-pointer rounded-[2rem] border p-6 shadow-sm transition-all hover:shadow-md dark:border-line-dark ${
         props.isSelected
           ? "border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20"
-          : "border-slate-100 bg-white dark:bg-slate-800"
+          : "border-line-light bg-surface-light dark:bg-surface-dark"
       }`}
     >
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -107,13 +107,13 @@ export function QuestionCard(props: {
               class={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-black transition-all ${
                 props.isSelected
                   ? "border-cyan-500 bg-cyan-500 text-white"
-                  : "border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700"
+                  : "border-line-light bg-surface-light dark:border-line-dark dark:bg-chip-dark"
               }`}
             >
               {props.isSelected ? "✓" : props.index}
             </span>
           </Show>
-          <span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-500 dark:bg-slate-700">
+          <span class="rounded-full bg-chip-light px-2 py-1 text-[10px] text-ink-soft-light dark:bg-chip-dark">
             {props.question.$id.slice(0, 8)}
           </span>
           <Show when={status() !== "published"}>
@@ -121,7 +121,7 @@ export function QuestionCard(props: {
               class={`rounded-full px-2 py-1 text-[10px] font-bold ${
                 status() === "pending"
                   ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30"
-                  : "bg-slate-100 text-slate-500 dark:bg-slate-700"
+                  : "bg-chip-light text-ink-soft-light dark:bg-chip-dark"
               }`}
             >
               {status() === "pending" ? "⏳ بانتظار المراجعة" : "مسودة"}
@@ -156,7 +156,7 @@ export function QuestionCard(props: {
         </div>
       </div>
 
-      <p class="mb-4 font-bold text-slate-800 dark:text-slate-200" dir="auto">
+      <p class="mb-4 font-bold text-ink-light dark:text-ink-dark" dir="auto">
         {props.question.question}
       </p>
 
@@ -168,7 +168,7 @@ export function QuestionCard(props: {
               class={`rounded-2xl p-3 text-sm ${
                 props.question.correctIndex == i()
                   ? "border border-green-100 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
-                  : "bg-slate-50 text-slate-600 dark:bg-slate-900/50 dark:text-slate-400"
+                  : "bg-base-light text-ink-soft-light dark:bg-base-dark/50 dark:text-ink-muted-dark"
               }`}
             >
               {i() + 1}. {opt}
@@ -200,7 +200,7 @@ export function QuestionCard(props: {
                 <img
                   src={url()}
                   alt="صورة السؤال"
-                  class="max-h-48 w-full cursor-zoom-in object-contain bg-slate-100 dark:bg-slate-900"
+                  class="max-h-48 w-full cursor-zoom-in object-contain bg-chip-light dark:bg-base-dark"
                   onClick={() => setLightbox(true)}
                 />
                 <Show when={canEdit()}>
@@ -246,7 +246,7 @@ export function QuestionCard(props: {
           const [uploading, setUploadingImg] = createSignal(false);
           return (
             <label
-              class={`mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-3 text-xs text-slate-400 transition hover:border-cyan-300 dark:border-slate-600 ${uploading() ? "pointer-events-none opacity-50" : ""}`}
+              class={`mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line-light p-3 text-xs text-ink-muted-light transition hover:border-cyan-300 dark:border-line-dark ${uploading() ? "pointer-events-none opacity-50" : ""}`}
               onClick={(e) => e.stopPropagation()}
             >
               <span>{uploading() ? "⏳ جاري الرفع..." : "📷 إضافة صورة"}</span>
@@ -298,7 +298,7 @@ export function QuestionCard(props: {
 
       <Show when={open()}>
         <div
-          class="mt-4 flex gap-2 border-t border-slate-100 pt-4 dark:border-slate-700"
+          class="mt-4 flex gap-2 border-t border-line-light pt-4 dark:border-line-dark"
           onClick={(e) => e.stopPropagation()}
         >
           <Show when={canPublish() && status() !== "published"}>
@@ -314,7 +314,7 @@ export function QuestionCard(props: {
             <button
               onClick={() => changeStatus("pending")}
               disabled={changingStatus()}
-              class="flex-1 rounded-xl bg-slate-100 py-2 text-sm font-bold text-slate-500 hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-700"
+              class="flex-1 rounded-xl bg-chip-light py-2 text-sm font-bold text-ink-soft-light hover:bg-darker-light-2 disabled:opacity-50 dark:bg-chip-dark"
             >
               إلغاء النشر
             </button>

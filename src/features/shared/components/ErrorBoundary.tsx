@@ -57,23 +57,23 @@ function ErrorFallback(props: {
       dir="rtl"
       class="flex min-h-screen flex-col items-center justify-center gap-6 bg-red-50 p-8 dark:bg-red-950/20"
     >
-      <div class="max-w-md w-full rounded-2xl bg-white p-8 shadow-lg dark:bg-gray-900 text-center">
+      <div class="max-w-md w-full rounded-2xl bg-surface-light p-8 shadow-lg dark:bg-base-dark text-center">
         {/* أيقونة */}
         <div class="mb-4 text-5xl">😵</div>
 
         <h1 class="mb-2 text-xl font-bold text-red-600 dark:text-red-400">
           حدث خطأ غير متوقع
         </h1>
-        <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+        <p class="mb-6 text-sm text-ink-soft-light dark:text-ink-muted-dark">
           نعتذر عن هذا الخطأ. يمكنك إعادة المحاولة أو الإبلاغ عنه لفريق نوڤا.
         </p>
 
         {/* تفاصيل الخطأ (للمطورين) */}
         <details class="mb-6 text-right">
-          <summary class="cursor-pointer text-xs text-gray-400 hover:text-gray-600">
+          <summary class="cursor-pointer text-xs text-ink-muted-light hover:text-ink-soft-light">
             تفاصيل تقنية
           </summary>
-          <pre class="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs text-red-700 dark:bg-gray-800 dark:text-red-400 text-left" dir="ltr">
+          <pre class="mt-2 overflow-auto rounded bg-chip-light p-3 text-xs text-red-700 dark:bg-surface-dark dark:text-red-400 text-left" dir="ltr">
             {props.error?.message}
             {"\n"}
             {props.error?.stack}
@@ -92,7 +92,7 @@ function ErrorFallback(props: {
           <button
             id="report-btn"
             onClick={handleReport}
-            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            class="w-full rounded-xl border border-line-light px-4 py-2.5 text-sm font-medium text-ink-light transition hover:bg-base-light dark:border-line-dark dark:text-ink-soft-dark dark:hover:bg-surface-dark"
           >
             🐛 إبلاغ عن المشكلة
           </button>
@@ -106,7 +106,7 @@ function ErrorFallback(props: {
 
           <button
             onClick={() => (window.location.href = "/")}
-            class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            class="text-xs text-ink-muted-light hover:text-ink-soft-light dark:hover:text-ink-soft-dark"
           >
             العودة للصفحة الرئيسية
           </button>

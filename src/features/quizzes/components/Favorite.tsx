@@ -147,7 +147,7 @@ export default function FavoriteButton(props: any) {
           <button
             on:click={handleEditNote}
             title={note() ? "تعديل الملاحظة" : "إضافة ملاحظة"}
-            class="dark:text-main-light text-gray-500 hover:text-gray-700"
+            class="dark:text-ink-dark text-ink-soft-light hover:text-ink-light"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

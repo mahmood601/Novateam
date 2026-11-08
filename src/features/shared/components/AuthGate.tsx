@@ -22,7 +22,7 @@ export default function AuthGate(props: Props) {
       when={user() || !isLoading()}
       fallback={
         <div class="flex h-screen items-center justify-center">
-          <p class="text-main-dark dark:text-white">جاري التحميل...</p>
+          <p class="text-ink-light dark:text-ink-dark">جاري التحميل...</p>
         </div>
       }
     >

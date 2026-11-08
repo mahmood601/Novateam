@@ -110,7 +110,7 @@ export default function SectionsPage() {
         <header class="flex items-center justify-between px-4 pt-5 pb-3">
           <div>
             <h1 class="text-lg font-bold">تصنيف الأقسام</h1>
-            <p class="text-xs text-slate-400">الدورات والفصول لكل مادة</p>
+            <p class="text-xs text-ink-muted-light">الدورات والفصول لكل مادة</p>
           </div>
           <RefreshButton loading={data.loading} onClick={refetch} />
         </header>
@@ -149,7 +149,7 @@ export default function SectionsPage() {
               <div class="bg-main-light dark:bg-lighter-dark-1 flex items-center justify-between rounded-2xl px-4 py-3">
                 <div>
                   <p class="text-sm font-bold">{subject().name}</p>
-                  <p class="text-xs text-slate-400">
+                  <p class="text-xs text-ink-muted-light">
                     {subject().years.length} دورة
                     <Show when={subject().seasons.length > 0}>
                       {" · "}
@@ -186,7 +186,7 @@ export default function SectionsPage() {
               {/* الدورات */}
               <div class="overflow-hidden rounded-2xl bg-main-light dark:bg-lighter-dark-1">
                 <div class="px-4 py-2.5 border-b border-darker-light-2 dark:border-lighter-dark-2">
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">الدورات</p>
+                  <p class="text-xs font-bold text-ink-muted-light uppercase tracking-wide">الدورات</p>
                 </div>
                 <div class="px-4 py-1">
                   <For each={subject().years}>
@@ -218,7 +218,7 @@ export default function SectionsPage() {
               </Show>
 
               <Show when={subject().seasons.length === 0}>
-                <div class="rounded-2xl bg-main-light dark:bg-lighter-dark-1 px-4 py-4 text-center text-xs text-slate-400">
+                <div class="rounded-2xl bg-main-light dark:bg-lighter-dark-1 px-4 py-4 text-center text-xs text-ink-muted-light">
                   لا توجد فصول مسجلة لهذه المادة
                 </div>
               </Show>
@@ -236,7 +236,7 @@ export default function SectionsPage() {
           </div>
         </Show>
 
-        <p class="pb-4 text-center text-[11px] text-slate-400">
+        <p class="pb-4 text-center text-[11px] text-ink-muted-light">
           يتحدث مباشرة من قاعدة البيانات
         </p>
       </div>
@@ -250,7 +250,7 @@ function SeasonsCard(props: { seasons: SeasonEntry[] }) {
   return (
     <div class="overflow-hidden rounded-2xl bg-main-light dark:bg-lighter-dark-1">
       <div class="px-4 py-2.5 border-b border-darker-light-2 dark:border-lighter-dark-2">
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">الفصول / المحاضرات</p>
+        <p class="text-xs font-bold text-ink-muted-light uppercase tracking-wide">الفصول / المحاضرات</p>
       </div>
       <div class="px-4 py-1">
         <For each={props.seasons}>
@@ -309,7 +309,7 @@ function RefreshButton(props: { loading: boolean; onClick: () => void }) {
   return (
     <button
       onClick={() => props.onClick()}
-      class="flex size-9 items-center justify-center rounded-full bg-main-light text-slate-500 transition active:scale-95 dark:bg-lighter-dark-1 dark:text-slate-300"
+      class="flex size-9 items-center justify-center rounded-full bg-main-light text-ink-soft-light transition active:scale-95 dark:bg-lighter-dark-1 dark:text-ink-soft-dark"
       aria-label="تحديث"
     >
       <svg

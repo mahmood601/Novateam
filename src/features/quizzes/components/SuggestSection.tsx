@@ -133,14 +133,14 @@ export default function SuggestSection(props: {
         />
 
         <div
-          class="fixed right-0 bottom-0 left-0 z-[401] rounded-t-3xl bg-white p-5 shadow-2xl dark:bg-slate-900"
+          class="fixed right-0 bottom-0 left-0 z-[401] rounded-t-3xl bg-surface-light p-5 shadow-2xl dark:bg-base-dark"
           dir="rtl"
         >
           <div class="mb-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <h3 class="font-bold">اقتراح فصل أصح</h3>
             </div>
-            <button onClick={() => setOpen(false)} class="text-slate-400">
+            <button onClick={() => setOpen(false)} class="text-ink-muted-light">
               ✕
             </button>
           </div>
@@ -149,28 +149,28 @@ export default function SuggestSection(props: {
             <div class="flex flex-col items-center gap-3 py-6">
               <span class="text-4xl">✅</span>
               <p class="font-bold">شكراً على مساهمتك!</p>
-              <p class="text-sm text-slate-400">سيراجع الفريق اقتراحك قريباً</p>
+              <p class="text-sm text-ink-muted-light">سيراجع الفريق اقتراحك قريباً</p>
             </div>
           </Show>
 
           <Show when={!done()}>
             {/* الفصل الحالي */}
             <Show when={props.currentSeasonId}>
-              <p class="mb-2 text-xs text-slate-400">
+              <p class="mb-2 text-xs text-ink-muted-light">
                 الفصل الحالي:{" "}
-                <span class="font-bold text-slate-600 dark:text-slate-300">
+                <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">
                   {getSeasonName(props.currentSeasonId)}
                 </span>
               </p>
             </Show>
 
-            <p class="mb-3 text-xs text-slate-400">
+            <p class="mb-3 text-xs text-ink-muted-light">
               اختر الفصل/المحاضرة الصحيحة:
             </p>
 
             <div class="mb-4 max-h-52 space-y-2 overflow-y-auto">
               <Show when={seasons.loading}>
-                <p class="text-center text-sm text-slate-400">
+                <p class="text-center text-sm text-ink-muted-light">
                   جاري التحميل...
                 </p>
               </Show>
@@ -181,7 +181,7 @@ export default function SuggestSection(props: {
                     class={`w-full rounded-xl px-4 py-2.5 text-right text-sm transition ${
                       selected() === season.id
                         ? "bg-main text-white"
-                        : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                        : "bg-base-light hover:bg-chip-light dark:bg-surface-dark dark:hover:bg-chip-dark"
                     }`}
                   >
                     {season.name}
@@ -194,7 +194,7 @@ export default function SuggestSection(props: {
               value={note()}
               onInput={(e) => setNote(e.currentTarget.value)}
               placeholder="ملاحظة إضافية (اختياري)..."
-              class="mb-4 w-full resize-none rounded-xl bg-slate-50 px-3 py-2 text-sm outline-none dark:bg-slate-800"
+              class="mb-4 w-full resize-none rounded-xl bg-base-light px-3 py-2 text-sm outline-none dark:bg-surface-dark"
               rows="2"
               dir="rtl"
             />

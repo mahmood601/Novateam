@@ -53,7 +53,7 @@ export default function ProfileInfo(props: {
   };
 
   return (
-    <ul class="flex w-full flex-col items-center justify-center gap-5 self-center pt-5 dark:text-white">
+    <ul class="flex w-full flex-col items-center justify-center gap-5 self-center pt-5 dark:text-ink-dark">
       {/* الاسم */}
       <Li
         Icon={NameSvg()}
@@ -76,11 +76,11 @@ export default function ProfileInfo(props: {
               </div>
             }
           >
-            <div class="text-main-dark flex flex-row-reverse items-center gap-2">
+            <div class="text-ink-light flex flex-row-reverse items-center gap-2">
               <input
                 value={nameValue()}
                 onInput={(e) => setNameValue(e.currentTarget.value)}
-                class="focus:ring-main rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                class="focus:ring-main rounded-xl bg-chip-light px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-chip-dark"
                 dir="rtl"
                 autofocus
               />
@@ -93,7 +93,7 @@ export default function ProfileInfo(props: {
               </button>
               <button
                 onClick={() => setEditingName(false)}
-                class="text-xs text-slate-400"
+                class="text-xs text-ink-muted-light"
               >
                 إلغاء
               </button>
@@ -133,7 +133,7 @@ export default function ProfileInfo(props: {
                 value={yearValue()}
                 onChange={(e) => setYearValue(e.currentTarget.value)}
                 aria-placeholder="اختر السنة"
-                class="text-main-dark focus:ring-main w-auto rounded-xl bg-slate-100 px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-slate-700"
+                class="text-ink-light focus:ring-main w-auto rounded-xl bg-chip-light px-3 py-1 text-sm outline-none focus:ring-2 dark:bg-chip-dark"
                 dir="rtl"
               >
                 <For each={Object.entries(years)}>
@@ -153,7 +153,7 @@ export default function ProfileInfo(props: {
               </button>
               <button
                 onClick={() => setEditingYear(false)}
-                class="text-xs text-slate-400"
+                class="text-xs text-ink-muted-light"
               >
                 إلغاء
               </button>

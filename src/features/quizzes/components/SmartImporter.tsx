@@ -128,8 +128,8 @@ export function SmartImporter(props: {
           <div
             dir="rtl"
             style={{
-              background: "white",
-              border: "1px solid #e2e8f0",
+              background: "var(--color-surface-light)",
+              border: "1px solid var(--color-line-light)",
               "border-radius": "1.5rem",
               padding: "1rem 1.25rem",
               "min-width": "260px",
@@ -147,19 +147,19 @@ export function SmartImporter(props: {
                 style={{
                   "font-size": "0.85rem",
                   "font-weight": "bold",
-                  color: "#1e293b",
+                  color: "var(--color-ink-light)",
                 }}
               >
                 رفع الأسئلة 🚀
               </span>
-              <span style={{ "font-size": "0.85rem", color: "#64748b" }}>
+              <span style={{ "font-size": "0.85rem", color: "var(--color-ink-soft-light)" }}>
                 {current()}/{total}
               </span>
             </div>
             <div
               style={{
                 height: "8px",
-                background: "#e2e8f0",
+                background: "var(--color-line-light)",
                 "border-radius": "999px",
                 overflow: "hidden",
               }}
@@ -183,7 +183,7 @@ export function SmartImporter(props: {
               style={{
                 "margin-top": "0.4rem",
                 "font-size": "0.75rem",
-                color: "#94a3b8",
+                color: "var(--color-ink-muted-light)",
                 "text-align": "right",
               }}
             >
@@ -242,13 +242,13 @@ export function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
-      <div class="space-y-1 rounded-2xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-500 dark:bg-slate-900">
+      <div class="space-y-1 rounded-2xl bg-base-light p-4 text-xs leading-relaxed text-ink-soft-light dark:bg-base-dark">
         <p>
           <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ←
           تفعيل مقالة للأسئلة التالية
         </p>
         <p>
-          <span class="font-mono font-bold text-slate-800 dark:text-slate-200">
+          <span class="font-mono font-bold text-ink-light dark:text-ink-dark">
             @@
           </span>{" "}
           ← إلغاء المقالة (أسئلة عادية بعدها)
@@ -267,7 +267,7 @@ export function SmartImporter(props: {
         placeholder={
           "@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."
         }
-        class="h-72 w-full rounded-[2rem] bg-slate-50 p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-slate-900 dark:text-white"
+        class="h-72 w-full rounded-[2rem] bg-base-light p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-base-dark dark:text-ink-dark"
         dir="rtl"
       />
 

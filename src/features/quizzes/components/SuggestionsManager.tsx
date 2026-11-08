@@ -73,7 +73,7 @@ export function SuggestionsManager(props: {
 
   return (
     <div class="space-y-4 pb-16" dir="rtl">
-      <div class="flex gap-2 rounded-2xl bg-white dark:bg-slate-800 p-3 shadow-sm">
+      <div class="flex gap-2 rounded-2xl bg-surface-light dark:bg-surface-dark p-3 shadow-sm">
         <For
           each={[
             { key: "pending", label: "⏳ قيد المراجعة", color: "text-amber-600" },
@@ -86,8 +86,8 @@ export function SuggestionsManager(props: {
               onClick={() => setFilter(item.key)}
               class={`flex-1 rounded-xl py-2 text-xs font-bold transition ${
                 filter() === item.key
-                  ? `bg-slate-100 dark:bg-slate-700 ${item.color}`
-                  : "text-slate-400"
+                  ? `bg-chip-light dark:bg-chip-dark ${item.color}`
+                  : "text-ink-muted-light"
               }`}
             >
               {item.label}
@@ -97,19 +97,19 @@ export function SuggestionsManager(props: {
       </div>
 
       <Show when={suggestions.loading}>
-        <p class="text-center text-sm text-slate-400 py-10">جاري التحميل...</p>
+        <p class="text-center text-sm text-ink-muted-light py-10">جاري التحميل...</p>
       </Show>
 
       <Show when={!suggestions.loading && (suggestions()?.length ?? 0) === 0}>
-        <div class="rounded-2xl bg-white dark:bg-slate-800 p-10 text-center shadow-sm">
+        <div class="rounded-2xl bg-surface-light dark:bg-surface-dark p-10 text-center shadow-sm">
           <p class="text-3xl mb-2">🎉</p>
-          <p class="text-slate-400 text-sm">لا توجد مقترحات {filter() === "pending" ? "قيد المراجعة" : ""}</p>
+          <p class="text-ink-muted-light text-sm">لا توجد مقترحات {filter() === "pending" ? "قيد المراجعة" : ""}</p>
         </div>
       </Show>
 
       <For each={suggestions()}>
         {(s) => (
-          <div class="rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-sm space-y-3">
+          <div class="rounded-2xl bg-surface-light dark:bg-surface-dark p-5 shadow-sm space-y-3">
             <p class="text-sm font-bold leading-relaxed line-clamp-2">
               {s.question?.question}
             </p>
@@ -118,19 +118,19 @@ export function SuggestionsManager(props: {
               <span class="rounded-full bg-red-50 dark:bg-red-900/20 px-3 py-1 text-red-500 line-through">
                 {getSeasonName(s.current_season_id)}
               </span>
-              <span class="text-slate-400">←</span>
+              <span class="text-ink-muted-light">←</span>
               <span class="rounded-full bg-green-50 dark:bg-green-900/20 px-3 py-1 text-green-600 font-bold">
                 {getSeasonName(s.suggested_season_id)}
               </span>
             </div>
 
             <Show when={s.note}>
-              <p class="text-xs text-slate-400 bg-slate-50 dark:bg-slate-700 rounded-xl px-3 py-2">
+              <p class="text-xs text-ink-muted-light bg-base-light dark:bg-chip-dark rounded-xl px-3 py-2">
                 💬 {s.note}
               </p>
             </Show>
 
-            <div class="flex items-center justify-between text-[10px] text-slate-400">
+            <div class="flex items-center justify-between text-[10px] text-ink-muted-light">
               <span>👤 {s.suggested_by_user?.name ?? "مجهول"}</span>
               <span>{new Date(s.created_at).toLocaleDateString("ar-SA")}</span>
             </div>

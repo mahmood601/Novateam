@@ -22,12 +22,12 @@ export default function QuizToolsSheet(props: {
       >
         <div
           dir="rtl"
-          class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-white p-4 pb-6 animate-[fadeIn_.15s_ease-in-out]"
+          class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-surface-light p-4 pb-6 animate-[fadeIn_.15s_ease-in-out]"
           onClick={(e) => e.stopPropagation()}
         >
-          <p class="mb-3 text-sm font-bold dark:text-white">أدوات الحل</p>
+          <p class="mb-3 text-sm font-bold dark:text-ink-dark">أدوات الحل</p>
 
-          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-ink-muted-light uppercase">
             السؤال الحالي
           </p>
           <div class="mb-4 flex flex-col gap-2">
@@ -43,13 +43,13 @@ export default function QuizToolsSheet(props: {
               type="button"
               disabled={!props.hasCurrentQuestion}
               onClick={action(props.onResetCurrent)}
-              class="dark:bg-lighter-dark-2 flex items-center justify-center gap-2 rounded-xl bg-gray-100 py-2.5 text-sm font-bold text-gray-600 disabled:opacity-40 dark:text-gray-300"
+              class="dark:bg-lighter-dark-2 flex items-center justify-center gap-2 rounded-xl bg-chip-light py-2.5 text-sm font-bold text-ink-soft-light disabled:opacity-40 dark:text-ink-soft-dark"
             >
               🔄 تصفير / إعادة الحل
             </button>
           </div>
 
-          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+          <p class="mb-1.5 text-[10px] font-bold tracking-wider text-ink-muted-light uppercase">
             كل الأسئلة الظاهرة حالياً
           </p>
           <div class="flex flex-col gap-2">

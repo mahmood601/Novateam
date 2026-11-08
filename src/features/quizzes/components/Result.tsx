@@ -34,45 +34,45 @@ export default function Result(props: {
 
   return (
     <div
-      class="min-h-screen overflow-y-auto bg-gray-50 p-5 dark:bg-slate-900"
+      class="min-h-screen overflow-y-auto bg-base-light p-5 dark:bg-base-dark"
       dir="rtl"
     >
       <div class="mx-auto max-w-md space-y-4">
         {/* ─── النتيجة الرئيسية ─── */}
-        <div class="rounded-3xl bg-white p-6 text-center shadow-sm dark:bg-slate-800">
+        <div class="rounded-3xl bg-surface-light p-6 text-center shadow-sm dark:bg-surface-dark">
           <h2 class="mb-4 text-xl font-bold">نتيجة الجلسة</h2>
 
           {/* دائرة النسبة */}
-          <div class="relative mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-700">
+          <div class="relative mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-full bg-chip-light dark:bg-chip-dark">
             <span class={`text-3xl font-black ${rateColor()}`}>
               {stats().rate}%
             </span>
           </div>
 
           <div class="grid grid-cols-3 gap-3 text-center">
-            <div class="rounded-2xl bg-gray-50 p-3 dark:bg-slate-700">
+            <div class="rounded-2xl bg-base-light p-3 dark:bg-chip-dark">
               <p class="text-2xl font-bold">{stats().total}</p>
-              <p class="text-xs text-slate-400">إجمالي</p>
+              <p class="text-xs text-ink-muted-light">إجمالي</p>
             </div>
             <div class="rounded-2xl bg-green-50 p-3 dark:bg-green-900/20">
               <p class="text-2xl font-bold text-green-500">{stats().correct}</p>
-              <p class="text-xs text-slate-400">صحيح</p>
+              <p class="text-xs text-ink-muted-light">صحيح</p>
             </div>
             <div class="rounded-2xl bg-red-50 p-3 dark:bg-red-900/20">
               <p class="text-2xl font-bold text-red-500">{stats().wrong}</p>
-              <p class="text-xs text-slate-400">خطأ</p>
+              <p class="text-xs text-ink-muted-light">خطأ</p>
             </div>
           </div>
         </div>
 
         {/* ─── الإحصائيات الكلية للمادة ─── */}
         <Show when={allTimeStats()}>
-          <div class="rounded-3xl bg-white p-5 shadow-sm dark:bg-slate-800">
+          <div class="rounded-3xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark">
             <h3 class="mb-3 flex items-center gap-2 font-bold">
               <span>📊</span> إجمالي المادة
             </h3>
             <div class="flex items-center gap-3">
-              <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-700">
+              <div class="h-3 flex-1 overflow-hidden rounded-full bg-chip-light dark:bg-chip-dark">
                 <div
                   class="bg-main h-full rounded-full transition-all"
                   style={{ width: `${allTimeStats()!.rate}%` }}
@@ -80,7 +80,7 @@ export default function Result(props: {
               </div>
               <span class="text-sm font-bold">{allTimeStats()!.rate}%</span>
             </div>
-            <p class="mt-2 text-xs text-slate-400">
+            <p class="mt-2 text-xs text-ink-muted-light">
               {allTimeStats()!.correct} صح من {allTimeStats()!.total} سؤال مجاب
             </p>
           </div>
@@ -88,7 +88,7 @@ export default function Result(props: {
 
         {/* ─── الأسئلة الصعبة ─── */}
         <Show when={weakQuestions() && weakQuestions()!.length > 0}>
-          <div class="rounded-3xl bg-white p-5 shadow-sm dark:bg-slate-800">
+          <div class="rounded-3xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark">
             <h3 class="mb-3 flex items-center gap-2 font-bold">
               <span>🎯</span> تحتاج مراجعة
             </h3>
@@ -96,7 +96,7 @@ export default function Result(props: {
               <For each={weakQuestions()!}>
                 {(q) => (
                   <div class="rounded-xl bg-red-50 p-3 text-sm dark:bg-red-900/10">
-                    <p class="line-clamp-2 text-slate-700 dark:text-slate-300">
+                    <p class="line-clamp-2 text-ink-light dark:text-ink-soft-dark">
                       {q.question}
                     </p>
                   </div>
@@ -125,7 +125,7 @@ export default function Result(props: {
           </button>
           <button
             onClick={() => history.back()}
-            class="w-full rounded-full border border-slate-200 py-3 text-sm dark:border-slate-600"
+            class="w-full rounded-full border border-line-light py-3 text-sm dark:border-line-dark"
           >
             العودة للمادة
           </button>

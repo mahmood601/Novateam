@@ -15,11 +15,11 @@ export function SectionSelectors(props: {
   return (
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-bold text-slate-600 dark:text-slate-400">
+        <label class="text-sm font-bold text-ink-soft-light dark:text-ink-muted-dark">
           الفصل
         </label>
         <select
-          class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+          class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
           onChange={(e) => props.onSeasonChange(Number(e.currentTarget.value))}
         >
           <option value="">اختر...</option>
@@ -33,11 +33,11 @@ export function SectionSelectors(props: {
         </select>
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-bold text-slate-600 dark:text-slate-400">
+        <label class="text-sm font-bold text-ink-soft-light dark:text-ink-muted-dark">
           السنة
         </label>
         <select
-          class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+          class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
           onChange={(e) => props.onYearChange(Number(e.currentTarget.value))}
         >
           <option value="">اختر...</option>

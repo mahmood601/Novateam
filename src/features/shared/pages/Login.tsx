@@ -15,7 +15,7 @@ export default function Login() {
       <div class="bg-brown/95 relative top-0 flex h-fit  flex-col items-center justify-between rounded-3xl">
         <Virus />
         <div class="my-4 flex h-fit w-full flex-col items-center">
-          <p class="dark:text-main-light text-main-dark mb-3">
+          <p class="dark:text-ink-dark text-ink-light mb-3">
             تسجيل الدخول بواسطة
           </p>
           <Oauth

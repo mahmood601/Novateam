@@ -132,15 +132,15 @@ export function BulkActionBar(props: {
       </div>
 
       <Show when={showPanel()}>
-        <div class="mt-2 rounded-[2rem] bg-white p-5 shadow-2xl dark:bg-slate-800">
-          <p class="mb-3 text-sm font-bold text-slate-600 dark:text-slate-300">
+        <div class="mt-2 rounded-[2rem] bg-surface-light p-5 shadow-2xl dark:bg-surface-dark">
+          <p class="mb-3 text-sm font-bold text-ink-soft-light dark:text-ink-soft-dark">
             نقل {count()} سؤال إلى:
           </p>
           <div class="mb-4 grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-bold text-slate-500">الفصل</label>
+              <label class="text-xs font-bold text-ink-soft-light">الفصل</label>
               <select
-                class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                 onChange={(e) =>
                   setTargetSeasonId(e.currentTarget.value ? Number(e.currentTarget.value) : null)
                 }
@@ -152,9 +152,9 @@ export function BulkActionBar(props: {
               </select>
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-xs font-bold text-slate-500">السنة</label>
+              <label class="text-xs font-bold text-ink-soft-light">السنة</label>
               <select
-                class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                 onChange={(e) =>
                   setTargetYearId(e.currentTarget.value ? Number(e.currentTarget.value) : null)
                 }

@@ -176,15 +176,15 @@ export default function QuizEditor() {
 
     return (
         <Show when={!isInFavorite()}>
-            <div class="min-h-screen bg-[#f8fafc] px-5 pt-22 pb-10 dark:bg-[#0f172a]" dir="rtl">
-                <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between rounded-[2.5rem] bg-white/80 p-6 shadow-sm backdrop-blur-md dark:bg-slate-800/80">
+            <div class="min-h-screen bg-base-light px-5 pt-22 pb-10 dark:bg-base-dark" dir="rtl">
+                <div class="mx-auto mb-8 flex max-w-4xl items-center justify-between rounded-[2.5rem] bg-surface-light/80 p-6 shadow-sm backdrop-blur-md dark:bg-surface-dark/80">
                     <div>
-                        <h1 class="text-2xl font-black text-slate-800 dark:text-white">
+                        <h1 class="text-2xl font-black text-ink-light dark:text-ink-dark">
                             إدارة المحتوى
                         </h1>
                         <div class="mt-3 flex items-center gap-1">
-                            <p class="text-sm text-slate-400">
-                                المادة: <span class="font-bold text-slate-600 dark:text-slate-300">{subjectId()}</span>
+                            <p class="text-sm text-ink-muted-light">
+                                المادة: <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">{subjectId()}</span>
                             </p>
                         </div>
                     </div>
@@ -200,7 +200,7 @@ export default function QuizEditor() {
                             }}
                             class={`flex h-7 w-7 items-center justify-center rounded-full text-lg transition-all ${selectionMode()
                                     ? "bg-cyan-500 text-white shadow-lg"
-                                    : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
+                                    : "bg-chip-light text-ink-soft-light hover:bg-darker-light-2 dark:bg-chip-dark dark:text-ink-soft-dark"
                                 }`}
                             title={selectionMode() ? "إلغاء وضع التحديد" : "تحديد متعدد"}
                         >
@@ -224,18 +224,18 @@ export default function QuizEditor() {
 
                 <Show when={mainTab() === "questions"}>
                     <Show when={showAdd()}>
-                        <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+                        <div class="mb-12 rounded-[3rem] border-4 border-cyan-50 bg-surface-light p-8 shadow-xl dark:border-line-dark dark:bg-surface-dark">
                             <Show when={!editTarget()}>
-                                <div class="mx-auto mb-8 flex w-fit rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+                                <div class="mx-auto mb-8 flex w-fit rounded-full bg-chip-light p-1 dark:bg-base-dark">
                                     <button
                                         onClick={() => setMode("smart")}
-                                        class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                                        class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "smart" ? "bg-surface-light text-cyan-600 shadow-sm dark:bg-chip-dark" : "text-ink-muted-light"}`}
                                     >
                                         🚀 ذكي
                                     </button>
                                     <button
                                         onClick={() => setMode("manual")}
-                                        class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-white text-fuchsia-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                                        class={`rounded-full px-8 py-2 font-bold transition-all ${mode() === "manual" ? "bg-surface-light text-fuchsia-600 shadow-sm dark:bg-chip-dark" : "text-ink-muted-light"}`}
                                     >
                                         ✍️ يدوي
                                     </button>
@@ -265,17 +265,17 @@ export default function QuizEditor() {
 
                 <Show when={sections()}>
                     <div class="mx-auto mb-6 max-w-4xl">
-                        <div class="rounded-[2rem] bg-white p-4 shadow-sm dark:bg-slate-800">
-                            <p class="mb-3 text-xs font-bold text-slate-400">
+                        <div class="rounded-[2rem] bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+                            <p class="mb-3 text-xs font-bold text-ink-muted-light">
                                 🔍 تصفية الأسئلة
                             </p>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                    <label class="text-xs font-bold text-ink-soft-light dark:text-ink-muted-dark">
                                         الفصل
                                     </label>
                                     <select
-                                        class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                                        class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                                         onChange={(e) => {
                                             setPage(0);
                                             setSearchParams({ season: e.currentTarget.value || undefined });
@@ -292,11 +292,11 @@ export default function QuizEditor() {
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-1">
-                                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                    <label class="text-xs font-bold text-ink-soft-light dark:text-ink-muted-dark">
                                         السنة
                                     </label>
                                     <select
-                                        class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                                        class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                                         onChange={(e) => {
                                             setPage(0);
                                             setSearchParams({ year: e.currentTarget.value || undefined });
@@ -314,11 +314,11 @@ export default function QuizEditor() {
                                 </div>
                             </div>
                             <div class="mt-3 flex flex-col gap-1">
-                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                <label class="text-xs font-bold text-ink-soft-light dark:text-ink-muted-dark">
                                     الحالة
                                 </label>
                                 <select
-                                    class="rounded-2xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                                    class="rounded-2xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                                     onChange={(e) => {
                                         setPage(0);
                                         setSearchParams({ status: e.currentTarget.value || undefined });
@@ -345,23 +345,23 @@ export default function QuizEditor() {
                     </div>
                 </Show>
 
-                <div class="mx-auto mb-6 flex w-fit max-w-4xl rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+                <div class="mx-auto mb-6 flex w-fit max-w-4xl rounded-full bg-chip-light p-1 dark:bg-base-dark">
                     <button
                         onClick={() => setMainTab("questions")}
-                        class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "questions" ? "bg-white text-cyan-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                        class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "questions" ? "bg-surface-light text-cyan-600 shadow-sm dark:bg-chip-dark" : "text-ink-muted-light"}`}
                     >
                         📋 الأسئلة
                     </button>
                     <button
                         onClick={() => setMainTab("passages")}
-                        class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "passages" ? "bg-white text-amber-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                        class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "passages" ? "bg-surface-light text-amber-600 shadow-sm dark:bg-chip-dark" : "text-ink-muted-light"}`}
                     >
                         🗒️ المقالات
                     </button>
                     <Show when={canPublish()}>
                         <button
                             onClick={() => setMainTab("suggestions")}
-                            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "suggestions" ? "bg-white text-green-600 shadow-sm dark:bg-slate-700" : "text-slate-400"}`}
+                            class={`rounded-full px-4 py-2 text-sm font-bold transition-all ${mainTab() === "suggestions" ? "bg-surface-light text-green-600 shadow-sm dark:bg-chip-dark" : "text-ink-muted-light"}`}
                         >
                             💡 المقترحات
                         </button>
@@ -369,7 +369,7 @@ export default function QuizEditor() {
                 </div>
 
                 <div class="mx-auto max-w-4xl pb-12">
-                    <Suspense fallback={<div class="animate-pulse p-10 text-center text-slate-400">...</div>}>
+                    <Suspense fallback={<div class="animate-pulse p-10 text-center text-ink-muted-light">...</div>}>
                                  <Show when={mainTab() === "passages"}>
                         <PassageManager subjectId={subjectId() ?? ""} />
                     </Show>
@@ -379,20 +379,20 @@ export default function QuizEditor() {
                     </Show>
 
                     <Show when={mainTab() === "questions"}>
-                        <Suspense fallback={<div class="animate-pulse p-20 text-center text-slate-400">جاري تحميل الأسئلة... 🧬</div>}>
+                        <Suspense fallback={<div class="animate-pulse p-20 text-center text-ink-muted-light">جاري تحميل الأسئلة... 🧬</div>}>
                             <Show
                                 when={(data()?.total ?? 0) > 0}
                                 fallback={
-                                    <p class="py-20 text-center text-slate-400">
+                                    <p class="py-20 text-center text-ink-muted-light">
                                         {filterSeasonId() || filterYearId()
                                             ? "لا توجد أسئلة لهذا الفلتر 🔍"
                                             : "لا توجد أسئلة بعد 🎯"}
                                     </p>
                                 }
                             >
-                                <p class="mb-4 text-sm text-slate-400">
+                                <p class="mb-4 text-sm text-ink-muted-light">
                                     إجمالي:{" "}
-                                    <span class="font-bold text-slate-600 dark:text-slate-300">
+                                    <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">
                                         {data()?.total}
                                     </span>
                                     <Show when={filterSeasonId() || filterYearId()}>
@@ -445,7 +445,7 @@ export default function QuizEditor() {
                                                     }}
                                                     class={`h-8 w-8 rounded-full p-1 text-sm font-bold transition-all ${page() === i()
                                                             ? "scale-110 bg-cyan-500 text-white"
-                                                            : "bg-white text-slate-400 shadow-sm hover:bg-slate-50"
+                                                            : "bg-surface-light text-ink-muted-light shadow-sm hover:bg-base-light"
                                                         }`}
                                                 >
                                                     {i() + 1}

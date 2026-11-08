@@ -38,7 +38,7 @@ export default function FavoritesPage() {
   });
 
   return (
-    <div class="bg-main-light dark:bg-main-dark text-main-dark dark:text-main-light relative p-6 h-auto min-h-fit ">
+    <div class="bg-main-light dark:bg-main-dark text-ink-light dark:text-ink-dark relative p-6 h-auto min-h-fit ">
       <div class="fixed top-2 left-1/2 w-[95%] -translate-x-1/2 z-20">
         <div class="backdrop-blur-2xl  rounded-2xl px-4 py-2 flex items-center justify-between">
           <button type="button" onClick={() => history.back()} aria-label="رجوع" class="p-1">
@@ -147,10 +147,10 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
       <div class="flex flex-col">
         <div>
           <div class="mb-3 flex flex-col text-center">
-            <span class="text-gray-500 flex-1 text-xs">
+            <span class="text-ink-soft-light flex-1 text-xs">
               {new Date(props.fav.savedAt).toLocaleString()}
             </span>
-            <span dir="rtl" class="text-gray-500 flex-1 text-xs">
+            <span dir="rtl" class="text-ink-soft-light flex-1 text-xs">
               {yearName()} - {seasonName()}
             </span>
           </div>
@@ -177,9 +177,9 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
             >
               <Show
                 when={passage()}
-                fallback={<p class="text-xs text-gray-400">جاري التحميل...</p>}
+                fallback={<p class="text-xs text-ink-muted-light">جاري التحميل...</p>}
               >
-                <p class="whitespace-pre-wrap text-right text-gray-700 dark:text-gray-300">
+                <p class="whitespace-pre-wrap text-right text-ink-light dark:text-ink-soft-dark">
                   {passage()?.content}
                 </p>
               </Show>
@@ -205,7 +205,7 @@ function FavBox(props: { fav: Favorite; setFavorites: Setter<Favorite[]> }) {
           <Show
             when={props.fav.note}
             fallback={
-              <p dir="rtl" class="my-4 text-center text-sm text-gray-500">
+              <p dir="rtl" class="my-4 text-center text-sm text-ink-soft-light">
                 بدون ملاحظة
               </p>
             }

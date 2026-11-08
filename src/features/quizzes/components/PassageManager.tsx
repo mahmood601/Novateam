@@ -37,16 +37,16 @@ export function PassageManager(props: { subjectId: string }) {
     <div class="space-y-4 pb-16" dir="rtl">
       <Show
         when={(passages() ?? []).length > 0}
-        fallback={<p class="py-10 text-center text-slate-400">لا توجد مقالات بعد 📄</p>}
+        fallback={<p class="py-10 text-center text-ink-muted-light">لا توجد مقالات بعد 📄</p>}
       >
-        <p class="text-sm text-slate-400">
-          إجمالي: <span class="font-bold text-slate-600 dark:text-slate-300">{passages()?.length}</span>
+        <p class="text-sm text-ink-muted-light">
+          إجمالي: <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">{passages()?.length}</span>
         </p>
         <For each={passages()}>
           {(p) => (
-            <div class="space-y-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <div class="space-y-3 rounded-2xl border border-line-light bg-surface-light p-5 shadow-sm dark:border-line-dark dark:bg-surface-dark">
               <div class="flex items-center gap-2">
-                <span class="font-mono text-[10px] text-slate-400">
+                <span class="font-mono text-[10px] text-ink-muted-light">
                   {p.$id.slice(0, 8)}
                 </span>
               </div>
@@ -54,7 +54,7 @@ export function PassageManager(props: { subjectId: string }) {
               <Show
                 when={editingId() === p.$id}
                 fallback={
-                  <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-200">
+                  <p class="text-sm leading-relaxed whitespace-pre-wrap text-ink-light dark:text-ink-dark">
                     {p.content}
                   </p>
                 }
@@ -64,7 +64,7 @@ export function PassageManager(props: { subjectId: string }) {
                   onInput={(e) => setEditText(e.currentTarget.value)}
                   rows={6}
                   dir="rtl"
-                  class="w-full rounded-xl bg-slate-50 p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-slate-900 dark:text-white"
+                  class="w-full rounded-xl bg-base-light p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-300 dark:bg-base-dark dark:text-ink-dark"
                 />
               </Show>
 
@@ -72,7 +72,7 @@ export function PassageManager(props: { subjectId: string }) {
                 <Show when={editingId() === p.$id}>
                   <button
                     onClick={() => setEditingId(null)}
-                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-500 dark:bg-slate-700"
+                    class="rounded-xl bg-chip-light px-4 py-2 text-sm font-bold text-ink-soft-light dark:bg-chip-dark"
                   >
                     إلغاء
                   </button>
@@ -88,7 +88,7 @@ export function PassageManager(props: { subjectId: string }) {
                   <Show when={canEditPassage()}>
                     <button
                       onClick={() => startEdit(p)}
-                      class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-200"
+                      class="rounded-xl bg-chip-light px-4 py-2 text-sm font-bold text-ink-soft-light dark:bg-chip-dark dark:text-ink-dark"
                     >
                       تعديل ✏️
                     </button>

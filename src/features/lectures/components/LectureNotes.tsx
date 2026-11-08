@@ -341,7 +341,7 @@ export default function LectureNotes(props: Props) {
             dir="rtl"
             role="dialog"
             aria-label="ملاحظة"
-            class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-white p-4 pb-6"
+            class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-surface-light p-4 pb-6"
             style={{ "padding-bottom": "max(1.5rem, env(safe-area-inset-bottom))" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -365,7 +365,7 @@ export default function LectureNotes(props: Props) {
               rows={5}
               value={draft()}
               placeholder="اكتب ملاحظتك هنا… (تُحفظ على هذا الجهاز فقط)"
-              class="focus:border-main dark:border-lighter-dark-2 w-full resize-none rounded-xl border-2 border-gray-200 bg-transparent p-3 outline-none"
+              class="focus:border-main dark:border-lighter-dark-2 w-full resize-none rounded-xl border-2 border-line-light bg-transparent p-3 outline-none"
               style={{ "font-size": "16px" }}
               onInput={(e) => setDraft(e.currentTarget.value)}
             />
@@ -420,7 +420,7 @@ export default function LectureNotes(props: Props) {
             dir="rtl"
             role="dialog"
             aria-label="ملاحظاتي"
-            class="dark:bg-lighter-dark-1 flex max-h-[80dvh] w-full max-w-md flex-col rounded-t-3xl bg-white p-4"
+            class="dark:bg-lighter-dark-1 flex max-h-[80dvh] w-full max-w-md flex-col rounded-t-3xl bg-surface-light p-4"
             style={{ "padding-bottom": "max(1.5rem, env(safe-area-inset-bottom))" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -441,7 +441,7 @@ export default function LectureNotes(props: Props) {
                 {({ note, block }) => {
                   const orphan = () => resolved().ready && block === -1;
                   return (
-                    <li class="dark:border-lighter-dark-2 rounded-xl border border-gray-200 p-3">
+                    <li class="dark:border-lighter-dark-2 rounded-xl border border-line-light p-3">
                       <button
                         type="button"
                         class="block w-full text-start"

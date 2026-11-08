@@ -440,7 +440,7 @@ export default function Quiz() {
           />
         }
       >
-        <div class="dark:text-main-light p-5 bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
+        <div class="dark:text-ink-dark p-5 bg-main-light dark:bg-main-dark flex h-screen flex-col overflow-hidden select-none">
           <header>
             <div class="flex items-center justify-between">
               <button onClick={() => history.back()}>
@@ -481,7 +481,7 @@ export default function Quiz() {
                 {quizState.index + 1} / {orderedQs().length}
               </span>
 
-              <div class="dark:bg-lighter-dark-1 dark:border-lighter-dark-2 flex items-center justify-between bg-white">
+              <div class="dark:bg-lighter-dark-1 dark:border-lighter-dark-2 flex items-center justify-between bg-surface-light">
                 <div class="flex items-center gap-2">
                   <button
                     type="button"
@@ -489,7 +489,7 @@ export default function Quiz() {
                     class="relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
                     classList={{
                       "bg-main text-white": activeFilterCount(filters()) > 0,
-                      "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300":
+                      "bg-chip-light text-ink-soft-light dark:bg-lighter-dark-2 dark:text-ink-soft-dark":
                         activeFilterCount(filters()) === 0,
                     }}
                   >
@@ -512,7 +512,7 @@ export default function Quiz() {
                   <button
                     type="button"
                     onClick={() => setToolsSheetOpen(true)}
-                    class="dark:bg-lighter-dark-2 flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:text-gray-300"
+                    class="dark:bg-lighter-dark-2 flex items-center gap-1.5 rounded-full bg-chip-light px-3 py-1 text-xs font-bold text-ink-soft-light dark:text-ink-soft-dark"
                   >
                     🛠️ أدوات
                   </button>
@@ -554,7 +554,7 @@ export default function Quiz() {
               </div>
             </div>
 
-            <div class="mt-2 h-2 w-full rounded-full bg-gray-200">
+            <div class="mt-2 h-2 w-full rounded-full bg-darker-light-2">
               <div
                 class="bg-main h-full rounded-full transition-all duration-300"
                 style={{
@@ -567,7 +567,7 @@ export default function Quiz() {
           <Show
             when={filterResult.latest}
             fallback={
-              <div class="flex flex-1 items-center justify-center text-sm text-gray-400">
+              <div class="flex flex-1 items-center justify-center text-sm text-ink-muted-light">
                 جاري التحميل...
               </div>
             }

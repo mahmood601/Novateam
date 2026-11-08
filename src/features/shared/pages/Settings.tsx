@@ -4,14 +4,12 @@ import { useUser } from "../context/user";
 import { supabase } from "../services/supabase";
 import { isAdminRole } from "../lib/roles";
 import { clearAuthorNameCache } from "../services/authors";
-import { useTheme } from "../hooks/useTheme";
 import { useCustomFont } from "../hooks/useCustomFont";
 import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
-import { colors } from "../constants/themeColors";
+import ColorSettings from "../components/ColorSettings";
 import { useShapeTheme } from "../hooks/useShapeTheme";
 
 export default function Settings() {
-  const { theme, setTheme, setCustomColor, customColor } = useTheme();
   const { shapeTheme, setShapeTheme, shapeThemes } = useShapeTheme();
 
   // ─── إظهار اسمي كمضيف للأسئلة/المحاضرات (للأدمن والمساهمين فقط) ───
@@ -91,80 +89,20 @@ export default function Settings() {
       dir="rtl"
     >
       {/* Header */}
-      <h1 class="py-5 text-2xl font-bold dark:text-white">الاعدادات</h1>
+      <h1 class="py-5 text-2xl font-bold dark:text-ink-dark">الاعدادات</h1>
       <div class="flex w-full flex-1 flex-col items-center gap-2 overflow-y-auto mb-18">
-        <div
-          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
-          dir="rtl"
-        >
-          <div class="mb-3 flex items-center gap-2">
-            <span class="text-xl">🔥</span>
-            <h3 class="font-bold">الألوان</h3>
-          </div>
-          <p class="mb-3 text-xs text-slate-400">خصص الالوان كما تريد </p>
-          <div class="dark:bg-lighter-dark-2 flex flex-row-reverse flex-wrap justify-between rounded-lg p-2">
-            <For each={Object.entries(colors)}>
-              {([name, color]) => (
-                <button
-                  title={name}
-                  style={{ color: color.main }}
-                  onClick={() => {
-                    localStorage.removeItem("custom-color");
-                    setTheme(name);
-                  }}
-                  class={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-200 ${
-                    theme() === name
-                      ? "scale-110 border-current shadow-lg"
-                      : "border-transparent"
-                  }`}
-                >
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-current">
-                    <span class="text-sm font-bold text-white">
-                      {name[0] + name.at(-1)?.toUpperCase()}
-                    </span>
-                  </div>
-                </button>
-              )}
-            </For>
-
-            <label
-              title="Custom Color"
-              class={`relative h-10 w-10 cursor-pointer rounded-full border-2 ${
-                theme() === "custom"
-                  ? "border-main scale-110 shadow-lg"
-                  : "border-transparent"
-              }`}
-            >
-              <input
-                type="color"
-                value={customColor() || "#32c79f"}
-                onInput={(e) => {
-                  localStorage.setItem("custom-color", e.currentTarget.value);
-                  setCustomColor(e.currentTarget.value);
-                  setTheme("custom");
-                }}
-                class="absolute inset-0 cursor-pointer opacity-0"
-              />
-              <span
-                class="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border bg-current"
-                style={{
-                  "background-color": customColor() || "#d6d6d6",
-                }}
-              ></span>
-            </label>
-          </div>
-        </div>
+        <ColorSettings />
 
         {/* ─── شكل أشكال المحاضرات (بطاقات، خطوات، ...) ─── */}
         <div
-          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+          class="mb-6 w-full rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark"
           dir="rtl"
         >
           <div class="mb-3 flex items-center gap-2">
             <span class="text-xl">🧩</span>
             <h3 class="font-bold">شكل أشكال المحاضرات</h3>
           </div>
-          <p class="mb-3 text-xs text-slate-400">
+          <p class="mb-3 text-xs text-ink-muted-light">
             يغيّر مظهر البطاقات والخطوات وغيرها في كل المحاضرات دون تعديلها
           </p>
           <div class="dark:bg-lighter-dark-2 flex flex-wrap gap-2 rounded-lg p-2">
@@ -187,20 +125,20 @@ export default function Settings() {
 
         {/* ─── خط التطبيق ─── */}
         <div
-          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+          class="mb-6 w-full rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark"
           dir="rtl"
         >
           <div class="mb-3 flex items-center gap-2">
             <span class="text-xl">🔤</span>
             <h3 class="font-bold">خط التطبيق</h3>
           </div>
-          <p class="mb-3 text-xs text-slate-400">
+          <p class="mb-3 text-xs text-ink-muted-light">
             ارفع ملف خط من جهازك (ttf, otf, woff, woff2) ليُطبَّق على واجهة
             التطبيق بالكامل، ويُحفظ محلياً على جهازك فقط.
           </p>
 
           <Show when={fontName()}>
-            <div class="mb-3 flex items-center justify-between rounded-xl bg-slate-100 px-3 py-2 text-sm dark:bg-slate-700">
+            <div class="mb-3 flex items-center justify-between rounded-xl bg-chip-light px-3 py-2 text-sm dark:bg-chip-dark">
               <span class="truncate">الخط الحالي: {fontName()}</span>
               <span class="text-main">مفعّل ✓</span>
             </div>
@@ -244,14 +182,14 @@ export default function Settings() {
 
         {/* ─── Gemini API Key ─── */}
         <div
-          class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+          class="mb-6 w-full rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark"
           dir="rtl"
         >
           <div class="mb-3 flex items-center gap-2">
             <span class="text-xl">✨</span>
             <h3 class="font-bold">مفتاح Gemini AI</h3>
           </div>
-          <p class="mb-3 text-xs text-slate-400">
+          <p class="mb-3 text-xs text-ink-muted-light">
             احصل على مفتاحك المجاني من{" "}
             <a
               href="https://aistudio.google.com/apikey"
@@ -267,12 +205,12 @@ export default function Settings() {
               value={geminiKey()}
               onInput={(e) => setGeminiKey(e.currentTarget.value)}
               placeholder="AIza..."
-              class="flex-1 rounded-xl bg-slate-100 px-3 py-2 text-sm outline-none dark:bg-slate-700"
+              class="flex-1 rounded-xl bg-chip-light px-3 py-2 text-sm outline-none dark:bg-chip-dark"
               dir="ltr"
             />
             <button
               onClick={() => setShowKey((v) => !v)}
-              class="rounded-xl bg-slate-100 px-3 py-2 text-sm dark:bg-slate-700"
+              class="rounded-xl bg-chip-light px-3 py-2 text-sm dark:bg-chip-dark"
             >
               {showKey() ? "🙈" : "👁️"}
             </button>
@@ -301,7 +239,7 @@ export default function Settings() {
         {/* ─── إظهار اسمي على ما أضفته ─── */}
         <Show when={isContributor() && showNameReady()}>
           <div
-            class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800"
+            class="mb-6 w-full rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark"
             dir="rtl"
           >
             <div class="flex items-center justify-between gap-3">
@@ -310,7 +248,7 @@ export default function Settings() {
                   <span class="text-xl">🪪</span>
                   <h3 class="font-bold">إظهار اسمي للطلاب</h3>
                 </div>
-                <p class="text-xs text-slate-400">
+                <p class="text-xs text-ink-muted-light">
                   عند التفعيل يظهر اسمك كمن أضاف الأسئلة والمحاضرات. عند الإيقاف
                   يظهر تاريخ آخر تعديل فقط بدون اسمك.
                 </p>

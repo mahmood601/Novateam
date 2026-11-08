@@ -105,7 +105,7 @@ function ResultCard(props: {
 
   return (
     <div
-      class="dark:bg-lighter-dark-1 overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200"
+      class="dark:bg-lighter-dark-1 overflow-hidden rounded-2xl bg-surface-light shadow-sm transition-all duration-200"
       classList={{ "ring-2 ring-main/25": expanded() }}
     >
       <div
@@ -136,7 +136,7 @@ function ResultCard(props: {
               </span>
             </Show>
             <Show when={props.question.yearValue}>
-              <span class="dark:bg-lighter-dark-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:text-gray-300">
+              <span class="dark:bg-lighter-dark-2 rounded-full bg-chip-light px-2 py-0.5 text-[10px] font-bold text-ink-soft-light dark:text-ink-soft-dark">
                 {props.question.yearValue}
               </span>
             </Show>
@@ -167,16 +167,16 @@ function ResultCard(props: {
             >
               <Show
                 when={passage()}
-                fallback={<p class="text-xs text-gray-400">جاري التحميل...</p>}
+                fallback={<p class="text-xs text-ink-muted-light">جاري التحميل...</p>}
               >
-                <p class="whitespace-pre-wrap text-right text-gray-700 dark:text-gray-300">
+                <p class="whitespace-pre-wrap text-right text-ink-light dark:text-ink-soft-dark">
                   {passage()?.content}
                 </p>
               </Show>
             </div>
           </Show>
 
-          <p class="text-sm leading-relaxed font-bold dark:text-white">
+          <p class="text-sm leading-relaxed font-bold dark:text-ink-dark">
             <Highlight text={props.question.question} query={props.query} />
           </p>
 
@@ -203,7 +203,7 @@ function ResultCard(props: {
       </div>
 
       <Show when={expanded()}>
-        <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-4 pt-3 pb-4">
+        <div class="dark:border-lighter-dark-2 border-t border-line-light px-4 pt-3 pb-4">
           <ul class="space-y-2">
             <For each={props.question.options ?? []}>
               {(opt, i) => (
@@ -211,14 +211,14 @@ function ResultCard(props: {
                   class="flex flex-row-reverse items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-sm transition-colors"
                   classList={{
                     "border-true/40 bg-true/5": i() === props.question.correctIndex,
-                    "border-gray-100 dark:border-lighter-dark-2": i() !== props.question.correctIndex,
+                    "border-line-light dark:border-lighter-dark-2": i() !== props.question.correctIndex,
                   }}
                 >
                   <span
                     class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
                     classList={{
                       "bg-true text-white": i() === props.question.correctIndex,
-                      "bg-gray-100 text-gray-400 dark:bg-lighter-dark-2": i() !== props.question.correctIndex,
+                      "bg-chip-light text-ink-muted-light dark:bg-lighter-dark-2": i() !== props.question.correctIndex,
                     }}
                   >
                     {i() === props.question.correctIndex ? "✔" : i() + 1}
@@ -227,7 +227,7 @@ function ResultCard(props: {
                     class="flex-1 text-right"
                     classList={{
                       "text-true font-bold": i() === props.question.correctIndex,
-                      "dark:text-gray-200": i() !== props.question.correctIndex,
+                      "dark:text-ink-dark": i() !== props.question.correctIndex,
                     }}
                   >
                     <Highlight text={opt} query={props.query} />
@@ -284,7 +284,7 @@ function LectureResultCard(props: {
           openInLecture();
         }
       }}
-      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-white p-4 text-right shadow-sm transition-all duration-200 hover:ring-2 hover:ring-main/20"
+      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-surface-light p-4 text-right shadow-sm transition-all duration-200 hover:ring-2 hover:ring-main/20"
     >
       <div class="mb-2 flex flex-wrap justify-end gap-1.5">
         <span class="bg-main/10 text-main rounded-full px-2 py-0.5 text-[10px] font-bold">
@@ -296,12 +296,12 @@ function LectureResultCard(props: {
       </div>
 
       <Show when={props.result.headingText}>
-        <p class="mb-1 text-[11px] font-bold text-gray-400">
+        <p class="mb-1 text-[11px] font-bold text-ink-muted-light">
           {props.result.headingText}
         </p>
       </Show>
 
-      <p class="text-sm leading-relaxed dark:text-gray-200">
+      <p class="text-sm leading-relaxed dark:text-ink-dark">
         <Highlight text={snippet()} query={props.query} />
       </p>
     </div>
@@ -321,7 +321,7 @@ function FilterChip(props: {
       class="rounded-full border-2 px-3 py-1 text-xs font-bold whitespace-nowrap transition-all duration-150"
       classList={{
         "border-main bg-main text-white": props.active,
-        "border-gray-200 bg-white text-gray-500 dark:border-lighter-dark-2 dark:bg-lighter-dark-1 dark:text-gray-300": !props.active,
+        "border-line-light bg-surface-light text-ink-soft-light dark:border-lighter-dark-2 dark:bg-lighter-dark-1 dark:text-ink-soft-dark": !props.active,
       }}
     >
       {props.label}
@@ -515,17 +515,17 @@ export default function SearchPage() {
   // ─── JSX ─────────────────────────────────────────────────────────────────
 
   return (
-    <div class="dark:bg-main-dark min-h-screen bg-gray-50" dir="rtl">
+    <div class="dark:bg-main-dark min-h-screen bg-base-light" dir="rtl">
 
       {/* ─── Sticky Header ─── */}
-      <div class="dark:bg-lighter-dark-1 sticky top-0 z-30 bg-white shadow-sm">
+      <div class="dark:bg-lighter-dark-1 sticky top-0 z-30 bg-surface-light shadow-sm">
 
         {/* شريط البحث */}
         <div class="flex items-center gap-2 px-4 py-3">
           <div class="relative flex-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+              class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-ink-muted-light"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
             >
               <circle cx="11" cy="11" r="8" />
@@ -544,12 +544,12 @@ export default function SearchPage() {
                 setQuery(e.currentTarget.value);
                 setShowAll(false);
               }}
-              class="dark:bg-lighter-dark-2 focus:ring-main/30 w-full rounded-xl bg-gray-100 py-2 pr-9 pl-8 text-sm outline-none placeholder:text-gray-400 focus:ring-2 dark:text-white dark:placeholder:text-gray-500"
+              class="dark:bg-lighter-dark-2 focus:ring-main/30 w-full rounded-xl bg-chip-light py-2 pr-9 pl-8 text-sm outline-none placeholder:text-ink-muted-light focus:ring-2 dark:text-ink-dark dark:placeholder:text-gray-500"
             />
             <Show when={query()}>
               <button
                 onClick={() => { setQuery(""); setShowAll(false); }}
-                class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                class="absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted-light hover:text-ink-soft-light"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -564,7 +564,7 @@ export default function SearchPage() {
             class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors"
             classList={{
               "bg-main text-white": showFilters() || activeFilterCount() > 0,
-              "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300": !showFilters() && activeFilterCount() === 0,
+              "bg-chip-light text-ink-soft-light dark:bg-lighter-dark-2 dark:text-ink-soft-dark": !showFilters() && activeFilterCount() === 0,
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -585,7 +585,7 @@ export default function SearchPage() {
             class="flex-1 rounded-xl py-2 text-xs font-bold transition-colors"
             classList={{
               "bg-main text-white": tab() === "questions",
-              "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300": tab() !== "questions",
+              "bg-chip-light text-ink-soft-light dark:bg-lighter-dark-2 dark:text-ink-soft-dark": tab() !== "questions",
             }}
           >
             الأسئلة
@@ -595,7 +595,7 @@ export default function SearchPage() {
             class="flex-1 rounded-xl py-2 text-xs font-bold transition-colors"
             classList={{
               "bg-main text-white": tab() === "lectures",
-              "bg-gray-100 text-gray-500 dark:bg-lighter-dark-2 dark:text-gray-300": tab() !== "lectures",
+              "bg-chip-light text-ink-soft-light dark:bg-lighter-dark-2 dark:text-ink-soft-dark": tab() !== "lectures",
             }}
           >
             المحاضرات
@@ -604,11 +604,11 @@ export default function SearchPage() {
 
         {/* لوحة الفلاتر */}
         <Show when={showFilters()}>
-          <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-4 pb-3 pt-2 space-y-3">
+          <div class="dark:border-lighter-dark-2 border-t border-line-light px-4 pb-3 pt-2 space-y-3">
 
             {/* المواد */}
             <div>
-              <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">المادة</p>
+              <p class="mb-1.5 text-[10px] font-bold text-ink-muted-light uppercase tracking-wider">المادة</p>
               <div class="flex gap-2 overflow-x-auto pb-1">
                 <FilterChip
                   label="الكل"
@@ -637,7 +637,7 @@ export default function SearchPage() {
               <div class="grid grid-cols-2 gap-2">
                 <Show when={seasons().length > 0}>
                   <div>
-                    <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">الفصل</p>
+                    <p class="mb-1.5 text-[10px] font-bold text-ink-muted-light uppercase tracking-wider">الفصل</p>
                     <div class="flex gap-1.5 overflow-x-auto pb-1">
                       <FilterChip
                         label="الكل"
@@ -663,7 +663,7 @@ export default function SearchPage() {
                 {/* السنة — فلتر خاص بالأسئلة فقط (المحاضرات لا تُصنَّف بسنة) */}
                 <Show when={years().length > 0 && tab() === "questions"}>
                   <div>
-                    <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">السنة</p>
+                    <p class="mb-1.5 text-[10px] font-bold text-ink-muted-light uppercase tracking-wider">السنة</p>
                     <div class="flex gap-1.5 overflow-x-auto pb-1">
                       <FilterChip
                         label="الكل"
@@ -691,7 +691,7 @@ export default function SearchPage() {
             {/* الترتيب — للأسئلة فقط، ترتيب المحاضرات دايماً حسب الصلة */}
             <Show when={tab() === "questions"}>
               <div>
-                <p class="mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">الترتيب</p>
+                <p class="mb-1.5 text-[10px] font-bold text-ink-muted-light uppercase tracking-wider">الترتيب</p>
                 <div class="flex gap-2">
                   {(
                     [
@@ -751,7 +751,7 @@ export default function SearchPage() {
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <p class="text-base font-bold text-gray-400">
+            <p class="text-base font-bold text-ink-muted-light">
               {tab() === "questions" ? "ابحث في الأسئلة" : "ابحث داخل المحاضرات"}
             </p>
             <p class="mt-1 text-sm text-gray-300">
@@ -760,7 +760,7 @@ export default function SearchPage() {
                 : "يبحث في نص المحاضرات المفتوحة مسبقاً على هذا الجهاز"}
             </p>
             <Show when={tab() === "questions" && allQuestions()}>
-              <p class="dark:bg-lighter-dark-2 mt-3 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-400">
+              <p class="dark:bg-lighter-dark-2 mt-3 rounded-full bg-chip-light px-3 py-1 text-xs text-ink-muted-light">
                 {allQuestions()!.length.toLocaleString("ar")} سؤال محلي
               </p>
             </Show>
@@ -771,7 +771,7 @@ export default function SearchPage() {
         <Show when={noResults()}>
           <div class="flex flex-col items-center justify-center py-20 text-center">
             <span class="mb-3 text-5xl opacity-30">🔍</span>
-            <p class="font-bold text-gray-400">لا توجد نتائج</p>
+            <p class="font-bold text-ink-muted-light">لا توجد نتائج</p>
             <p class="mt-1 text-sm text-gray-300">جرّب كلمة مختلفة أو غيّر الفلاتر</p>
             <Show when={activeFilterCount() > 0}>
               <button
@@ -788,8 +788,8 @@ export default function SearchPage() {
         <Show when={tab() === "questions" && results().length > 0}>
           <div class="mb-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <p class="text-xs text-gray-400">
-                <span class="font-bold text-gray-600 dark:text-gray-300">
+              <p class="text-xs text-ink-muted-light">
+                <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">
                   {results().length.toLocaleString("ar")}
                 </span>{" "}
                 نتيجة
@@ -837,8 +837,8 @@ export default function SearchPage() {
         <Show when={tab() === "lectures" && lectureResults().length > 0}>
           <div class="mb-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <p class="text-xs text-gray-400">
-                <span class="font-bold text-gray-600 dark:text-gray-300">
+              <p class="text-xs text-ink-muted-light">
+                <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">
                   {lectureResults().length.toLocaleString("ar")}
                 </span>{" "}
                 نتيجة

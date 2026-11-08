@@ -20,7 +20,7 @@ const YEARS = [
 const EMPTY: SubjectRow = { id: "", name: "", year_key: "second", semester: null };
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white p-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200";
+  "w-full rounded-xl border border-line-light bg-surface-light p-2 text-sm text-ink-light dark:border-line-dark dark:bg-base-dark dark:text-ink-dark";
 
 export default function ManageSubjects() {
   const [yearKey, setYearKey] = createSignal("second");
@@ -70,10 +70,10 @@ export default function ManageSubjects() {
   };
 
   return (
-    <div class="min-h-dvh bg-[#f8fafc] px-5 dark:bg-[#0f172a]" dir="rtl">
+    <div class="min-h-dvh bg-base-light px-5 dark:bg-base-dark" dir="rtl">
       <div class="mx-auto flex max-w-lg flex-col gap-4 pt-22 pb-28">
         <div class="flex items-center justify-between">
-          <h1 class="text-xl font-black text-slate-800 dark:text-white">
+          <h1 class="text-xl font-black text-ink-light dark:text-ink-dark">
             إدارة المواد
           </h1>
           <Show when={canCreate()}>
@@ -87,7 +87,7 @@ export default function ManageSubjects() {
         </div>
 
         {/* Year tabs */}
-        <div class="flex justify-around gap-1 rounded-4xl bg-white p-3 shadow-sm dark:bg-slate-800">
+        <div class="flex justify-around gap-1 rounded-4xl bg-surface-light p-3 shadow-sm dark:bg-surface-dark">
           <For each={YEARS}>
             {(y) => (
               <button
@@ -95,7 +95,7 @@ export default function ManageSubjects() {
                 class={`w-15 rounded-2xl p-2 text-xs font-bold transition-all ${
                   yearKey() === y.id
                     ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-md"
-                    : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+                    : "bg-chip-light text-ink-soft-light dark:bg-chip-dark dark:text-ink-soft-dark"
                 }`}
               >
                 {y.name}
@@ -107,11 +107,11 @@ export default function ManageSubjects() {
         {/* Add / edit form */}
         <Show when={form()}>
           {(f) => (
-            <div class="flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-sm dark:bg-slate-800">
-              <p class="text-sm font-bold text-slate-600 dark:text-slate-200">
+            <div class="flex flex-col gap-3 rounded-3xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+              <p class="text-sm font-bold text-ink-soft-light dark:text-ink-dark">
                 {editingId() ? "تعديل المادة" : "مادة جديدة"}
               </p>
-              <label class="text-xs text-slate-400">
+              <label class="text-xs text-ink-muted-light">
                 المعرّف (إنجليزي، لا يمكن تغييره لاحقاً)
                 <input
                   class={inputCls}
@@ -122,7 +122,7 @@ export default function ManageSubjects() {
                   placeholder="e.g. anatomy-2"
                 />
               </label>
-              <label class="text-xs text-slate-400">
+              <label class="text-xs text-ink-muted-light">
                 الاسم
                 <input
                   class={inputCls}
@@ -131,7 +131,7 @@ export default function ManageSubjects() {
                 />
               </label>
               <div class="flex gap-2">
-                <label class="flex-1 text-xs text-slate-400">
+                <label class="flex-1 text-xs text-ink-muted-light">
                   السنة
                   <select
                     class={inputCls}
@@ -143,7 +143,7 @@ export default function ManageSubjects() {
                     </For>
                   </select>
                 </label>
-                <label class="flex-1 text-xs text-slate-400">
+                <label class="flex-1 text-xs text-ink-muted-light">
                   الفصل
                   <select
                     class={inputCls}
@@ -171,7 +171,7 @@ export default function ManageSubjects() {
                 </button>
                 <button
                   onClick={() => setForm(null)}
-                  class="flex-1 rounded-xl bg-slate-100 p-2 text-sm font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+                  class="flex-1 rounded-xl bg-chip-light p-2 text-sm font-bold text-ink-soft-light dark:bg-chip-dark dark:text-ink-soft-dark"
                 >
                   إلغاء
                 </button>
@@ -181,18 +181,18 @@ export default function ManageSubjects() {
         </Show>
 
         {/* Subjects list */}
-        <div class="flex flex-col gap-2 rounded-4xl bg-white p-4 shadow-sm dark:bg-slate-800">
-          <Show when={!subjects.loading} fallback={<p class="py-6 text-center text-slate-400">جاري التحميل... ⏳</p>}>
+        <div class="flex flex-col gap-2 rounded-4xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+          <Show when={!subjects.loading} fallback={<p class="py-6 text-center text-ink-muted-light">جاري التحميل... ⏳</p>}>
             <Show
               when={visible().length > 0}
-              fallback={<p class="py-6 text-center text-slate-400">لا توجد مواد 📭</p>}
+              fallback={<p class="py-6 text-center text-ink-muted-light">لا توجد مواد 📭</p>}
             >
               <For each={visible()}>
                 {(s) => (
-                  <div class="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
+                  <div class="flex items-center gap-2 rounded-2xl border border-line-light bg-base-light p-3 dark:border-line-dark dark:bg-base-dark">
                     <div class="flex-1">
-                      <p class="font-bold text-slate-700 dark:text-slate-200">{s.name}</p>
-                      <p class="text-[11px] text-slate-400" dir="ltr">{s.id}</p>
+                      <p class="font-bold text-ink-light dark:text-ink-dark">{s.name}</p>
+                      <p class="text-[11px] text-ink-muted-light" dir="ltr">{s.id}</p>
                     </div>
                     <A
                       href={`/dashboard/manage/${s.id}`}

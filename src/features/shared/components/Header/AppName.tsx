@@ -58,7 +58,7 @@ export default function AppName(_props: { hide?: Accessor<boolean> }) {
     >
       {/* Offline: spinning atom */}
       <span
-        class={`${layer} ${vis("offline")} dark:text-white`}
+        class={`${layer} ${vis("offline")} dark:text-ink-dark`}
         aria-hidden={view() !== "offline"}
       >
         <span class="block w-8">
@@ -84,7 +84,7 @@ export default function AppName(_props: { hide?: Accessor<boolean> }) {
           dir="ltr" keeps the letters in N-o-v-a order inside the RTL page. */}
       <span
         dir="ltr"
-        class={`${layer} ${vis("nova")} font-sora text-main-dark dark:text-main-light`}
+        class={`${layer} ${vis("nova")} font-sora text-ink-light dark:text-ink-dark`}
         aria-hidden={view() !== "nova"}
       >
         <Show when={view() === "nova"}>

@@ -134,7 +134,7 @@ function StatCard(props: {
 }) {
   return (
     <div
-      class="dark:bg-lighter-dark-1 flex flex-col items-center justify-center gap-1 rounded-2xl bg-white p-4 shadow-sm"
+      class="dark:bg-lighter-dark-1 flex flex-col items-center justify-center gap-1 rounded-2xl bg-surface-light p-4 shadow-sm"
       classList={{ "ring-2 ring-main/30": props.accent }}
     >
       <span class="text-2xl">{props.icon}</span>
@@ -144,7 +144,7 @@ function StatCard(props: {
       >
         {props.value}
       </span>
-      <span class="text-center text-xs text-gray-400">{props.label}</span>
+      <span class="text-center text-xs text-ink-muted-light">{props.label}</span>
     </div>
   );
 }
@@ -162,7 +162,7 @@ function SubjectRow(props: { stat: SubjectStat; rank: number }) {
 
   return (
     <div
-      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-white shadow-sm transition-all duration-200 select-none"
+      class="dark:bg-lighter-dark-1 cursor-pointer rounded-2xl bg-surface-light shadow-sm transition-all duration-200 select-none"
       classList={{ "ring-2 ring-main/20": open() }}
       onClick={() => setOpen(!open())}
     >
@@ -174,7 +174,7 @@ function SubjectRow(props: { stat: SubjectStat; rank: number }) {
 
         {/* name + bar */}
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-bold dark:text-white" dir="rtl">
+          <p class="truncate text-sm font-bold dark:text-ink-dark" dir="rtl">
             {props.stat.name}
           </p>
           <div class="mt-1.5">
@@ -207,21 +207,21 @@ function SubjectRow(props: { stat: SubjectStat; rank: number }) {
 
       {/* expanded detail */}
       <Show when={open()}>
-        <div class="dark:border-lighter-dark-2 border-t border-gray-100 px-5 pt-3 pb-4">
+        <div class="dark:border-lighter-dark-2 border-t border-line-light px-5 pt-3 pb-4">
           <div class="grid grid-cols-3 gap-2 text-center">
             <div>
-              <p class="text-lg font-bold dark:text-white">
+              <p class="text-lg font-bold dark:text-ink-dark">
                 {props.stat.total}
               </p>
-              <p class="text-xs text-gray-400">إجمالي</p>
+              <p class="text-xs text-ink-muted-light">إجمالي</p>
             </div>
             <div>
               <p class="text-true text-lg font-bold">{props.stat.correct}</p>
-              <p class="text-xs text-gray-400">صحيح</p>
+              <p class="text-xs text-ink-muted-light">صحيح</p>
             </div>
             <div>
               <p class="text-warn text-lg font-bold">{props.stat.wrong}</p>
-              <p class="text-xs text-gray-400">خطأ</p>
+              <p class="text-xs text-ink-muted-light">خطأ</p>
             </div>
           </div>
         </div>
@@ -236,7 +236,7 @@ function EmptyState() {
   return (
     <div class="flex flex-col items-center justify-center gap-4 py-20 text-center">
       <div class="text-6xl opacity-30">📊</div>
-      <p class="text-lg font-bold text-gray-400">لا توجد إحصائيات بعد</p>
+      <p class="text-lg font-bold text-ink-muted-light">لا توجد إحصائيات بعد</p>
       <p class="text-sm text-gray-300">ابدأ اختباراً لترى تقدمك هنا</p>
     </div>
   );
@@ -254,8 +254,8 @@ export default function StatsPage() {
     >
       {/* Header */}
       <div class="flex-1 py-5 tracking-wide">
-        <h1 class="text-2xl font-bold dark:text-white">إحصائياتك</h1>
-        <p class="mt-1 text-sm text-gray-400">تتبع مستوى تقدمك في كل مادة</p>
+        <h1 class="text-2xl font-bold dark:text-ink-dark">إحصائياتك</h1>
+        <p class="mt-1 text-sm text-ink-muted-light">تتبع مستوى تقدمك في كل مادة</p>
       </div>
 
       <Suspense
@@ -271,19 +271,19 @@ export default function StatsPage() {
             {(stats) => (
               <Show when={stats.totalAnswered > 0} fallback={<EmptyState />}>
                 {/* Overall ring */}
-                <div class="dark:bg-lighter-dark-1 mb-4 shrink-0 flex items-center justify-between rounded-3xl bg-white p-5 shadow-sm">
+                <div class="dark:bg-lighter-dark-1 mb-4 shrink-0 flex items-center justify-between rounded-3xl bg-surface-light p-5 shadow-sm">
                   <div class="flex-1" dir="rtl">
-                    <p class="text-sm text-gray-400">الدقة الإجمالية</p>
+                    <p class="text-sm text-ink-muted-light">الدقة الإجمالية</p>
                     <p class="text-main text-4xl font-bold">
                       {stats.overallAccuracy}%
                     </p>
-                    <p class="mt-1 text-xs text-gray-400">
+                    <p class="mt-1 text-xs text-ink-muted-light">
                       {stats.totalCorrect} صح من {stats.totalAnswered} سؤال
                     </p>
                   </div>
                   <div class="relative flex items-center justify-center">
                     <RingChart value={stats.overallAccuracy} size={110} />
-                    <span class="absolute text-sm font-bold dark:text-white">
+                    <span class="absolute text-sm font-bold dark:text-ink-dark">
                       {stats.overallAccuracy}%
                     </span>
                   </div>
@@ -321,7 +321,7 @@ export default function StatsPage() {
 
                 {/* Subject list */}
                 <div class="mb-3 flex items-center justify-between">
-                  <p class="text-sm font-bold text-gray-400">تفصيل المواد</p>
+                  <p class="text-sm font-bold text-ink-muted-light">تفصيل المواد</p>
                   <p class="text-xs text-gray-300">
                     {stats.subjectStats.length} مادة
                   </p>
@@ -345,7 +345,7 @@ export default function StatsPage() {
                 >
                   {(best) => (
                     <div class="bg-true/10 mt-6 rounded-3xl p-5 text-center">
-                      <p class="text-xs text-gray-400">أفضل مادة</p>
+                      <p class="text-xs text-ink-muted-light">أفضل مادة</p>
                       <p class="text-true mt-1 font-bold" dir="rtl">
                         {best.name}
                       </p>

@@ -73,9 +73,9 @@ export default function QuizBox(props: any) {
           <img
             src={props.currentQuestion.image_url}
             alt="صورة السؤال"
-            class="max-h-52 w-full object-contain bg-slate-50 dark:bg-slate-900"
+            class="max-h-52 w-full object-contain bg-base-light dark:bg-base-dark"
           />
-          <p class="py-1 text-center text-[10px] text-slate-400">
+          <p class="py-1 text-center text-[10px] text-ink-muted-light">
             اضغط للتكبير
           </p>
         </button>
@@ -103,7 +103,7 @@ export default function QuizBox(props: any) {
               class={`flex w-full flex-row-reverse items-center rounded-xl border-2 p-4 transition-all ${
                 props.isDisabled && props.question.correctIndex == i()
                   ? "border-main bg-main-50 dark:bg-main/20"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-line-light dark:border-line-dark"
               } ${
                 props.selectedOption === i() &&
                 props.question.correctIndex !== i()
@@ -120,7 +120,7 @@ export default function QuizBox(props: any) {
                       : ""
                 }`}
               >
-                <p class="text-main-dark dark:text-main-light text-center text-[9px]">
+                <p class="text-ink-light dark:text-ink-dark text-center text-[9px]">
                   {props.isDisabled
                     ? props.question.correctIndex == i()
                       ? "✔"
@@ -142,7 +142,7 @@ export default function QuizBox(props: any) {
       <Show when={props.isDisabled && props.explanation}>
         <div
           dir="rtl"
-          class="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed opacity-90 dark:border-gray-700 dark:bg-gray-800/50"
+          class="mt-4 rounded-2xl border border-line-light bg-base-light p-4 text-sm leading-relaxed opacity-90 dark:border-line-dark dark:bg-surface-dark/50"
         >
           <p class="mb-1 text-[10px] font-bold tracking-widest text-main uppercase">
             التفسير

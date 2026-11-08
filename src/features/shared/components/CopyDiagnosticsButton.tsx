@@ -32,7 +32,7 @@ export default function CopyDiagnosticsButton(props: {
     <button
       onClick={handleClick}
       disabled={loading()}
-      class="flex items-center justify-center gap-2 rounded-full border border-dashed border-slate-300 px-4 py-2 text-sm text-slate-500 transition hover:border-main hover:text-main disabled:opacity-50 dark:border-slate-600 dark:text-slate-400"
+      class="flex items-center justify-center gap-2 rounded-full border border-dashed border-line-light px-4 py-2 text-sm text-ink-soft-light transition hover:border-main hover:text-main disabled:opacity-50 dark:border-line-dark dark:text-ink-muted-dark"
     >
       <Show
         when={!copied()}
@@ -62,12 +62,12 @@ export default function CopyDiagnosticsButton(props: {
   }
 
   return (
-    <div class="mb-6 w-full rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-800" dir="rtl">
+    <div class="mb-6 w-full rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark" dir="rtl">
       <div class="mb-3 flex items-center gap-2">
         <span class="text-xl">🛠️</span>
         <h3 class="font-bold">تشخيص الجهاز</h3>
       </div>
-      <p class="mb-3 text-xs text-slate-400">
+      <p class="mb-3 text-xs text-ink-muted-light">
         إن واجهت سلوكاً غير معتاد، أو طلبنا منك معلومات عن جهازك (إصدار المتصفح، نوع
         الاتصال، وغيرها) — اضغط هنا وأرسل لنا ما يُنسخ.
       </p>
