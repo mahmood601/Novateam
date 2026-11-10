@@ -17,6 +17,7 @@ const ManageSections = lazy(() => import("../features/dashboard/pages/ManageSect
 const SectionPicker = lazy(() => import("../features/dashboard/pages/SubjectHub"));
 const EditorPage = lazy(() => import("../features/editor/pages/EditorPage"));
 const ManageAdmins = lazy(() => import("../features/dashboard/pages/ManageAdmins"));
+const ClassifierPage = lazy(() => import("../features/classifier/ClassifierPage"));
 
 const SearchPage = lazy(() => import("../features/shared/pages/Search"));
 const StatsPage = lazy(() => import("../features/shared/pages/Stats"));
@@ -124,6 +125,8 @@ export default function AppRoutes() {
         {/* مسارات الـ Dashboard */}
         <Route path="/dashboard" component={AdminGate}>
           <Route path="/" component={Dashboard} />
+          {/* أداة تصنيف الأسئلة متاحة من داخل لوحة الأدمن */}
+          <Route path="/classifier" component={ClassifierPage} />
           {/* Needs a "subjects" grant (super-admins always pass) */}
           <Route path="/manage" component={ManageGate}>
             <Route path="/" component={ManageSubjects} />
