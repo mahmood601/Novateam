@@ -242,32 +242,37 @@ export function SmartImporter(props: {
         onSeasonChange={setSeasonId}
         onYearChange={setYearId}
       />
-      <div class="space-y-1 rounded-2xl bg-base-light p-4 text-xs leading-relaxed text-ink-soft-light dark:bg-base-dark">
-        <p>
-          <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة ←
-          تفعيل مقالة للأسئلة التالية
-        </p>
-        <p>
-          <span class="font-mono font-bold text-ink-light dark:text-ink-dark">
-            @@
-          </span>{" "}
-          ← إلغاء المقالة (أسئلة عادية بعدها)
-        </p>
-        <p>
-          <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
-          &nbsp;
-          <span class="font-mono font-bold text-green-600">+</span> صحيح &nbsp;
-          <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
-          <span class="font-mono font-bold text-amber-500">!</span> شرح
-        </p>
-      </div>
+      <details class="rounded-md bg-base-light text-ink-soft-light dark:bg-base-dark">
+        <summary class="cursor-pointer p-4 text-sm font-bold">تعليمات</summary>
+        <div class="space-y-1 px-4 pb-4 text-xs leading-relaxed">
+          <p>
+            <span class="font-mono font-bold text-cyan-600">@</span> نص المقالة
+            ← تفعيل مقالة للأسئلة التالية
+          </p>
+          <p>
+            <span class="font-mono font-bold text-ink-light dark:text-ink-dark">
+              @@
+            </span>{" "}
+            ← إلغاء المقالة (أسئلة عادية بعدها)
+          </p>
+          <p>
+            <span class="font-mono font-bold text-fuchsia-600">#</span> سؤال
+            &nbsp;
+            <span class="font-mono font-bold text-green-600">+</span> صحيح
+            &nbsp;
+            <span class="font-mono font-bold text-red-400">=</span> خاطئ &nbsp;
+            <span class="font-mono font-bold text-amber-500">!</span> شرح
+          </p>
+        </div>
+      </details>
       <textarea
         value={rawText()}
+        wrap="off"
         onInput={(e) => setRawText(e.currentTarget.value)}
         placeholder={
           "@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."
         }
-        class="h-72 w-full rounded-[2rem] bg-base-light p-6 font-mono text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-base-dark dark:text-ink-dark"
+        class="h-72 w-full rounded-sm overflowx-auto bg-base-light p-2 text-sm outline-none placeholder:text-right focus:ring-4 focus:ring-cyan-100 dark:bg-base-dark dark:text-ink-dark"
         dir="rtl"
       />
 
