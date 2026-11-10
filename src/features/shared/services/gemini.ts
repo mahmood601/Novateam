@@ -43,6 +43,50 @@ async function callGeminiViaEdge(
   return data.text;
 }
 
+// ─── اختيار النموذج (يُحفظ محلياً) ───────────────────────────────────────────
+
+export const GEMINI_MODEL_STORAGE_KEY = "gemini_model";
+export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
+
+export function getSelectedGeminiModel(): string {
+  try {
+    return localStorage.getItem(GEMINI_MODEL_STORAGE_KEY) || DEFAULT_GEMINI_MODEL;
+  } catch {
+    return DEFAULT_GEMINI_MODEL;
+  }
+}
+
+// نماذج لا تصلح للمحادثة النصية (صور/صوت/تضمين...) نخفيها من القائمة
+const NON_CHAT_MODEL = /tts|image|imagen|embedding|live|audio|robotics|computer-use|aqa|veo/i;
+
+/** يجلب النماذج المتاحة لمفتاح المستخدم (التي تدعم generateContent). */
+export async function listGeminiModels(apiKey: string): Promise<string[]> {
+  const ids: string[] = [];
+  let pageToken = "";
+  do {
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(apiKey)}` +
+      (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? "تعذّر جلب قائمة النماذج");
+    }
+    for (const m of data.models ?? []) {
+      const id = String(m.name ?? "").replace(/^models\//, "");
+      if (
+        id &&
+        m.supportedGenerationMethods?.includes("generateContent") &&
+        !NON_CHAT_MODEL.test(id)
+      ) {
+        ids.push(id);
+      }
+    }
+    pageToken = data.nextPageToken ?? "";
+  } while (pageToken);
+  return ids.sort((a, b) => a.localeCompare(b));
+}
+
 // ─── استدعاء مباشر بمفتاح المستخدم الخاص (اختياري) ──────────────────────────
 
 async function callGeminiWithUserKey(
@@ -51,7 +95,7 @@ async function callGeminiWithUserKey(
   history: { role: string; parts: { text: string }[] }[],
   userText: string,
 ): Promise<string> {
-  const GEMINI_MODEL = "gemini-3.5-flash-lite";
+  const GEMINI_MODEL = getSelectedGeminiModel();
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
     {

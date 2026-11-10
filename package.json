@@ -70,6 +70,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
+    "@vite-pwa/assets-generator": "^2.0.0",
     "autoprefixer": "^10.4.21",
     "debug": "^4.4.3",
     "https-localhost": "^4.7.1",

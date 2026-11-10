@@ -8,6 +8,11 @@ import { useCustomFont } from "../hooks/useCustomFont";
 import CopyDiagnosticsButton from "../components/CopyDiagnosticsButton";
 import ColorSettings from "../components/ColorSettings";
 import { useShapeTheme } from "../hooks/useShapeTheme";
+import {
+  GEMINI_MODEL_STORAGE_KEY,
+  getSelectedGeminiModel,
+  listGeminiModels,
+} from "../services/gemini";
 
 export default function Settings() {
   const { shapeTheme, setShapeTheme, shapeThemes } = useShapeTheme();
@@ -78,10 +83,41 @@ export default function Settings() {
   const [showKey, setShowKey] = createSignal(false);
   const [keySaved, setKeySaved] = createSignal(false);
 
+  // ─── اختيار نموذج Gemini (يظهر بعد حفظ المفتاح) ───────────────────
+  const [savedKey, setSavedKey] = createSignal(
+    localStorage.getItem("gemini_api_key") ?? "",
+  );
+  const [model, setModel] = createSignal(getSelectedGeminiModel());
+  const [models, setModels] = createSignal<string[]>([]);
+  const [modelsLoading, setModelsLoading] = createSignal(false);
+
+  const fetchModels = async () => {
+    const key = savedKey();
+    if (!key || !navigator.onLine) return;
+    setModelsLoading(true);
+    try {
+      setModels(await listGeminiModels(key));
+    } catch (e: any) {
+      toast.error(`تعذّر جلب النماذج: ${e.message}`);
+    }
+    setModelsLoading(false);
+  };
+
+  const changeModel = (m: string) => {
+    setModel(m);
+    localStorage.setItem(GEMINI_MODEL_STORAGE_KEY, m);
+  };
+
+  onMount(fetchModels);
+
   const saveGeminiKey = () => {
-    localStorage.setItem("gemini_api_key", geminiKey());
+    const key = geminiKey().trim();
+    localStorage.setItem("gemini_api_key", key);
+    setSavedKey(key);
     setKeySaved(true);
     setTimeout(() => setKeySaved(false), 2000);
+    if (key) void fetchModels();
+    else setModels([]);
   };
   return (
     <div
@@ -226,6 +262,8 @@ export default function Settings() {
               <button
                 onClick={() => {
                   setGeminiKey("");
+                  setSavedKey("");
+                  setModels([]);
                   localStorage.removeItem("gemini_api_key");
                 }}
                 class="rounded-full bg-red-50 px-4 py-2 text-sm text-red-500 dark:bg-red-900/20"
@@ -234,6 +272,42 @@ export default function Settings() {
               </button>
             </Show>
           </div>
+
+          {/* اختيار النموذج — يظهر فقط بعد حفظ مفتاح المستخدم */}
+          <Show when={savedKey()}>
+            <div class="mt-4 border-t border-black/5 pt-4 dark:border-white/10">
+              <label class="mb-2 block text-sm font-bold">النموذج</label>
+              <div class="flex gap-2">
+                <select
+                  value={model()}
+                  onChange={(e) => changeModel(e.currentTarget.value)}
+                  class="flex-1 rounded-xl bg-chip-light px-3 py-2 text-sm outline-none dark:bg-chip-dark"
+                  dir="ltr"
+                >
+                  <Show when={!models().includes(model())}>
+                    <option value={model()}>{model()}</option>
+                  </Show>
+                  <For each={models()}>
+                    {(m) => (
+                      <option value={m} selected={m === model()}>
+                        {m}
+                      </option>
+                    )}
+                  </For>
+                </select>
+                <button
+                  onClick={fetchModels}
+                  disabled={modelsLoading()}
+                  class="rounded-xl bg-chip-light px-3 py-2 text-sm disabled:opacity-50 dark:bg-chip-dark"
+                >
+                  {modelsLoading() ? "..." : "تحديث"}
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-ink-muted-light">
+                يُحفظ اختيارك على جهازك ويُستخدم مع مفتاحك الخاص فقط.
+              </p>
+            </div>
+          </Show>
         </div>
 
         {/* ─── إظهار اسمي على ما أضفته ─── */}
