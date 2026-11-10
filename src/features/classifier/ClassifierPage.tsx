@@ -235,7 +235,7 @@ export default function ClassifierPage() {
   return (
     <main class="min-h-dvh bg-darker-light-1 px-4 py-8 dark:bg-main-dark" dir="rtl">
       <div class="mx-auto max-w-5xl">
-        <header class="mb-6">
+        <header class="my-8">
           <h1 class="text-2xl font-bold">🧠 مصنّف الأسئلة</h1>
           <p class="mt-1 text-sm text-ink-muted-light dark:text-ink-muted-dark">تصنيف الأسئلة حسب المحاضرات باستخدام Gemini</p>
           <p class="mt-1 text-xs text-ink-muted-light">الحساب: {user()?.email}</p>
@@ -246,7 +246,7 @@ export default function ClassifierPage() {
         <section class="rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark">
           <Show when={step() === "subjects"}>
             <h2 class="mb-4 text-lg font-bold">اختر المادة</h2>
-            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 overflow-y-scroll max-h-[50dvh]">
               <For each={subjects()}>{s =>
                 <button class={`rounded-xl border p-3 text-right ${subjectId() === s.id ? "border-main bg-main/10" : "border-line-light dark:border-line-dark"}`} onClick={() => setSubjectId(s.id)}>{s.name}</button>
               }</For>
