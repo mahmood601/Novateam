@@ -108,13 +108,9 @@ const pwaOptions: Partial<VitePWAOptions> = {
         src: "pwa-512x512-v3.png",
         sizes: "512x512",
         type: "image/png",
+        purpose: "any",
       },
-      {
-        src: "maskable-icon-512x512-v3.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
+
     ],
   },
   devOptions: {

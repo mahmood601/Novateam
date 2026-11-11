@@ -15,10 +15,9 @@ export default defineConfig({
   preset: {
     ...preset,
     transparent: { ...preset.transparent, padding: 0 },
-    maskable: { ...preset.maskable, padding: 0 },
     apple: { ...preset.apple, padding: 0 },
     assetName: (type: AssetType, size: ResolvedAssetSize) =>
       defaultAssetName(type, size).replace(/\.png$/, `-${VERSION}.png`),
   },
-  images: ["public/nova-icon-square.svg"],
+  images: ["public/nova.svg"],
 });
