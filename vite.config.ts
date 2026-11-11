@@ -55,7 +55,8 @@ const pwaOptions: Partial<VitePWAOptions> = {
       {
         // Hashed build chunks are immutable → safe to serve cache-first.
         urlPattern: ({ url }) =>
-          url.pathname.startsWith("/assets/") && /\.(js|css)$/.test(url.pathname),
+          url.pathname.startsWith("/assets/") &&
+          /\.(js|css)$/.test(url.pathname),
         handler: "CacheFirst",
         options: {
           cacheName: "lazy-chunks",
@@ -94,23 +95,22 @@ const pwaOptions: Partial<VitePWAOptions> = {
     display_override: ["standalone", "window-controls-overlay"],
     icons: [
       {
-        src: "icons/150.png",
-        sizes: "150x150",
+        src: "pwa-64x64-v2.png",
+        sizes: "64x64",
         type: "image/png",
       },
       {
-        src: "icons/192.png",
+        src: "pwa-192x192-v2.png",
         sizes: "192x192",
         type: "image/png",
-        purpose: "any",
       },
       {
-        src: "icons/180.png",
-        sizes: "180x180",
+        src: "pwa-512x512-v2.png",
+        sizes: "512x512",
         type: "image/png",
       },
       {
-        src: "icons/512.png",
+        src: "maskable-icon-512x512-v2.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

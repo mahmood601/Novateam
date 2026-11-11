@@ -8,6 +8,7 @@
     "build": " vite build",
     "serve": "vite build && serve dist",
     "start-preview": "vite preview --port=4173",
+    "generate-pwa-assets": "pwa-assets-generator",
     "postinstall": "patch-package"
   },
   "dependencies": {
