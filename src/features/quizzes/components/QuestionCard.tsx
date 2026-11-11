@@ -137,7 +137,7 @@ export function QuestionCard(props: {
           </Show>
           <Show when={props.question.yearValue}>
             <span class="rounded-full bg-purple-50 px-2 py-1 text-[10px] font-bold text-purple-600 dark:bg-purple-900/30">
-              {props.question.yearValue}
+              {props.question.yearName}
             </span>
           </Show>
           <Show when={inserterName()}>

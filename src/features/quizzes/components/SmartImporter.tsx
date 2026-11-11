@@ -267,7 +267,6 @@ export function SmartImporter(props: {
       </details>
       <textarea
         value={rawText()}
-        wrap="off"
         onInput={(e) => setRawText(e.currentTarget.value)}
         placeholder={
           "@ نص المقالة هنا...\n\n# السؤال الأول\n= خيار خاطئ\n+ خيار صحيح\n! شرح اختياري\n\n@@\n\n# سؤال عادي بدون مقالة\n+ ..."
