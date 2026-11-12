@@ -1,215 +1,45 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   width="1024"
-   height="1024"
-   viewBox="0 0 1024 1024"
-   version="1.1"
-   id="svg10"
-   sodipodi:docname="nova.svg"
-   inkscape:export-filename="nova-icon-circle.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96"
-   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns:c2pa="http://c2pa.org/manifest">
-  <sodipodi:namedview
-     id="namedview10"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.484375"
-     inkscape:cx="515.09677"
-     inkscape:cy="512"
-     inkscape:window-width="1366"
-     inkscape:window-height="732"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg10" />
-  <defs
-     id="defs5">
-    <linearGradient
-       id="linearGradient13"
-       inkscape:collect="always">
-      <stop
-         style="stop-color:#06ce93;stop-opacity:1;"
-         offset="0.14497826"
-         id="stop14" />
-      <stop
-         style="stop-color:#0281cb;stop-opacity:1;"
-         offset="0.48427671"
-         id="stop16" />
-      <stop
-         style="stop-color:#d44b99;stop-opacity:1;"
-         offset="0.75551647"
-         id="stop15" />
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:c2pa="http://c2pa.org/manifest" width="1024" height="1024" viewBox="0 0 1024 1024" version="1.1" id="svg10" sodipodi:docname="nova.svg" inkscape:export-filename="nova-icon-circle.png" inkscape:export-xdpi="96" inkscape:export-ydpi="96" inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)">
+  <sodipodi:namedview id="namedview10" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25" inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:zoom="0.484375" inkscape:cx="515.09677" inkscape:cy="512" inkscape:window-width="1366" inkscape:window-height="732" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="1" inkscape:current-layer="svg10"/>
+  <defs id="defs5">
+    <linearGradient id="linearGradient13" inkscape:collect="always">
+      <stop style="stop-color:#06ce93;stop-opacity:1;" offset="0.14497826" id="stop14"/>
+      <stop style="stop-color:#0279bc;stop-opacity:1;" offset="0.48427671" id="stop16"/>
+      <stop style="stop-color:#d44b99;stop-opacity:1;" offset="0.79277319" id="stop15"/>
     </linearGradient>
-    <linearGradient
-       id="bgA"
-       x1="0"
-       y1="0"
-       x2="1"
-       y2="0.35">
-      <stop
-         offset="0"
-         stop-color="#0DB88B"
-         id="stop1" />
-      <stop
-         offset="0.55"
-         stop-color="#0A8FB8"
-         id="stop2" />
-      <stop
-         offset="1"
-         stop-color="#0281CB"
-         id="stop3" />
+    <linearGradient id="bgA" x1="0" y1="0" x2="1" y2="0.35">
+      <stop offset="0" stop-color="#0DB88B" id="stop1"/>
+      <stop offset="0.55" stop-color="#0A8FB8" id="stop2"/>
+      <stop offset="1" stop-color="#0281CB" id="stop3"/>
     </linearGradient>
-    <linearGradient
-       id="bgB"
-       x1="0"
-       y1="0.3"
-       x2="0"
-       y2="1">
-      <stop
-         offset="0"
-         stop-color="#E23D99"
-         stop-opacity="0"
-         id="stop4"
-         style="stop-color:#1adba6;stop-opacity:1;" />
-      <stop
-         offset="0.47665727"
-         stop-color="#E23D99"
-         stop-opacity="0"
-         id="stop6"
-         style="stop-color:#79939f;stop-opacity:0.97254902;" />
-      <stop
-         offset="1"
-         stop-color="#E23D99"
-         stop-opacity="0.95"
-         id="stop5" />
+    <linearGradient id="bgB" x1="0" y1="0.3" x2="0" y2="1">
+      <stop offset="0" stop-color="#E23D99" stop-opacity="0" id="stop4" style="stop-color:#1adba6;stop-opacity:1;"/>
+      <stop offset="0.47665727" stop-color="#E23D99" stop-opacity="0" id="stop6" style="stop-color:#79939f;stop-opacity:0.97254902;"/>
+      <stop offset="1" stop-color="#E23D99" stop-opacity="0.95" id="stop5"/>
     </linearGradient>
-    <mask
-       id="ecg"
-       maskUnits="userSpaceOnUse"
-       x="-200"
-       y="-200"
-       width="400"
-       height="400">
-      <rect
-         x="-200"
-         y="-200"
-         width="400"
-         height="400"
-         fill="#fff"
-         id="rect5" />
-      <polyline
-         points="128,9 48,9 21,-44 -24,44 -44,9 -128,9"
-         fill="none"
-         stroke="#000"
-         stroke-width="32"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         id="polyline5" />
+    <mask id="ecg" maskUnits="userSpaceOnUse" x="-200" y="-200" width="400" height="400">
+      <rect x="-200" y="-200" width="400" height="400" fill="#fff" id="rect5"/>
+      <polyline points="128,9 48,9 21,-44 -24,44 -44,9 -128,9" fill="none" stroke="#000" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" id="polyline5"/>
     </mask>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient13"
-       id="linearGradient65"
-       x1="211.05386"
-       y1="97.783524"
-       x2="812.94586"
-       y2="926.21674"
-       gradientUnits="userSpaceOnUse" />
+    <linearGradient inkscape:collect="always" xlink:href="#linearGradient13" id="linearGradient65" x1="211.05386" y1="97.783524" x2="812.94586" y2="926.21674" gradientUnits="userSpaceOnUse"/>
   </defs>
-  <circle
-     cx="512"
-     cy="512"
-     r="512"
-     fill="url(#bgA)"
-     id="circle5" />
-  <circle
-     cx="512"
-     cy="512"
-     r="512"
-     fill="url(#bgB)"
-     id="circle6"
-     style="fill:url(#linearGradient65);fill-rule:nonzero" />
-  <g
-     transform="matrix(0.7749363,0,0,0.7749363,512,521.29924)"
-     fill="none"
-     stroke="#ffffff"
-     stroke-width="36"
-     id="g10">
-    <g
-       id="orbit">
-      <ellipse
-         rx="192"
-         ry="446"
-         id="ellipse6"
-         cx="0"
-         cy="0" />
-      <circle
-         cy="-446"
-         r="42"
-         fill="#ffffff"
-         stroke="none"
-         id="circle7"
-         cx="0" />
+  <circle cx="512" cy="512" r="512" fill="url(#bgA)" id="circle5"/>
+  <circle cx="512" cy="512" r="512" fill="url(#bgB)" id="circle6" style="fill:url(#linearGradient65);fill-rule:nonzero"/>
+  <g transform="matrix(0.7749363,0,0,0.7749363,512,521.29924)" fill="none" stroke="#ffffff" stroke-width="36" id="g10">
+    <g id="orbit">
+      <ellipse rx="192" ry="446" id="ellipse6" cx="0" cy="0"/>
+      <circle cy="-446" r="42" fill="#ffffff" stroke="none" id="circle7" cx="0"/>
     </g>
-    <g
-       transform="rotate(120)"
-       id="g8">
-      <ellipse
-         rx="192"
-         ry="446"
-         id="ellipse7"
-         cx="0"
-         cy="0" />
-      <circle
-         cy="-446"
-         r="42"
-         fill="#ffffff"
-         stroke="none"
-         id="circle8"
-         cx="0" />
+    <g transform="rotate(120)" id="g8">
+      <ellipse rx="192" ry="446" id="ellipse7" cx="0" cy="0"/>
+      <circle cy="-446" r="42" fill="#ffffff" stroke="none" id="circle8" cx="0"/>
     </g>
-    <g
-       transform="rotate(-120)"
-       id="g9">
-      <ellipse
-         rx="192"
-         ry="446"
-         id="ellipse8"
-         cx="0"
-         cy="0" />
-      <circle
-         cy="-446"
-         r="42"
-         fill="#ffffff"
-         stroke="none"
-         id="circle9"
-         cx="0" />
+    <g transform="rotate(-120)" id="g9">
+      <ellipse rx="192" ry="446" id="ellipse8" cx="0" cy="0"/>
+      <circle cy="-446" r="42" fill="#ffffff" stroke="none" id="circle9" cx="0"/>
     </g>
-    <rect
-       x="-112"
-       y="-112"
-       width="224"
-       height="224"
-       rx="36"
-       fill="#ffffff"
-       stroke="none"
-       mask="url(#ecg)"
-       id="rect9" />
+    <rect x="-112" y="-112" width="224" height="224" rx="36" fill="#ffffff" stroke="none" mask="url(#ecg)" id="rect9"/>
   </g>
-  <metadata
-     id="metadata10">
+  <metadata id="metadata10">
     <c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo4MDM4ZjJlNS02YTgzLTQ1MDgtYjQ1MS1mNGFkNTlkYTg4MjIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaDJjsZhskusig05LXIsSLY4AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo2MGFlM2JjMi01OGI3LTQ0NzgtYTM2Ny04NzdkM2E3YWVkM2VscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoXh9Ll1syAZUa1EQcvftLXwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggxax9sdBIq75KryzmqasTnbcnG39vHp7z852IdR+ocNCkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaCCGq7+9LiELMcxTsHkr6c0AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIPJZGrRVpKCyVjLLT1mstlanXSTm6bpSHw0RA8N8QzM1ZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQY0Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjgwMzhmMmU1LTZhODMtNDUwOC1iNDUxLWY0YWQ1OWRhODgyMi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmM5ZjZkOWU5LTMyNzgtNDg3Ni1hMmYxLTYxZDU5NjIxN2IwY3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDFrH2x0EirvkqvLOapqxOdtycbf28envPznYh1H6hw0KJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggEe8Bknx0ma6avUnOm6e8CxnKSM7JZYVNBeRX6pOENdiiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggI9QbCEPYBOP+H7zWJX/u8Ja0nyUqaQQhv2qWGM+2MS90Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQGt1STaUgI9Z5p+tD3LfFXv7zRRaL4ze1FmcxL/x/yNlKS7z3UYmtL6ntLu9nufPQNVHICVPHKwWbxK5ahJI8zw=</c2pa:manifest>
   </metadata>
 </svg>
