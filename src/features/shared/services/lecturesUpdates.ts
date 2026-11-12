@@ -1,7 +1,7 @@
 import { supabase } from "./supabase"; // عدّل المسار حسب مكان إعداد supabase عندك
 
 // ============================================
-// إنشاء (Create)
+// إنشاء أو تحديث (Create / Update)
 // ============================================
 export async function upsertLecture({
   subjectId,
@@ -12,24 +12,54 @@ export async function upsertLecture({
   // "publish" permission a "published" request is saved as "pending".
   status = "published",
 }) {
+  const { data: existing, error: lookupError } = await supabase
+    .from("formatted_lectures")
+    .select("id")
+    .eq("subject_id", subjectId)
+    .eq("season_id", seasonId)
+    .maybeSingle();
+
+  if (lookupError) {
+    console.error("[upsertLecture] فشل التحقق من المحاضرة:", lookupError.message);
+    return { data: null, error: mapError(lookupError) };
+  }
+
+  const values = {
+    content: { raw: rawContent },
+    status,
+    updated_by: userId,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from("formatted_lectures")
+      .update(values)
+      .eq("id", existing.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[upsertLecture] فشل تحديث المحاضرة:", error.message);
+      return { data: null, error: mapError(error) };
+    }
+
+    return { data, error: null };
+  }
+
   const { data, error } = await supabase
     .from("formatted_lectures")
-    .upsert(
-      {
-        subject_id: subjectId,
-        season_id: seasonId,
-        content: { raw: rawContent },
-        status,
-        created_by: userId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "subject_id,season_id" },
-    )
+    .insert({
+      subject_id: subjectId,
+      season_id: seasonId,
+      ...values,
+      created_by: userId,
+    })
     .select()
     .single();
 
   if (error) {
-    console.error("[createLecture] فشل الإنشاء:", error.message);
+    console.error("[upsertLecture] فشل إنشاء المحاضرة:", error.message);
     return { data: null, error: mapError(error) };
   }
 
