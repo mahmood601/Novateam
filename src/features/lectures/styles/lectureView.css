@@ -365,6 +365,9 @@
 .lecture-content {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;
+  p {
+    line-height: 1.7;
+  }
 }
 .lecture-content::-webkit-scrollbar {
   display: none; /* Chrome / Safari */
