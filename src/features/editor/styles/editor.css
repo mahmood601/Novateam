@@ -1,8 +1,8 @@
 .tiptap {
-    padding: 14px 16px 96px; /* bottom room so the caret never hugs the dock */
-    min-height: 100%;
-    outline: none;
-    border: none;
+  padding: 14px 16px 96px; /* bottom room so the caret never hugs the dock */
+  min-height: 100%;
+  outline: none;
+  border: none;
 }
 
 /* Dark-mode-aware role tokens for the editor's own chrome (table
@@ -13,15 +13,15 @@
    from inline styles in the .tsx files below since Tailwind's `dark:`
    variant only works on classes, not on style="" values. */
 :root {
-    --editor-chrome-bg: var(--color-darker-light-1);
-    --editor-chrome-border: var(--color-darker-light-2);
-    --editor-chrome-icon: var(--color-header);
+  --editor-chrome-bg: var(--color-darker-light-1);
+  --editor-chrome-border: var(--color-darker-light-2);
+  --editor-chrome-icon: var(--color-header);
 }
 
 .dark {
-    --editor-chrome-bg: var(--color-lighter-dark-1);
-    --editor-chrome-border: var(--color-lighter-dark-2);
-    --editor-chrome-icon: var(--color-main-light);
+  --editor-chrome-bg: var(--color-lighter-dark-1);
+  --editor-chrome-border: var(--color-lighter-dark-2);
+  --editor-chrome-icon: var(--color-main-light);
 }
 
 /* Tailwind's preflight (@import "tailwindcss" in styles/index.css) resets
@@ -32,43 +32,43 @@
    both this app's RTL content and any LTR text mixed into a lecture. */
 .tiptap ul,
 .tiptap ol {
-    padding-inline-start: 1.5rem;
-    margin: 0.25rem 0;
+  padding-inline-start: 1.5rem;
+  margin: 0.25rem 0;
 }
 
 .tiptap ul {
-    list-style-type: disc;
+  list-style-type: disc;
 }
 
 .tiptap ol {
-    list-style-type: decimal;
+  list-style-type: decimal;
 }
 
 .tiptap li {
-    margin: 0.15rem 0;
+  margin: 0.15rem 0;
 }
 
 .tiptap li p {
-    margin: 0;
+  margin: 0;
 }
 
 /* Nested lists (via the indent/outdent toolbar buttons) cycle marker
    style per depth, same convention Word/Google Docs use so levels stay
    visually distinguishable from one another. */
 .tiptap ul ul {
-    list-style-type: circle;
+  list-style-type: circle;
 }
 
 .tiptap ul ul ul {
-    list-style-type: square;
+  list-style-type: square;
 }
 
 .tiptap ol ol {
-    list-style-type: lower-alpha;
+  list-style-type: lower-alpha;
 }
 
 .tiptap ol ol ol {
-    list-style-type: lower-roman;
+  list-style-type: lower-roman;
 }
 
 /* Table Kit styling — driven by the active --color-main / --color-* theme */
@@ -87,70 +87,68 @@
   /* يحترم الـ style المضمّن */
 }
 
-
 /* Cells included in the current multi-cell selection (also driven
    programmatically by the row/column grip overlay's tap-to-select). */
 .tiptap table .selectedCell {
-    background-color: color-mix(in srgb, var(--color-main) 12%, transparent);
+  background-color: color-mix(in srgb, var(--color-main) 12%, transparent);
 }
 
 .tiptap table .selectedCell::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: 1.5px solid color-mix(in srgb, var(--color-main) 60%, transparent);
-    background-color: color-mix(in srgb, var(--color-main) 10%, transparent);
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid color-mix(in srgb, var(--color-main) 60%, transparent);
+  background-color: color-mix(in srgb, var(--color-main) 10%, transparent);
+  pointer-events: none;
 }
 
 /* Whole-table selection */
 .tiptap table.ProseMirror-selectednode,
 .tiptap table .ProseMirror-selectednode {
-    outline: 2px solid var(--color-main);
-    outline-offset: -1px;
+  outline: 2px solid var(--color-main);
+  outline-offset: -1px;
 }
 
 /* Column resize handle. The actual grab zone width comes from the
    `handleWidth` option passed to Table.configure (widened for touch);
    this just keeps the visible line thin regardless of that hit-area. */
 .tiptap table .column-resize-handle {
-    position: absolute;
-    right: -2px;
-    top: 0;
-    bottom: -2px;
-    width: 4px;
-    background-color: var(--color-main);
-    pointer-events: none;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--color-main);
+  pointer-events: none;
 }
 
 .tiptap .tableWrapper {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 .tiptap.resize-cursor {
-    cursor: col-resize;
+  cursor: col-resize;
 }
 
 /* Row/column grip overlay (TableGripOverlay) */
 .nova-table-grip {
-    touch-action: none;
+  touch-action: none;
 }
 .nova-table-grip:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 /* Active-state highlight for toolbar/format-sheet toggle buttons
    (Bold/Italic/Underline/Strike, sub/superscript, etc.) — same tinted-chip
    treatment editors like Google Docs use to show an active toggle. */
 .nova-tiptap-review button.active {
-    background-color: color-mix(in srgb, var(--color-main) 16%, transparent);
-    color: var(--color-main);
+  background-color: color-mix(in srgb, var(--color-main) 16%, transparent);
+  color: var(--color-main);
 }
-
 
 /* Editor-only: outline متقطع خفيف حتى يبين حدود الصندوق وهو فاضي أو
    بدون خلفية — بدون هيك ما رح تعرف وين تضغط تختاره. ما بينطبق على
@@ -171,7 +169,11 @@
    يبين التداخل بالمحرر */
 .nova-tiptap-review .nova-box .nova-box {
   outline-style: dashed;
-  outline-color: color-mix(in srgb, var(--color-secondary, orange) 40%, transparent);
+  outline-color: color-mix(
+    in srgb,
+    var(--color-secondary, orange) 40%,
+    transparent
+  );
 }
 
 /* Mobile comfort: no 300ms tap delay / grey flash on toolbar buttons, and
@@ -190,42 +192,47 @@
    (TableTouchResize). position: fixed + translateX keeps it smooth and
    outside the document, so it is never saved or printed. */
 .nova-col-guide {
-    position: fixed;
-    left: 0;
-    width: 3px;
-    margin-left: -1.5px;
-    z-index: 45;
-    pointer-events: none;
-    background-color: var(--color-main);
-    border-radius: 2px;
-    will-change: transform;
+  position: fixed;
+  left: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  z-index: 45;
+  pointer-events: none;
+  background-color: var(--color-main);
+  border-radius: 2px;
+  will-change: transform;
 }
 
 .nova-col-guide::after {
-    content: "";
-    position: absolute;
-    top: var(--knob-y, 50%);
-    left: 50%;
-    width: 22px;
-    height: 22px;
-    margin: -11px 0 0 -11px;
-    border-radius: 50%;
-    background-color: var(--color-main);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  content: "";
+  position: absolute;
+  top: var(--knob-y, 50%);
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  background-color: var(--color-main);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
 }
 
 /* Mouse hover over a column border (set by TableTouchResize). */
 .tiptap.nova-col-resize-cursor,
 .tiptap.nova-col-resize-cursor * {
-    cursor: col-resize;
+  cursor: col-resize;
 }
 
 .nova-page-break {
-    height: 2px;
-    width: 100%;
-    background-color: var(--color-main);
+  height: 2px;
+  width: 100%;
+  background-color: var(--color-main);
 }
+
+.lecture-content .nova-page-break {
+  display: none;
+}
+
 /* Find & replace highlights (extension's injectCSS is off). */
 .find-and-replace-result {
   background-color: rgb(253 224 71 / 0.55);

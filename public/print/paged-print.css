@@ -557,7 +557,7 @@
    re-render needed when the theme changes. Print / A4 are not matched. */
 .dark .lecture-content .pele:not(.pele-print),
 .dark .nova-tiptap-content .pele:not(.pele-print) {
-  --pele-bg: transparent !important;
+  --pele-bg: white !important;
   --pele-fg: var(--color-ink-dark) !important;
   --pele-muted: var(--color-ink-muted-dark) !important;
   --pele-line: var(--color-ink-soft-dark) !important;
