@@ -135,9 +135,9 @@ function ResultCard(props: {
                 {props.question.seasonName}
               </span>
             </Show>
-            <Show when={props.question.yearValue}>
+            <Show when={props.question.yearName}>
               <span class="dark:bg-lighter-dark-2 rounded-full bg-chip-light px-2 py-0.5 text-[10px] font-bold text-ink-soft-light dark:text-ink-soft-dark">
-                {props.question.yearValue}
+                {props.question.yearName}
               </span>
             </Show>
             <Show when={matchLocation()}>

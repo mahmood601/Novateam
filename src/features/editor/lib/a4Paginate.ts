@@ -19,6 +19,7 @@
 
 import type { Editor } from "@tiptap/core";
 
+import { addNovaCardNumbers } from "../tiptap/extensions/NovaCards";
 import { renderDiagramToSvg, sectionColorOf } from "./diagram-renderer";
 import {
   PAGE_BREAK_CSS,
@@ -64,7 +65,10 @@ export async function computeA4Breaks(editor: Editor): Promise<A4Break[] | null>
   const doc = editor.state.doc;
 
   // Same HTML the print page builds from the document.
-  const parsed = new DOMParser().parseFromString(editor.getHTML(), "text/html");
+  const parsed = new DOMParser().parseFromString(
+    addNovaCardNumbers(editor.getHTML()),
+    "text/html",
+  );
   const blocks = Array.from(parsed.body.children);
 
   // We map block i <-> doc.child(i). If the counts differ we can't do it

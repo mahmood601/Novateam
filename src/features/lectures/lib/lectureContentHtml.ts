@@ -63,10 +63,12 @@ export async function jsonToLectureHtml(
     return "";
   }
 
-  const [{ Editor }, { extensionsArr }] = await Promise.all([
-    import("@tiptap/core"),
-    import("@/features/editor/tiptap/extensions/extensionsArr"),
-  ]);
+  const [{ Editor }, { extensionsArr }, { addNovaCardNumbers }] =
+    await Promise.all([
+      import("@tiptap/core"),
+      import("@/features/editor/tiptap/extensions/extensionsArr"),
+      import("@/features/editor/tiptap/extensions/NovaCards"),
+    ]);
 
   // Let the browser paint the "building" state before the heavy
   // synchronous part below (schema + editor creation) blocks the thread.
@@ -85,7 +87,7 @@ export async function jsonToLectureHtml(
     editable: false,
   });
 
-  const html = editor.getHTML();
+  const html = addNovaCardNumbers(editor.getHTML());
   editor.destroy();
 
   return html;

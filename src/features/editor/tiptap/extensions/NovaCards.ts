@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────
 // The document only remembers three things: the title, how many columns,
 // and a normal bullet list inside. Everything visual — the grid, the
-// numbers (CSS counters), the colors, the shape of the badge — lives in
+// numbers, the colors, the shape of the badge — lives in
 // CSS (public/print/paged-print.css, "Nova shapes: cards"). That is what
 // lets one lecture be restyled by switching a theme, with no edit to the
 // lecture itself.
@@ -28,10 +28,34 @@
 // novaNote note in NovaClipboard.ts). An attribute round-trips cleanly.
 
 import { Node, mergeAttributes } from "@tiptap/core";
+import { stampSectionColorsIn } from "../../lib/sectionColors";
 
 export const CARDS_MIN_COLS = 1;
 export const CARDS_MAX_COLS = 3;
 export const CARDS_DEFAULT_COLS = 2;
+
+/**
+ * Stamp card numbers into generated HTML because Paged.js can rewrite
+ * CSS-counter increments while paginating independently reset lists.
+ */
+export function addNovaCardNumbers(html: string): string {
+  const document = new DOMParser().parseFromString(html, "text/html");
+
+  document.querySelectorAll<HTMLElement>(".nova-cards > ul").forEach((list) => {
+    let number = 0;
+    Array.from(list.children).forEach((item) => {
+      if (item instanceof HTMLElement && item.tagName === "LI") {
+        item.dataset.cardNumber = String(++number);
+      }
+    });
+  });
+
+  // Same post-processing step, also gives plain blocks their section's
+  // data-color (so manual "section color" fills resolve in read/print).
+  stampSectionColorsIn(document.body);
+
+  return document.body.innerHTML;
+}
 
 function clampCols(value: unknown): number {
   const n = Number(value);

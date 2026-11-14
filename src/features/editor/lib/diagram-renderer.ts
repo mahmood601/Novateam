@@ -10,26 +10,24 @@ import { render } from "pele";
 import { NOVA_COLOR_CYCLE, type NovaColor } from "../types/novaAst";
 import { NOVA_COLOR_HEX } from "./novaColors";
 
-function isDarkMode() {
-  return document.documentElement.classList.contains("dark");
-}
-
 function escapeHtml(s: string) {
   return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!);
 }
 
 /** Inline CSS variables for one diagram. `accent` = color of the section it sits in. */
 function peleTheme(accent?: NovaColor | null, forPrint = false): string {
-  const dark = isDarkMode();
+  // Always the LIGHT values (print-safe). Dark mode is applied live by CSS in
+  // paged-print.css (.dark .pele), from the palette tokens + the --pele-base-* hues.
   const vars: Record<string, string> = {
     "--pele-bg": "#ffffff",
-    "--pele-fg": dark ? "#f1f5f9" : "#0f172a",
-    "--pele-muted": dark ? "#94a3b8" : "#64748b",
-    "--pele-line": dark ? "#94a3b8" : "#475569",
-    "--pele-surface": dark ? "#1e293b" : "#ffffff",
-    "--pele-surface-alt": dark ? "#334155" : "#f1f5f9",
-    "--pele-border": dark ? "#475569" : "#cbd5e1",
+    "--pele-fg": "#0f172a",
+    "--pele-muted": "#64748b",
+    "--pele-line": "#475569",
+    "--pele-surface": "#ffffff",
+    "--pele-surface-alt": "#f1f5f9",
+    "--pele-border": "#cbd5e1",
     "--pele-accent": NOVA_COLOR_HEX[accent ?? "blue"],
+    "--pele-base-accent": NOVA_COLOR_HEX[accent ?? "blue"],
     // Keep diagram text metrics stable regardless of user-selected app font.
     "--pele-font": '"Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", "Readex Pro Variable", sans-serif',
     "--pele-radius": "8px",
@@ -39,6 +37,7 @@ function peleTheme(accent?: NovaColor | null, forPrint = false): string {
   for (let i = 0; i < 8; i++) {
     vars[`--pele-series-${i + 1}`] =
       NOVA_COLOR_HEX[NOVA_COLOR_CYCLE[i % NOVA_COLOR_CYCLE.length]];
+    vars[`--pele-base-${i + 1}`] = vars[`--pele-series-${i + 1}`];
   }
   if (forPrint) vars["--pele-bg"] = "#ffffff";
   return Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(";");

@@ -12,6 +12,12 @@
 import { Check, X } from "lucide-solid";
 import { For, Show } from "solid-js";
 import {
+  SECTION_NEUTRAL_HEXES,
+  SECTION_SHADES,
+  sectionShadeIndex,
+  sectionValue,
+} from "../lib/sectionColors";
+import {
   WORD_STANDARD_COLORS,
   WORD_THEME_ROWS,
   isLightColor,
@@ -28,8 +34,16 @@ export default function WordColorPicker(props: {
   onSelect: (value: string | null) => void;
   /** Hide the reset row (e.g. when a value is always required). */
   hideReset?: boolean;
+  /**
+   * The 6 real hexes (main + 5 degrees) of the section the cursor is in, only
+   * used to PAINT the "section color" row. What gets saved is a reference
+   * (`var(--nova-bg-light, ...)`), not these hexes, so the color keeps
+   * following the section's h1 afterwards. See lib/sectionColors.ts.
+   */
+  sectionHexes?: string[];
 }) {
   const selected = () => normalizeHex(props.current);
+  const sectionSelected = () => sectionShadeIndex(props.current);
 
   return (
     <div class="word-color-picker mx-auto flex w-full max-w-sm flex-col gap-3 px-1 py-2">
@@ -48,6 +62,43 @@ export default function WordColorPicker(props: {
           </Show>
         </button>
       </Show>
+
+      {/* Follows the section: change the h1's color (or move the section)
+          and everything colored from this row changes with it. */}
+      <Section title="لون القسم (يتبع لون العنوان تلقائياً)">
+        <div class="grid grid-cols-6 gap-1.5">
+          <For each={SECTION_SHADES}>
+            {(shade, i) => {
+              const hex = () =>
+                (props.sectionHexes ?? SECTION_NEUTRAL_HEXES)[i()];
+              const active = () => sectionSelected() === i();
+              return (
+                <button
+                  type="button"
+                  title={shade.label}
+                  aria-label={shade.label}
+                  aria-pressed={active()}
+                  class="border-darker-light-2 dark:border-lighter-dark-2 relative h-9 w-full touch-manipulation rounded-md border active:scale-90"
+                  classList={{ "ring-2 ring-offset-1 z-10": active() }}
+                  style={{
+                    "background-color": hex(),
+                    "--tw-ring-color": "var(--color-main)",
+                  }}
+                  onClick={() => props.onSelect(sectionValue(i()))}
+                >
+                  <Show when={active()}>
+                    <Check
+                      size={14}
+                      class="absolute inset-0 m-auto"
+                      style={{ color: isLightColor(hex()) ? "#000" : "#fff" }}
+                    />
+                  </Show>
+                </button>
+              );
+            }}
+          </For>
+        </div>
+      </Section>
 
       <Section title="ألوان النسق">
         <div class="grid grid-cols-9 gap-1">

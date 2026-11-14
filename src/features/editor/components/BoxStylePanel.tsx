@@ -10,6 +10,7 @@ import { createEffect, createSignal, For, Show } from "solid-js";
 import type { Editor } from "@tiptap/core";
 import { parseStyleString, withStyleProp } from "../lib/cssStyleString";
 import WordColorPicker from "./WordColorPicker";
+import { previewColor, sectionHexesOf } from "../lib/sectionColors";
 
 export default function BoxStylePanel(props: {
   editor: Editor | null;
@@ -26,6 +27,11 @@ export default function BoxStylePanel(props: {
   });
 
   const parsed = () => parseStyleString(styleText());
+
+  // Section-colored values are var(--nova-*) references that only resolve
+  // inside the document: paint the chips with the section's real hex.
+  const chip = (v: string | null) =>
+    previewColor(v, sectionHexesOf(props.editor)) ?? null;
 
   const commit = (next: string) => {
     setStyleText(next);
@@ -72,11 +78,12 @@ export default function BoxStylePanel(props: {
           <div class="mb-3 flex flex-col gap-1">
             <ColorField
               label="لون الخلفية"
-              value={parsed()["background-color"] ?? null}
+              value={chip(parsed()["background-color"] ?? null)}
               open={openField() === "bg"}
               onToggle={() => toggle("bg")}
             >
               <WordColorPicker
+                sectionHexes={sectionHexesOf(props.editor)}
                 current={parsed()["background-color"] ?? null}
                 resetLabel="بلا لون"
                 onSelect={(v) => setProp("background-color", v ?? "")}
@@ -84,11 +91,12 @@ export default function BoxStylePanel(props: {
             </ColorField>
             <ColorField
               label="لون النص"
-              value={parsed()["color"] ?? null}
+              value={chip(parsed()["color"] ?? null)}
               open={openField() === "text"}
               onToggle={() => toggle("text")}
             >
               <WordColorPicker
+                sectionHexes={sectionHexesOf(props.editor)}
                 current={parsed()["color"] ?? null}
                 resetLabel="افتراضي"
                 onSelect={(v) => setProp("color", v ?? "")}
@@ -96,11 +104,12 @@ export default function BoxStylePanel(props: {
             </ColorField>
             <ColorField
               label="لون الحدود"
-              value={parsed()["border-color"] ?? null}
+              value={chip(parsed()["border-color"] ?? null)}
               open={openField() === "border"}
               onToggle={() => toggle("border")}
             >
               <WordColorPicker
+                sectionHexes={sectionHexesOf(props.editor)}
                 current={parsed()["border-color"] ?? null}
                 resetLabel="افتراضي"
                 onSelect={setBorderColor}

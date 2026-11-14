@@ -105,6 +105,7 @@ import FormatSheet from "./FormatSheet";
 import FindReplaceSheet from "./FindReplaceSheet";
 import InputSheet, { type InputField, type InputRequest } from "./InputSheet";
 import TableGripOverlay from "../tiptap/extensions/table/TableGripOverlay";
+import ImageGripOverlay from "../tiptap/extensions/ImageGripOverlay";
 import {
   clearSelectedCellsContent,
   duplicateCurrentColumn,
@@ -1221,6 +1222,13 @@ export default function TiptapReviewEditor(props: {
           editor={() => editor}
           tick={tick}
           visible={() => !anySheetOpen()}
+        />
+
+        {/* Selected image: resize handles (finger + mouse) and a % width bar */}
+        <ImageGripOverlay
+          editor={() => editor}
+          tick={tick}
+          visible={() => !anySheetOpen() && !a4Active()}
         />
       </div>
 

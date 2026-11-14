@@ -29,6 +29,8 @@ import { NovaTable } from "./table/novaTable";
 import { TableTouchResize } from "./table/TableTouchResize";
 import { NovaBulletList } from "./NovaBulletList";
 import { NovaClipboard } from "./NovaClipboard";
+import { NovaSectionTokens } from "./NovaSectionTokens";
+import { NovaDarkColors } from "./NovaDarkColors";
 
 // Sub/superscript don't exclude each other by default, which lets both
 // marks stack on the same text and render nonsense nested offsets — so
@@ -88,18 +90,16 @@ export const extensionsArr = [
       "data-resize-wrapper": "true",
       allowBase64: false,
     },
-    resize: {
-      enabled: true,
-      directions: ["top", "bottom", "left", "right"], // can be any direction or diagonal combination
-      minWidth: 50,
-      minHeight: 50,
-      alwaysPreserveAspectRatio: true,
-    },
+    // Tiptap's built-in resizer is mouse-only, so it is OFF. Resizing (finger
+    // and mouse) is done by ImageGripOverlay, which saves `widthPct`.
   }),
   NovaImageGallery,
   NovaBox,
   // Lossless cut/copy/paste inside the editor (see NovaClipboard.ts).
   NovaClipboard,
+  // View-only: data-color on plain blocks so "section color" manual colors resolve.
+  NovaSectionTokens,
+  NovaDarkColors,
   Link.configure({
     openOnClick: false,
     markdownLinks: true,

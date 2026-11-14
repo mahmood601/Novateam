@@ -235,3 +235,126 @@
   background-color: rgb(249 115 22 / 0.65);
   outline: 1px solid rgb(234 88 12);
 }
+
+/* ── Images ───────────────────────────────────────────────────────────
+   Node view = ImageWithCaption.ts · handles + width bar = ImageGripOverlay.tsx */
+.tiptap .nova-img {
+  position: relative;
+  /* A tap on the image must select it, not scroll/zoom/start a text drag. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.tiptap .nova-img img {
+  max-width: 100%;
+  cursor: pointer;
+}
+.tiptap .nova-img.ProseMirror-selectednode img {
+  outline: 2px solid var(--color-main);
+  outline-offset: 2px;
+}
+/* The caption stays editable text. */
+.tiptap .nova-img .image-caption {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: auto;
+  min-height: 1.2em;
+}
+.tiptap .nova-img .image-caption:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Resize handles (outside the document, never saved or printed) */
+.nova-img-handle {
+  -webkit-tap-highlight-color: transparent;
+}
+.nova-img-handle-dot {
+  display: block;
+  border-radius: 50%;
+  background-color: var(--color-main);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  box-sizing: border-box;
+}
+.nova-img-handle:active .nova-img-handle-dot {
+  transform: scale(1.25);
+}
+
+/* Live "%" shown in the middle of the image while dragging */
+.nova-img-badge {
+  z-index: 32;
+  transform: translate(-50%, -50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.7);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Width bar */
+.nova-img-bar {
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 14px;
+  background-color: var(--editor-chrome-bg);
+  border: 1px solid var(--editor-chrome-border);
+  color: var(--editor-chrome-icon);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+.nova-img-pct {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--editor-chrome-border);
+  background-color: var(--editor-chrome-bg);
+  font-weight: 700;
+}
+.nova-img-pct input {
+  width: 3ch;
+  min-width: 0;
+  background: transparent;
+  color: inherit;
+  text-align: center;
+  border: 0;
+  outline: none;
+  font-size: 16px; /* 16px: iOS does not zoom the page on focus */
+  font-weight: 700;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.nova-img-pct input::-webkit-outer-spin-button,
+.nova-img-pct input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.nova-img-preset {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--editor-chrome-border);
+  background-color: var(--editor-chrome-bg);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.nova-img-preset.active,
+.nova-img-preset:active {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: #fff;
+}
+.nova-img-hint {
+  flex: 0 0 auto;
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
+}

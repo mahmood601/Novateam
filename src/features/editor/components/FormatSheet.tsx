@@ -56,6 +56,7 @@ import type {
 } from "../tiptap/extensions/table/TableCellAttributes";
 import BoxStylePanel from "./BoxStylePanel";
 import WordColorPicker from "./WordColorPicker";
+import { previewColor, sectionHexesOf } from "../lib/sectionColors";
 
 type PanelId =
   | "root"
@@ -166,6 +167,13 @@ export default function FormatSheet(props: {
     null;
   const currentHighlight = () =>
     (ed()?.getAttributes("highlight").color as string | undefined) ?? null;
+
+  // Colors chosen from "لون القسم" are references (var(--nova-*)), which only
+  // exist inside the document. Palette chips live outside it, so they are
+  // painted with the section's real hex instead.
+  const sectionHexes = () => sectionHexesOf(ed());
+  const preview = (v: string | null) =>
+    v === null ? null : (previewColor(v, sectionHexes()) ?? null);
 
   const isSubscript = () => ed()?.isActive("subscript") ?? false;
   const isSuperscript = () => ed()?.isActive("superscript") ?? false;
@@ -323,19 +331,19 @@ export default function FormatSheet(props: {
             <FormatRow
               icon={Baseline}
               label="لون النص"
-              swatch={currentColor()}
+              swatch={preview(currentColor())}
               onClick={() => setPanel("textColor")}
             />
             <FormatRow
               icon={PaintBucket}
               label="لون خلفية النص"
-              swatch={currentBackground()}
+              swatch={preview(currentBackground())}
               onClick={() => setPanel("textBackground")}
             />
             <FormatRow
               icon={Highlighter}
               label="التظليل"
-              swatch={currentHighlight()}
+              swatch={preview(currentHighlight())}
               onClick={() => setPanel("highlight")}
             />
             <Show when={isInTable()}>
@@ -451,6 +459,7 @@ export default function FormatSheet(props: {
 
                 <Match when={panel() === "textColor"}>
                   <WordColorPicker
+                    sectionHexes={sectionHexes()}
                     current={currentColor()}
                     resetLabel="افتراضي"
                     onSelect={(v) => applyColor("textColor", v)}
@@ -466,6 +475,7 @@ export default function FormatSheet(props: {
 
                 <Match when={panel() === "textBackground"}>
                   <WordColorPicker
+                    sectionHexes={sectionHexes()}
                     current={currentBackground()}
                     resetLabel="بلا لون"
                     onSelect={(v) => applyColor("textBackground", v)}
@@ -474,6 +484,7 @@ export default function FormatSheet(props: {
 
                 <Match when={panel() === "highlight"}>
                   <WordColorPicker
+                    sectionHexes={sectionHexes()}
                     current={currentHighlight()}
                     resetLabel="بلا تظليل"
                     onSelect={(v) => applyColor("highlight", v)}
@@ -550,6 +561,7 @@ export default function FormatSheet(props: {
                         خلفية الخلية
                       </div>
                       <WordColorPicker
+                        sectionHexes={sectionHexes()}
                         current={currentCellBackground()}
                         resetLabel="بلا لون"
                         onSelect={(v) =>
@@ -646,6 +658,7 @@ export default function FormatSheet(props: {
                         لون الحدود
                       </div>
                       <WordColorPicker
+                        sectionHexes={sectionHexes()}
                         current={currentBorderColor()}
                         resetLabel="افتراضي"
                         onSelect={(v) => applyTableAttrs({ borderColor: v })}

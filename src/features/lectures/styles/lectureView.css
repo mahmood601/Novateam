@@ -163,24 +163,45 @@
     align-self: center;
   }
 
+  /* ---------- Image gallery ----------
+     The gallery only ARRANGES its images (wrap, centre, gap). It never sizes
+     them: each image keeps its own width, set in the editor as a % of the
+     gallery's width (`widthPct`). Images with no width yet get the default
+     below, so a freshly added image is never "huge".
+     Children: editor node view (.nova-img), plain <img>, captioned wrapper. */
   .nova-image-gallery {
     display: flex;
-    justify-content: space-evenly;
     flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
     gap: 12px;
     margin: 8px 0;
   }
-  .nova-image-gallery > .nova-image-wrapper,
-  .nova-image-gallery > .nova-figure {
-    flex: 1 1 200px; /* grow, shrink, base width before wrapping */
+  .nova-image-gallery > .nova-img,
+  .nova-image-gallery > img,
+  .nova-image-gallery > .image-with-caption {
+    flex: 0 0 auto;
+    box-sizing: border-box;
     max-width: 100%;
+    margin: 0 !important; /* left/right/centre margins are meaningless in a flex row */
   }
-
-  .nova-image-gallery > .nova-image-wrapper img,
-  .nova-image-gallery > .nova-figure img {
+  /* default size when the image has no width of its own (!important: it must
+     also beat the old pixel size and the inline "fit-content" of an aligned image) */
+  .nova-image-gallery > .nova-img:not([data-width-pct]),
+  .nova-image-gallery > img:not([data-width-pct]),
+  .nova-image-gallery > .image-with-caption:not([data-width-pct]) {
+    width: 32% !important;
+  }
+  /* the image fills its own box (the box carries the width) */
+  .nova-image-gallery > .nova-img > img,
+  .nova-image-gallery > .image-with-caption img {
+    display: block;
     width: 100%;
     height: auto;
+  }
+  .nova-image-gallery > img {
     display: block;
+    height: auto;
   }
 
   .resize-cursor {

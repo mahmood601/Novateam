@@ -452,6 +452,7 @@
 
 [data-color="rose"] {
   --nova-color: #d00054;
+  --nova-base: #d00054; /* source hue for dark mode */
   --nova-border: #a60043; /* 80% color / 20% black */
   --nova-bg-strong: #d93376; /* 80% color / 20% white */
   --nova-bg-light: #f1b3cc; /* 30% color / 70% white */
@@ -460,6 +461,7 @@
 }
 [data-color="orange"] {
   --nova-color: #ff9933;
+  --nova-base: #ff9933; /* source hue for dark mode */
   --nova-border: #cc7a29;
   --nova-bg-strong: #ffad5c;
   --nova-bg-light: #ffe0c2;
@@ -468,6 +470,7 @@
 }
 [data-color="blue"] {
   --nova-color: #3399ff;
+  --nova-base: #3399ff; /* source hue for dark mode */
   --nova-border: #297acc;
   --nova-bg-strong: #5cadff;
   --nova-bg-light: #c2e0ff;
@@ -476,6 +479,7 @@
 }
 [data-color="green"] {
   --nova-color: #00b050;
+  --nova-base: #00b050; /* source hue for dark mode */
   --nova-border: #008d40;
   --nova-bg-strong: #33c073;
   --nova-bg-light: #b3e7cb;
@@ -484,6 +488,7 @@
 }
 [data-color="yellow"] {
   --nova-color: #bf8f00;
+  --nova-base: #bf8f00; /* source hue for dark mode */
   --nova-border: #997200;
   --nova-bg-strong: #cca533;
   --nova-bg-light: #ecddb3;
@@ -492,6 +497,7 @@
 }
 [data-color="purple"] {
   --nova-color: #cc00ff;
+  --nova-base: #cc00ff; /* source hue for dark mode */
   --nova-border: #a300cc;
   --nova-bg-strong: #d633ff;
   --nova-bg-light: #f0b3ff;
@@ -500,11 +506,73 @@
 }
 [data-color="pink"] {
   --nova-color: #ff3bff;
+  --nova-base: #ff3bff; /* source hue for dark mode */
   --nova-border: #cc2fcc;
   --nova-bg-strong: #ff62ff;
   --nova-bg-light: #ffc4ff;
   --nova-bg-tint: #ffefff;
   --nova-bg-tint-quiz: #fff3ff;
+}
+
+/* =========================================================
+   Dark mode — lecture colors only (reading view + live editor).
+   No fixed colors: every shade is derived from the section's own hue
+   (--nova-base) mixed with the dark PALETTE tokens from colors.css
+   (--color-surface-dark, --color-ink-dark, --color-base-dark), so it
+   follows any palette customisation. Same --nova-* names, so every
+   component adapts automatically.
+   color-mix() is safe here because Paged.js print/A4 never matches
+   these selectors (they stay on white paper).
+   ========================================================= */
+.dark .lecture-content [data-color],
+.dark .nova-tiptap-content [data-color] {
+  --nova-color: color-mix(in srgb, var(--nova-base) 75%, var(--color-ink-dark));
+  --nova-border: color-mix(in srgb, var(--nova-base) 70%, var(--color-base-dark));
+  --nova-bg-strong: color-mix(in srgb, var(--nova-base) 55%, var(--color-surface-dark));
+  --nova-bg-light: color-mix(in srgb, var(--nova-base) 30%, var(--color-surface-dark));
+  --nova-bg-tint: color-mix(in srgb, var(--nova-base) 14%, var(--color-surface-dark));
+  --nova-bg-tint-quiz: color-mix(in srgb, var(--nova-base) 10%, var(--color-surface-dark));
+}
+
+/* Headings / table header / code: text from the palette, not fixed. */
+.dark .lecture-content,
+.dark .nova-tiptap-content {
+  h1, h2, h6 { color: var(--color-ink-dark) !important; }
+
+  table th { background-color: var(--nova-bg-strong); }
+  table th p { color: var(--color-ink-dark); }
+
+  code { background-color: color-mix(in srgb, var(--color-ink-dark) 10%, transparent); }
+}
+
+/* Fixed colors stored in a lecture get a dark counterpart (see lib/darkColors.ts).
+   --dk-bg / --dk-fg are set per element at render time; active under .dark only. */
+.dark .lecture-content [data-dk-bg],
+.dark .nova-tiptap-content [data-dk-bg] { background-color: var(--dk-bg) !important; }
+.dark .lecture-content [data-dk-fg],
+.dark .nova-tiptap-content [data-dk-fg] { color: var(--dk-fg) !important; }
+
+/* Diagrams (Pele): colors come from the dark palette tokens + the section hues
+   (--pele-base-*, set inline by mermaid-renderer / diagram-renderer). Live: no
+   re-render needed when the theme changes. Print / A4 are not matched. */
+.dark .lecture-content .pele:not(.pele-print),
+.dark .nova-tiptap-content .pele:not(.pele-print) {
+  --pele-bg: transparent !important;
+  --pele-fg: var(--color-ink-dark) !important;
+  --pele-muted: var(--color-ink-muted-dark) !important;
+  --pele-line: var(--color-ink-soft-dark) !important;
+  --pele-surface: var(--color-surface-dark) !important;
+  --pele-surface-alt: var(--color-lighter-dark-2) !important;
+  --pele-border: var(--color-line-dark) !important;
+  --pele-accent: color-mix(in srgb, var(--pele-base-accent) 75%, var(--color-ink-dark)) !important;
+  --pele-series-1: color-mix(in srgb, var(--pele-base-1) 75%, var(--color-ink-dark)) !important;
+  --pele-series-2: color-mix(in srgb, var(--pele-base-2) 75%, var(--color-ink-dark)) !important;
+  --pele-series-3: color-mix(in srgb, var(--pele-base-3) 75%, var(--color-ink-dark)) !important;
+  --pele-series-4: color-mix(in srgb, var(--pele-base-4) 75%, var(--color-ink-dark)) !important;
+  --pele-series-5: color-mix(in srgb, var(--pele-base-5) 75%, var(--color-ink-dark)) !important;
+  --pele-series-6: color-mix(in srgb, var(--pele-base-6) 75%, var(--color-ink-dark)) !important;
+  --pele-series-7: color-mix(in srgb, var(--pele-base-7) 75%, var(--color-ink-dark)) !important;
+  --pele-series-8: color-mix(in srgb, var(--pele-base-8) 75%, var(--color-ink-dark)) !important;
 }
 
 /* ---------- headings — dark background / white text (confirmed direction) ---------- */
@@ -941,24 +1009,45 @@
     border-radius: 0.125rem;
   }
 
+  /* ---------- Image gallery ----------
+     The gallery only ARRANGES its images (wrap, centre, gap). It never sizes
+     them: each image keeps its own width, set in the editor as a % of the
+     gallery's width (`widthPct`). Images with no width yet get the default
+     below, so a freshly added image is never "huge".
+     Children: editor node view (.nova-img), plain <img>, captioned wrapper. */
   .nova-image-gallery {
     display: flex;
-    justify-content: space-evenly;
     flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
     gap: 12px;
     margin: 8px 0;
   }
-  .nova-image-gallery > .nova-image-wrapper,
-  .nova-image-gallery > .nova-figure {
-    flex: 1 1 200px; /* grow, shrink, base width before wrapping */
+  .nova-image-gallery > .nova-img,
+  .nova-image-gallery > img,
+  .nova-image-gallery > .image-with-caption {
+    flex: 0 0 auto;
+    box-sizing: border-box;
     max-width: 100%;
+    margin: 0 !important; /* left/right/centre margins are meaningless in a flex row */
   }
-
-  .nova-image-gallery > .nova-image-wrapper img,
-  .nova-image-gallery > .nova-figure img {
+  /* default size when the image has no width of its own (!important: it must
+     also beat the old pixel size and the inline "fit-content" of an aligned image) */
+  .nova-image-gallery > .nova-img:not([data-width-pct]),
+  .nova-image-gallery > img:not([data-width-pct]),
+  .nova-image-gallery > .image-with-caption:not([data-width-pct]) {
+    width: 32% !important;
+  }
+  /* the image fills its own box (the box carries the width) */
+  .nova-image-gallery > .nova-img > img,
+  .nova-image-gallery > .image-with-caption img {
+    display: block;
     width: 100%;
     height: auto;
+  }
+  .nova-image-gallery > img {
     display: block;
+    height: auto;
   }
 }
 
@@ -1340,7 +1429,6 @@ div.nova-cards > ul {
   margin: 0.95rem 0 0;
   padding: 0;
   list-style: none;
-  counter-reset: nova-card;
 }
 
 div.nova-cards:not([data-cols="1"]):not([data-cols="3"]) > ul > li:last-child:nth-child(odd),
@@ -1349,7 +1437,6 @@ div.nova-cards[data-cols="3"] > ul > li:last-child:nth-child(3n + 1) {
 }
 
 div.nova-cards > ul > li {
-  counter-increment: nova-card; /* the numbers come from here */
   position: relative;
   display: flex;
   flex: 1 1 calc((100% - (var(--cards-cols) - 1) * 0.7rem) / var(--cards-cols));
@@ -1370,7 +1457,7 @@ div.nova-cards > ul > li > p { margin: 0; }
 /* Number badge. inset-inline-start = the RIGHT corner in RTL, which
    matches the Word samples. */
 div.nova-cards > ul > li::before {
-  content: counter(nova-card);
+  content: attr(data-card-number);
   position: absolute;
   inset-block-start: -0.55rem;
   inset-inline-start: -0.45rem;
@@ -1383,6 +1470,18 @@ div.nova-cards > ul > li::before {
   background: var(--shape-accent);
   color: #fff;
   font: 700 0.8rem/1 sans-serif;
+}
+
+/* The live editor renders directly from ProseMirror and has no stamped
+   attributes. Generated lecture/Paged.js HTML uses data-card-number. */
+.tiptap div.nova-cards > ul {
+  counter-reset: nova-card;
+}
+.tiptap div.nova-cards > ul > li {
+  counter-increment: nova-card;
+}
+.tiptap div.nova-cards > ul > li::before {
+  content: counter(nova-card);
 }
 
 div.nova-cards > ul > li::marker {

@@ -22,6 +22,19 @@ const PX_TO_BORDER_WIDTH: Record<string, CellBorderWidth> = {
   "4px": "thick",
 };
 
+// Reads one CSS property of an element's inline style. Falls back to the raw
+// `style` attribute because a value that references a custom property, e.g.
+// `var(--nova-bg-light, #D1D5DB)` ("section color" fills, see
+// lib/sectionColors.ts), is not guaranteed to survive in `element.style`.
+function inlineStyleProp(element: HTMLElement, prop: string): string | null {
+  const viaCssom = element.style.getPropertyValue(prop).trim();
+  if (viaCssom) return viaCssom;
+  const raw = element.getAttribute("style");
+  if (!raw) return null;
+  const m = new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`, "i").exec(raw);
+  return m ? m[1].trim() : null;
+}
+
 const alignmentAttributes = {
   textAlign: {
     default: null as CellTextAlign | null,
@@ -50,7 +63,7 @@ const alignmentAttributes = {
 const styleAttributes = {
   backgroundColor: {
     default: null as string | null,
-    parseHTML: (element: HTMLElement) => element.style.backgroundColor || null,
+    parseHTML: (element: HTMLElement) => inlineStyleProp(element, "background-color"),
     renderHTML: (attributes: { backgroundColor?: string | null }) => {
       if (!attributes.backgroundColor) return {};
       return { style: `background-color: ${attributes.backgroundColor}` };
@@ -90,7 +103,7 @@ const styleAttributes = {
   },
   borderColor: {
     default: null as string | null,
-    parseHTML: (element: HTMLElement) => element.style.borderColor || null,
+    parseHTML: (element: HTMLElement) => inlineStyleProp(element, "border-color"),
     renderHTML: (attributes: { borderColor?: string | null }) => {
       if (!attributes.borderColor) return {};
       return { style: `border-color: ${attributes.borderColor}` };

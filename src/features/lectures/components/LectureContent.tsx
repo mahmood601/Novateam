@@ -11,6 +11,7 @@ import {
   type LectureTocEntry,
 } from "../lib/lectureContentHtml";
 import { cacheLectureImages } from "../services/imageCache";
+import { applyDarkColorsDom } from "@/features/editor/lib/darkColors";
 import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
 import LectureNotes from "./LectureNotes";
@@ -120,6 +121,8 @@ export default function LectureContent(props: Props) {
     if (!rendered && (building() || buildError())) return;
 
     el.innerHTML = rendered;
+    // Fixed colors stored in the lecture get a dark-mode counterpart (dark only).
+    applyDarkColorsDom(el);
 
     const toc = annotateHeadingsWithIds(el);
     props.onToc?.(toc);

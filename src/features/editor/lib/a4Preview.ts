@@ -7,6 +7,7 @@
 
 import type { Editor } from "@tiptap/core";
 
+import { addNovaCardNumbers } from "../tiptap/extensions/NovaCards";
 import { renderDiagramToSvg, sectionColorOf } from "./diagram-renderer";
 import {
   PAGE_BREAK_CSS,
@@ -78,7 +79,10 @@ export async function renderA4Pages(
   meta: A4PreviewMeta,
   isStale: () => boolean,
 ): Promise<{ pages: HTMLElement; destroy: () => void } | null> {
-  const parsed = new DOMParser().parseFromString(editor.getHTML(), "text/html");
+  const parsed = new DOMParser().parseFromString(
+    addNovaCardNumbers(editor.getHTML()),
+    "text/html",
+  );
   const blocks = Array.from(parsed.body.children);
   // data-a4-i = index of the top-level editor block (used for click-to-jump).
   blocks.forEach((el, i) => el.setAttribute("data-a4-i", String(i)));

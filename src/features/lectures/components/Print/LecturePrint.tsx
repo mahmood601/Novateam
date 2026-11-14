@@ -4,6 +4,7 @@ import { onMount, onCleanup, createSignal, Show } from "solid-js";
 import { Editor, JSONContent } from "@tiptap/core";
 
 import { renderAllDiagramsInContainer } from "@/features/editor/lib/diagram-renderer";
+import { addNovaCardNumbers } from "@/features/editor/tiptap/extensions/NovaCards";
 import { extensionsArr } from "@/features/editor/tiptap/extensions/extensionsArr";
 import {
   PAGE_BREAK_CSS,
@@ -55,7 +56,7 @@ async function jsonToPrintHtml(content: JSONContent | null): Promise<string> {
     contentType: "json",
   });
 
-  let html = await editor.getHTML();
+  let html = addNovaCardNumbers(await editor.getHTML());
 
   editor.destroy();
 
