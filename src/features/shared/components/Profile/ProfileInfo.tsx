@@ -28,6 +28,7 @@ export default function ProfileInfo(props: {
     setSaving(false);
     if (ok) {
       toast.success("تم تحديث الاسم ✓");
+      setNameValue(nameValue().trim());
       setEditingName(false);
     } else {
       toast.error("فشل التحديث، حاول مجدداً");

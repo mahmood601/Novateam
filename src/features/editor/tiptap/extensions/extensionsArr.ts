@@ -14,6 +14,7 @@ import {
   NovaCase,
   NovaChips,
   NovaCompare,
+  NovaShapeTitleEditor,
   NovaSteps,
   NovaSummary,
 } from "./NovaShapes";
@@ -57,6 +58,7 @@ export const extensionsArr = [
   NovaChips,
   NovaCase,
   NovaSummary,
+  NovaShapeTitleEditor,
   NovaQuiz,
   NovaPageBreak,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize

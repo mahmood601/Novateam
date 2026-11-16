@@ -27,7 +27,7 @@ export default function Dashboard() {
       {/* أضفنا mx-auto لضبط المحاذاة */}
       <div class="mx-auto flex h-full max-w-lg flex-col overflow-hidden pt-22 pb-22">
         <div class="mb-4 flex flex-wrap justify-center gap-3">
-          <Show when={canAny("subjects", "manage")}>
+          <Show when={canAny("quiz", "publish")}>
             <A
               href="/dashboard/classifier"
               class="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 p-4 text-white shadow-md"

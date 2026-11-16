@@ -104,6 +104,22 @@ import MenuSheet, { type MenuSheetItem } from "./MenuSheet";
 import FormatSheet from "./FormatSheet";
 import FindReplaceSheet from "./FindReplaceSheet";
 import InputSheet, { type InputField, type InputRequest } from "./InputSheet";
+import {
+  EDIT_SHAPE_TITLE_EVENT,
+  SHAPE_MENU,
+  addShapeItem,
+  currentShapeInfo,
+  deleteShapeItem,
+  exitShape,
+  insertNote,
+  insertShape,
+  NOTE_TYPE_LABELS,
+  removeShape,
+  setNoteType,
+  setShapeTitle,
+  SUPPORTED_ADMONITION_TYPES,
+  type EditShapeTitleDetail,
+} from "../tiptap/extensions/NovaShapes";
 import TableGripOverlay from "../tiptap/extensions/table/TableGripOverlay";
 import ImageGripOverlay from "../tiptap/extensions/ImageGripOverlay";
 import {
@@ -702,6 +718,69 @@ export default function TiptapReviewEditor(props: {
         .run();
     }
   };
+  
+  /** Buttons that manage the shape/note the cursor is in (shown only inside one). */
+  const manageCurrentShape = (panelProps: { onDone: () => void }) => (
+    <Show when={editor && currentShapeInfo(editor)}>
+            <div class="col-span-2 mt-1 border-t-2 border-t-darker-light-1 pt-2 text-sm opacity-70 dark:border-t-lighter-dark-2">
+              الشكل أو الملاحظة الحالية
+            </div>
+            <For
+              each={[
+                {
+                  label: "إضافة عنصر بعد الحالي",
+                  run: () => addShapeItem(editor!),
+                },
+                {
+                  label: "حذف العنصر الحالي",
+                  run: () => deleteShapeItem(editor!),
+                },
+                {
+                  label: "تعديل العنوان",
+                  run: () => {
+                    const info = currentShapeInfo(editor!);
+                    if (info) {
+                      editor!.view.dom.dispatchEvent(
+                        new CustomEvent(EDIT_SHAPE_TITLE_EVENT, { detail: info }),
+                      );
+                    }
+                  },
+                },
+                {
+                  label: "الخروج من الشكل",
+                  run: () => exitShape(editor!),
+                },
+                {
+                  label: "فك الشكل (إبقاء المحتوى)",
+                  run: () => removeShape(editor!, true),
+                },
+              ]}
+            >
+              {(action) => (
+                <button
+                  type="button"
+                  class="bg-darker-light-1 dark:bg-lighter-dark-2 min-h-11 rounded-lg px-3"
+                  onClick={() => {
+                    panelProps.onDone();
+                    action.run();
+                  }}
+                >
+                  {action.label}
+                </button>
+              )}
+            </For>
+            <button
+              type="button"
+              class="col-span-2 min-h-11 rounded-lg px-3 text-red-600"
+              onClick={() => {
+                panelProps.onDone();
+                removeShape(editor!, false);
+              }}
+            >
+              حذف الشكل كاملاً
+            </button>
+          </Show>
+  );
 
   /** Build the insert-menu items. Editor must already exist. */
   const getInsertItems = (): MenuSheetItem[] => [
@@ -734,6 +813,166 @@ export default function TiptapReviewEditor(props: {
       onClick: () => {
         editor?.commands.setDiagram();
       },
+    },
+    {
+      id: "shapes",
+      label: "شكل",
+      icon: Workflow,
+      panel: (panelProps) => (
+        <div class="grid grid-cols-2 gap-2 p-2" dir="rtl">
+          <For each={SHAPE_MENU}>
+            {(shape) => (
+              <button
+                type="button"
+                class="bg-darker-light-1 dark:bg-lighter-dark-2 min-h-11 rounded-lg px-3"
+                onClick={() => {
+                  if (!editor) return;
+                  // The shape is created now and STAYS OPEN (type inside it, close it with a lone ::: + Enter); the title
+                  // sheet then opens so the title is optional, not required.
+                  insertShape(editor, shape.key);
+                  panelProps.onDone();
+                  const info = currentShapeInfo(editor);
+                  if (info) {
+                    editor.view.dom.dispatchEvent(
+                      new CustomEvent(EDIT_SHAPE_TITLE_EVENT, { detail: info }),
+                    );
+                  }
+                }}
+              >
+                {shape.label}
+              </button>
+            )}
+          </For>
+          {manageCurrentShape(panelProps)}
+        </div>
+      ),
+    },
+    {
+      id: "note",
+      label: "ملاحظة",
+      icon: Workflow,
+      panel: (panelProps) => (
+        <div class="grid grid-cols-2 gap-2 p-2" dir="rtl">
+          <For each={[...SUPPORTED_ADMONITION_TYPES]}>
+            {(type) => (
+              <button
+                type="button"
+                class="bg-darker-light-1 dark:bg-lighter-dark-2 min-h-11 rounded-lg px-3"
+                onClick={() => {
+                  if (!editor) return;
+                  // Created now and left open: type inside it, close it with a
+                  // lone ::: + Enter. Its title is optional (tap the header).
+                  insertNote(editor, type);
+                  panelProps.onDone();
+                }}
+              >
+                {NOTE_TYPE_LABELS[type]}
+              </button>
+            )}
+          </For>
+          {/* Inside a note: switch its type, and manage it like a shape. */}
+          <Show when={editor && currentShapeInfo(editor)?.node === "novaNote"}>
+            <div class="col-span-2 mt-1 border-t-2 border-t-darker-light-1 pt-2 text-sm opacity-70 dark:border-t-lighter-dark-2">
+              تغيير نوع الملاحظة الحالية
+            </div>
+            <For each={[...SUPPORTED_ADMONITION_TYPES]}>
+              {(type) => (
+                <button
+                  type="button"
+                  class="min-h-11 rounded-lg border-2 border-darker-light-1 px-3 dark:border-lighter-dark-2"
+                  onClick={() => {
+                    panelProps.onDone();
+                    if (editor) setNoteType(editor, type);
+                  }}
+                >
+                  {NOTE_TYPE_LABELS[type]}
+                </button>
+              )}
+            </For>
+          </Show>
+          {manageCurrentShape(panelProps)}
+        </div>
+      ),
+    },
+    {
+      id: "shapes",
+      label: "شكل",
+      icon: Workflow,
+      panel: (panelProps) => (
+        <div class="grid grid-cols-2 gap-2 p-2" dir="rtl">
+          <For each={SHAPE_MENU}>
+            {(shape) => (
+              <button
+                type="button"
+                class="bg-darker-light-1 dark:bg-lighter-dark-2 min-h-11 rounded-lg px-3"
+                onClick={() => {
+                  if (!editor) return;
+                  // The shape is created now and STAYS OPEN (type inside it, close it with a lone ::: + Enter); the title
+                  // sheet then opens so the title is optional, not required.
+                  insertShape(editor, shape.key);
+                  panelProps.onDone();
+                  const info = currentShapeInfo(editor);
+                  if (info) {
+                    editor.view.dom.dispatchEvent(
+                      new CustomEvent(EDIT_SHAPE_TITLE_EVENT, { detail: info }),
+                    );
+                  }
+                }}
+              >
+                {shape.label}
+              </button>
+            )}
+          </For>
+          {manageCurrentShape(panelProps)}
+        </div>
+      ),
+    },
+    {
+      id: "note",
+      label: "ملاحظة",
+      icon: Workflow,
+      panel: (panelProps) => (
+        <div class="grid grid-cols-2 gap-2 p-2" dir="rtl">
+          <For each={[...SUPPORTED_ADMONITION_TYPES]}>
+            {(type) => (
+              <button
+                type="button"
+                class="bg-darker-light-1 dark:bg-lighter-dark-2 min-h-11 rounded-lg px-3"
+                onClick={() => {
+                  if (!editor) return;
+                  // Created now and left open: type inside it, close it with a
+                  // lone ::: + Enter. Its title is optional (tap the header).
+                  insertNote(editor, type);
+                  panelProps.onDone();
+                }}
+              >
+                {NOTE_TYPE_LABELS[type]}
+              </button>
+            )}
+          </For>
+          {/* Inside a note: switch its type, and manage it like a shape. */}
+          <Show when={editor && currentShapeInfo(editor)?.node === "novaNote"}>
+            <div class="col-span-2 mt-1 border-t-2 border-t-darker-light-1 pt-2 text-sm opacity-70 dark:border-t-lighter-dark-2">
+              تغيير نوع الملاحظة الحالية
+            </div>
+            <For each={[...SUPPORTED_ADMONITION_TYPES]}>
+              {(type) => (
+                <button
+                  type="button"
+                  class="min-h-11 rounded-lg border-2 border-darker-light-1 px-3 dark:border-lighter-dark-2"
+                  onClick={() => {
+                    panelProps.onDone();
+                    if (editor) setNoteType(editor, type);
+                  }}
+                >
+                  {NOTE_TYPE_LABELS[type]}
+                </button>
+              )}
+            </For>
+          </Show>
+          {manageCurrentShape(panelProps)}
+        </div>
+      ),
     },
     {
       id: "table",
@@ -847,6 +1086,25 @@ export default function TiptapReviewEditor(props: {
     const enableTyping = () => editorDom.setAttribute("inputmode", "text");
     editorDom.addEventListener("pointerdown", enableTyping);
     onCleanup(() => editorDom.removeEventListener("pointerdown", enableTyping));
+
+    // Tapping a shape's title strip (or the insert menu) asks to edit its
+    // title: show the same bottom sheet used for links/images.
+    const onEditShapeTitle = async (e: Event) => {
+      const { pos, title, label } = (e as CustomEvent<EditShapeTitleDetail>).detail;
+      const res = await askInput(`عنوان ${label}`, [
+        {
+          key: "title",
+          label: "العنوان",
+          value: title ?? "",
+          placeholder: "اتركه فارغاً لحذف العنوان",
+        },
+      ], { submitLabel: "حفظ" });
+      if (res && editor) setShapeTitle(editor, pos, res.title);
+    };
+    editorDom.addEventListener(EDIT_SHAPE_TITLE_EVENT, onEditShapeTitle);
+    onCleanup(() =>
+      editorDom.removeEventListener(EDIT_SHAPE_TITLE_EVENT, onEditShapeTitle),
+    );
   });
 
   // Flush the draft immediately when the tab is hidden/closed (mobile

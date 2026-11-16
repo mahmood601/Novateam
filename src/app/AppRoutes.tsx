@@ -95,6 +95,13 @@ const ManageAdminsRoute = () => (
     <ManageAdmins />
   </PermGate>
 );
+// The question classifier edits questions, so it follows the "quiz" grant
+// (publisher level or higher) instead of being open to every admin.
+const ClassifierRoute = () => (
+  <PermGate scope="quiz" min="publish" any>
+    <ClassifierPage />
+  </PermGate>
+);
 
 export default function AppRoutes() {
   return (
@@ -126,7 +133,7 @@ export default function AppRoutes() {
         <Route path="/dashboard" component={AdminGate}>
           <Route path="/" component={Dashboard} />
           {/* أداة تصنيف الأسئلة متاحة من داخل لوحة الأدمن */}
-          <Route path="/classifier" component={ClassifierPage} />
+          <Route path="/classifier" component={ClassifierRoute} />
           {/* Needs a "subjects" grant (super-admins always pass) */}
           <Route path="/manage" component={ManageGate}>
             <Route path="/" component={ManageSubjects} />

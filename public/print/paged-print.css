@@ -527,30 +527,68 @@
 .dark .lecture-content [data-color],
 .dark .nova-tiptap-content [data-color] {
   --nova-color: color-mix(in srgb, var(--nova-base) 75%, var(--color-ink-dark));
-  --nova-border: color-mix(in srgb, var(--nova-base) 70%, var(--color-base-dark));
-  --nova-bg-strong: color-mix(in srgb, var(--nova-base) 55%, var(--color-surface-dark));
-  --nova-bg-light: color-mix(in srgb, var(--nova-base) 30%, var(--color-surface-dark));
-  --nova-bg-tint: color-mix(in srgb, var(--nova-base) 14%, var(--color-surface-dark));
-  --nova-bg-tint-quiz: color-mix(in srgb, var(--nova-base) 10%, var(--color-surface-dark));
+  --nova-border: color-mix(
+    in srgb,
+    var(--nova-base) 70%,
+    var(--color-base-dark)
+  );
+  --nova-bg-strong: color-mix(
+    in srgb,
+    var(--nova-base) 55%,
+    var(--color-surface-dark)
+  );
+  --nova-bg-light: color-mix(
+    in srgb,
+    var(--nova-base) 30%,
+    var(--color-surface-dark)
+  );
+  --nova-bg-tint: color-mix(
+    in srgb,
+    var(--nova-base) 14%,
+    var(--color-surface-dark)
+  );
+  --nova-bg-tint-quiz: color-mix(
+    in srgb,
+    var(--nova-base) 10%,
+    var(--color-surface-dark)
+  );
 }
 
 /* Headings / table header / code: text from the palette, not fixed. */
 .dark .lecture-content,
 .dark .nova-tiptap-content {
-  h1, h2, h6 { color: var(--color-ink-dark) !important; }
+  h1,
+  h2,
+  h6 {
+    color: var(--color-ink-dark) !important;
+  }
 
-  table th { background-color: var(--nova-bg-strong); }
-  table th p { color: var(--color-ink-dark); }
+  table th {
+    background-color: var(--nova-bg-strong);
+  }
+  table th p {
+    color: var(--color-ink-dark);
+  }
 
-  code { background-color: color-mix(in srgb, var(--color-ink-dark) 10%, transparent); }
+  code {
+    background-color: color-mix(
+      in srgb,
+      var(--color-ink-dark) 10%,
+      transparent
+    );
+  }
 }
 
 /* Fixed colors stored in a lecture get a dark counterpart (see lib/darkColors.ts).
    --dk-bg / --dk-fg are set per element at render time; active under .dark only. */
 .dark .lecture-content [data-dk-bg],
-.dark .nova-tiptap-content [data-dk-bg] { background-color: var(--dk-bg) !important; }
+.dark .nova-tiptap-content [data-dk-bg] {
+  background-color: var(--dk-bg) !important;
+}
 .dark .lecture-content [data-dk-fg],
-.dark .nova-tiptap-content [data-dk-fg] { color: var(--dk-fg) !important; }
+.dark .nova-tiptap-content [data-dk-fg] {
+  color: var(--dk-fg) !important;
+}
 
 /* Diagrams (Pele): colors come from the dark palette tokens + the section hues
    (--pele-base-*, set inline by mermaid-renderer / diagram-renderer). Live: no
@@ -564,15 +602,51 @@
   --pele-surface: var(--color-surface-dark) !important;
   --pele-surface-alt: var(--color-lighter-dark-2) !important;
   --pele-border: var(--color-line-dark) !important;
-  --pele-accent: color-mix(in srgb, var(--pele-base-accent) 75%, var(--color-ink-dark)) !important;
-  --pele-series-1: color-mix(in srgb, var(--pele-base-1) 75%, var(--color-ink-dark)) !important;
-  --pele-series-2: color-mix(in srgb, var(--pele-base-2) 75%, var(--color-ink-dark)) !important;
-  --pele-series-3: color-mix(in srgb, var(--pele-base-3) 75%, var(--color-ink-dark)) !important;
-  --pele-series-4: color-mix(in srgb, var(--pele-base-4) 75%, var(--color-ink-dark)) !important;
-  --pele-series-5: color-mix(in srgb, var(--pele-base-5) 75%, var(--color-ink-dark)) !important;
-  --pele-series-6: color-mix(in srgb, var(--pele-base-6) 75%, var(--color-ink-dark)) !important;
-  --pele-series-7: color-mix(in srgb, var(--pele-base-7) 75%, var(--color-ink-dark)) !important;
-  --pele-series-8: color-mix(in srgb, var(--pele-base-8) 75%, var(--color-ink-dark)) !important;
+  --pele-accent: color-mix(
+    in srgb,
+    var(--pele-base-accent) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-1: color-mix(
+    in srgb,
+    var(--pele-base-1) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-2: color-mix(
+    in srgb,
+    var(--pele-base-2) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-3: color-mix(
+    in srgb,
+    var(--pele-base-3) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-4: color-mix(
+    in srgb,
+    var(--pele-base-4) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-5: color-mix(
+    in srgb,
+    var(--pele-base-5) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-6: color-mix(
+    in srgb,
+    var(--pele-base-6) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-7: color-mix(
+    in srgb,
+    var(--pele-base-7) 75%,
+    var(--color-ink-dark)
+  ) !important;
+  --pele-series-8: color-mix(
+    in srgb,
+    var(--pele-base-8) 75%,
+    var(--color-ink-dark)
+  ) !important;
 }
 
 /* ---------- headings — dark background / white text (confirmed direction) ---------- */
@@ -609,7 +683,6 @@
   break-inside: auto;
 }
 
-
 .print-area table tbody,
 .pagedjs_page table tbody {
   width: 100%;
@@ -629,7 +702,6 @@
   box-sizing: border-box;
   white-space: normal;
 }
-
 
 .lecture-body,
 .tiptap,
@@ -656,10 +728,9 @@
     background-color: var(--nova-color);
     font-weight: 600;
     text-align: center;
-    p{
-
-    color: #fff;
-    font-family: "OoredooArabic-Heavy", sans-serif !important;
+    p {
+      color: #fff;
+      font-family: "OoredooArabic-Heavy", sans-serif !important;
     }
   }
 
@@ -685,16 +756,33 @@
     width: 4px;
   }
 }
- .pagedjs_pages,
-.tiptap{
+.pagedjs_pages,
+.tiptap {
   * {
-    font-family: "Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", sans-serif;
+    font-family:
+      "Hacen Tunisia", "OoredooArabic-Heavy", "NovaHeading", sans-serif;
   }
-} 
+}
+.dark .lecture-content blockquote,
+.dark tiptap blockquote p,
+.dark .nova-tiptap-content blockquote {
+  background: color-mix(
+    in srgb,
+    var(--nova-base, var(--color-main, #b118d7)) 14%,
+    var(--color-surface-dark, #1b243a)
+  );
+  color: white;
+  box-shadow: inset 0 0 0 1px
+    color-mix(
+      in srgb,
+      var(--nova-color, var(--color-main, #b118d7)) 22%,
+      transparent
+    );
+}
 .pagedjs_pages,
 .tiptap,
 .lecture-content {
-   h1,
+  h1,
   h2,
   h3,
   h4,
@@ -768,7 +856,21 @@
     margin-right: 0;
     direction: rtl;
     color: var(--nova-ink, #1a1a1a);
-    opacity: 0.85;
+    line-height: 1.8;
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--nova-color, #8b5cf6) 12%, transparent);
+  }
+
+  blockquote p {
+    margin-block: 0.25rem;
+  }
+
+  blockquote p:first-child {
+    margin-block-start: 0;
+  }
+
+  blockquote p:last-child {
+    margin-block-end: 0;
   }
 
   /* ---------- الكود ---------- */
@@ -1223,7 +1325,7 @@
   }
 
   .nova-note[data-type="note"] {
-    --callout-bg: #eee;
+    --callout-bg: var(--color-lighter-dark-2, #27324a);
   }
   .nova-note[data-type="tip"] {
     --callout-bg: rgba(34, 197, 94, 0.18);
@@ -1399,9 +1501,15 @@ img[data-align="right"],
   margin: 1.25rem 0;
   text-align: center;
 }
-.nova-cards[data-cols="1"] { --cards-cols: 1; }
-.nova-cards[data-cols="2"] { --cards-cols: 2; }
-.nova-cards[data-cols="3"] { --cards-cols: 3; }
+.nova-cards[data-cols="1"] {
+  --cards-cols: 1;
+}
+.nova-cards[data-cols="2"] {
+  --cards-cols: 2;
+}
+.nova-cards[data-cols="3"] {
+  --cards-cols: 3;
+}
 
 /* Title bar: drawn from the data-title attribute, so no extra element
    exists in the document. */
@@ -1417,7 +1525,9 @@ img[data-align="right"],
   line-height: 1.4;
   break-after: avoid;
 }
-.nova-cards:not([data-title])::before { display: none; }
+.nova-cards:not([data-title])::before {
+  display: none;
+}
 
 /* `div.nova-cards > ul` is deliberately more specific than the
    `.tiptap ul` rules in editor.css, so the list loses its bullets and
@@ -1431,7 +1541,9 @@ div.nova-cards > ul {
   list-style: none;
 }
 
-div.nova-cards:not([data-cols="1"]):not([data-cols="3"]) > ul > li:last-child:nth-child(odd),
+div.nova-cards:not([data-cols="1"]):not([data-cols="3"])
+  > ul
+  > li:last-child:nth-child(odd),
 div.nova-cards[data-cols="3"] > ul > li:last-child:nth-child(3n + 1) {
   grid-column: 1 / -1;
 }
@@ -1452,7 +1564,9 @@ div.nova-cards > ul > li {
   color: var(--shape-ink);
   break-inside: avoid;
 }
-div.nova-cards > ul > li > p { margin: 0; }
+div.nova-cards > ul > li > p {
+  margin: 0;
+}
 
 /* Number badge. inset-inline-start = the RIGHT corner in RTL, which
    matches the Word samples. */
@@ -1490,7 +1604,9 @@ div.nova-cards > ul > li::marker {
 }
 
 /* ---------- theme: bignum ---------- */
-[data-shape-theme="bignum"] .nova-cards { --shape-card-bg: #fff; }
+[data-shape-theme="bignum"] .nova-cards {
+  --shape-card-bg: #fff;
+}
 [data-shape-theme="bignum"] div.nova-cards > ul > li {
   border: 1.5px solid var(--shape-bar);
 }
@@ -1507,7 +1623,9 @@ div.nova-cards > ul > li::marker {
 }
 
 /* ---------- theme: square ---------- */
-[data-shape-theme="square"] .nova-cards { --shape-card-bg: #f7f7f8; }
+[data-shape-theme="square"] .nova-cards {
+  --shape-card-bg: #f7f7f8;
+}
 [data-shape-theme="square"] div.nova-cards > ul > li {
   border: 0;
   border-inline-start: 3px solid var(--shape-accent);
@@ -1522,7 +1640,9 @@ div.nova-cards > ul > li::marker {
    purpose, so the A4 preview and the print output keep their columns
    even when the phone's screen is narrow. */
 @media (max-width: 520px) {
-  .lecture-content .nova-cards { --cards-cols: 1; }
+  .lecture-content .nova-cards {
+    --cards-cols: 1;
+  }
 }
 
 /* Dark mode (reader + live editor). Only swaps two variables. */
@@ -1541,9 +1661,13 @@ div.nova-cards > ul > li::marker {
   --shape-ink: #1a1a1a;
 }
 [data-shape-theme="bignum"] .lecture-body .nova-cards,
-[data-shape-theme="bignum"] .pagedjs_pages .nova-cards { --shape-card-bg: #fff; }
+[data-shape-theme="bignum"] .pagedjs_pages .nova-cards {
+  --shape-card-bg: #fff;
+}
 [data-shape-theme="square"] .lecture-body .nova-cards,
-[data-shape-theme="square"] .pagedjs_pages .nova-cards { --shape-card-bg: #f7f7f8; }
+[data-shape-theme="square"] .pagedjs_pages .nova-cards {
+  --shape-card-bg: #f7f7f8;
+}
 
 /* ---------- Nova shape blocks ---------- */
 .nova-steps,
@@ -1581,11 +1705,21 @@ div.nova-cards > ul > li::marker {
   margin-bottom: 0.65rem;
 }
 
-.nova-steps[data-title]::before { content: attr(data-title); }
-.nova-compare[data-title]::before { content: attr(data-title); }
-.nova-chips[data-title]::before { content: attr(data-title); }
-.nova-case[data-title]::before { content: attr(data-title); }
-.nova-summary[data-title]::before { content: attr(data-title); }
+.nova-steps[data-title]::before {
+  content: attr(data-title);
+}
+.nova-compare[data-title]::before {
+  content: attr(data-title);
+}
+.nova-chips[data-title]::before {
+  content: attr(data-title);
+}
+.nova-case[data-title]::before {
+  content: attr(data-title);
+}
+.nova-summary[data-title]::before {
+  content: attr(data-title);
+}
 
 /* Steps: Claude may write "- " or "1." lines, so both <ul> and <ol> are
    styled. The numbers always come from the CSS counter, never from the text. */
@@ -1642,6 +1776,7 @@ div.nova-cards > ul > li::marker {
   list-style: none;
   padding: 0;
   margin: 0;
+  justify-content: spacbe-between;
 }
 .nova-chips > ul > li,
 .nova-chips > ol > li {
@@ -1649,6 +1784,13 @@ div.nova-cards > ul > li::marker {
   border-radius: 999px;
   padding: 0.25rem 0.7rem;
   background: var(--shape-card-bg, #fff);
+  flex: 1;
+  text-align: center;
+  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
 }
 
 .nova-case {
@@ -1688,7 +1830,6 @@ div.nova-cards > ul > li::marker {
   --shape-tint: var(--nova-bg-tint, #f8fafc);
   --shape-ink: #1a1a1a;
 }
-
 
 /* ---------- Shape themes for steps / chips / compare / case / summary ----------
    Same three themes as cards (set data-shape-theme on <html>; the Settings

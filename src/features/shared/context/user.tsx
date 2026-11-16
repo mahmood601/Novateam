@@ -151,15 +151,18 @@ export function UserProvider(props: any) {
     name?: string;
     year?: string;
   }): Promise<boolean> => {
-    if (!user()) return false;
+    const currentUser = user();
+    if (!currentUser) return false;
 
-    const success = await updateUserProfile(user()!.id, updates);
+    const success = await updateUserProfile(currentUser.id, updates);
     if (!success) return false;
 
-    const updated = { ...user()!, ...updates };
-    if (updated) {
-      if (updates.year) localStorage.setItem("year", updates.year);
-    }
+    const updatedUser = { ...currentUser, ...updates };
+    writeCachedUser(updatedUser);
+    setUser(updatedUser);
+
+    if (updates.year !== undefined) localStorage.setItem("year", updates.year);
+
     return true;
   };
 

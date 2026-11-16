@@ -131,10 +131,18 @@ markdownTokenizer: {
     return match ? (match.index ?? -1) : -1;
   },
   tokenize(src: string, _tokens: unknown, lexer: { blockTokens: (value: string) => unknown[] }) {
+    // Groups: 1 = type, 2 = {title="..."}, 3 = plain title, 4 = body.
+    const OPEN =
+      "^:::(note|warning|tip|danger|info|important)(?:[ \\t]+\\{([^}\\n]*)\\})?(?:[ \\t]+([^\\n]*))?[ \\t]*\\n";
+    // Closed form (as before). The body may not hold another `:::word` opener,
+    // so an unclosed note cannot borrow the closing line of a later block.
     const match =
-      /^:::(note|warning|tip|danger|info|important)(?:[ \t]+\{([^}\n]*)\})?(?:[ \t]+([^\n]*))?[ \t]*\n([\s\S]*?)\n[ \t]*:::[ \t]*(?:\n|$)/.exec(
-        src,
-      );
+      new RegExp(
+        OPEN + "(?:((?:(?!\\n[ \\t]*:::[A-Za-z])[\\s\\S])*?)\\n)?[ \\t]*:::[ \\t]*(?:\\n|$)",
+      ).exec(src) ??
+      // No closing `:::` (common in AI output): close at the next `:::` line,
+      // heading, or the end of the text — same rule as the layout shapes.
+      new RegExp(OPEN + "([\\s\\S]*?)(?=\\n[ \\t]*:::|\\n#{1,6}[ \\t]|$)").exec(src);
     if (!match) return undefined;
 
     // TEMP DIAGNOSTIC (remove once import is confirmed): one line per callout.

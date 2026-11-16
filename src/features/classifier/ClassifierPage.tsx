@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show, onMount } from "solid-js";
+import { createMemo, createSignal, For, Show, onMount, createEffect } from "solid-js";
 import toast from "solid-toast";
 import { supabase } from "../shared/services/supabase";
 import { useUser } from "../shared/context/user";
@@ -232,21 +232,24 @@ export default function ClassifierPage() {
 
   onMount(() => { void loadSubjects(); });
   // User identity is deliberately consumed so this route shares the existing authenticated session.
+
+  createEffect(() => {
+    const message = error();
+    if (message) toast.error(message);
+  });
   return (
     <main class="min-h-dvh bg-darker-light-1 px-4 py-8 dark:bg-main-dark" dir="rtl">
       <div class="mx-auto max-w-5xl">
-        <header class="my-8">
+        <header class="mb-8 mt-14">
           <h1 class="text-2xl font-bold">🧠 مصنّف الأسئلة</h1>
           <p class="mt-1 text-sm text-ink-muted-light dark:text-ink-muted-dark">تصنيف الأسئلة حسب المحاضرات باستخدام Gemini</p>
           <p class="mt-1 text-xs text-ink-muted-light">الحساب: {user()?.email}</p>
         </header>
-        <Show when={error()}>
-          <div role="alert" class="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error()}</div>
-        </Show>
-        <section class="rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark">
+
+        <section class="rounded-2xl bg-surface-light p-5 shadow-sm dark:bg-surface-dark ">
           <Show when={step() === "subjects"}>
             <h2 class="mb-4 text-lg font-bold">اختر المادة</h2>
-            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 overflow-y-scroll max-h-[50dvh]">
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 overflow-y-scroll max-h-[40dvh]">
               <For each={subjects()}>{s =>
                 <button class={`rounded-xl border p-3 text-right ${subjectId() === s.id ? "border-main bg-main/10" : "border-line-light dark:border-line-dark"}`} onClick={() => setSubjectId(s.id)}>{s.name}</button>
               }</For>
@@ -257,7 +260,7 @@ export default function ClassifierPage() {
           <Show when={step() === "years"}>
             <h2 class="mb-2 text-lg font-bold">اختر الدورات المطلوب تصنيفها</h2>
             <p class="mb-4 text-sm text-amber-700">حدّد الدورات غير المصنّفة فقط؛ لن تتغير الدورات الأخرى.</p>
-            <div class="space-y-2">
+            <div class="space-y-2  max-h-[40dvh] overflow-y-scroll">
               <For each={years()}>{y =>
                 <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-line-light p-3 dark:border-line-dark">
                   <input type="checkbox" checked={yearIds().includes(y.id)} onChange={e => setYearIds(prev => e.currentTarget.checked ? [...prev, y.id] : prev.filter(id => id !== y.id))}/>
