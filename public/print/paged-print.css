@@ -650,14 +650,13 @@
 }
 
 /* ---------- headings — dark background / white text (confirmed direction) ---------- */
-.pagedjs_pages,
-.tiptap {
+.pagedjs_pages {
   h1 {
-    font-size: 18pt;
+    font-size: 16pt;
   }
 
   h2 {
-    font-size: 16pt;
+    font-size: 14pt;
   }
   h3,
   h4,
@@ -779,27 +778,10 @@
       transparent
     );
 }
-.pagedjs_pages,
+
 .tiptap,
 .lecture-content {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    text-align: right;
-    font-family: "NovaHeading";
-    padding: 0.3em;
-    color: #000;
-    border: 5px solid var(--nova-bg-strong);
-    background-color: var(--nova-bg-light);
-    margin-top: 0.5em;
-    margin-bottom: 0.2em;
-    break-after: avoid;
-  }
-
-  h1 {
+   h1 {
     font-size: 1.5em;
     font-weight: 700;
     text-align: center;
@@ -829,6 +811,54 @@
     opacity: 0.9;
     background: var(--nova-bg-light);
   }
+}
+
+.pagedjs_pages,
+.tiptap,
+.lecture-content {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-align: right;
+    font-family: "NovaHeading";
+    padding: 0.3em;
+    color: #000;
+    border: 5px solid var(--nova-bg-strong);
+    background-color: var(--nova-bg-light);
+    margin-top: 0.2em;
+    margin-bottom: 0.1em;
+    break-after: avoid;
+  }
+  h1 {
+    font-weight: 700;
+    text-align: center;
+  }
+  h2 {
+    font-weight: 700;
+    border-left: none;
+    border-right: none;
+    text-align: center;
+  }
+  h3 {
+    font-weight: 600;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    text-align: center;
+    color: var(--nova-color);
+    background: var(--nova-bg-light);
+  }
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    opacity: 0.9;
+    background: var(--nova-bg-light);
+  }
+  
   h4 {
     border-top: none;
     border-bottom: none;
@@ -1174,7 +1204,7 @@
 /* Base Callout */
 .nova-note {
   --callout-color: #64748b;
-  --callout-bg: rgba(100, 116, 139, 0.08);
+  --callout-bg: #eee;
 
   break-inside: avoid;
   position: relative;
@@ -1254,7 +1284,7 @@
   --callout-bg: var(--color-darker-light-2);
 }
 
-.dark .lecture-content .nova-note[data-type="note"] {
+.dark .nova-note[data-type="note"] {
   --callout-bg: var(--color-lighter-dark-2);
 }
 
@@ -1315,7 +1345,7 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
+.dark {
   .nova-note::before {
     background: linear-gradient(
       to bottom,
@@ -1725,14 +1755,12 @@ div.nova-cards > ul > li::marker {
    styled. The numbers always come from the CSS counter, never from the text. */
 .nova-steps > ul,
 .nova-steps > ol {
-  counter-reset: nova-step;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 .nova-steps > ul > li,
 .nova-steps > ol > li {
-  counter-increment: nova-step;
   position: relative;
   margin: 0 0 0.45rem;
   padding: 0.2rem 0 0.2rem 0;
@@ -1741,7 +1769,7 @@ div.nova-cards > ul > li::marker {
 }
 .nova-steps > ul > li::before,
 .nova-steps > ol > li::before {
-  content: counter(nova-step);
+  content: attr(data-step-number);
   position: absolute;
   inset-inline-start: 0;
   top: 0.15rem;
@@ -1754,6 +1782,21 @@ div.nova-cards > ul > li::marker {
   color: #fff;
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+/* The live editor renders directly from ProseMirror and has no stamped
+   attributes. Generated lecture/Paged.js HTML uses data-step-number. */
+.tiptap .nova-steps > ul,
+.tiptap .nova-steps > ol {
+  counter-reset: nova-step;
+}
+.tiptap .nova-steps > ul > li,
+.tiptap .nova-steps > ol > li {
+  counter-increment: nova-step;
+}
+.tiptap .nova-steps > ul > li::before,
+.tiptap .nova-steps > ol > li::before {
+  content: counter(nova-step);
 }
 
 /* The circle badge is the only marker for a step. Explicitly suppress the

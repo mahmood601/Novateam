@@ -6,6 +6,25 @@ import type { Node as PMNode, ResolvedPos } from "@tiptap/pm/model";
 
 type ShapeName = "steps" | "compare" | "chips" | "case" | "summary";
 
+/**
+ * Stamp step numbers into generated HTML because Paged.js can rewrite
+ * CSS-counter increments while paginating independently reset lists.
+ */
+export function addNovaStepNumbers(html: string): string {
+  const document = new DOMParser().parseFromString(html, "text/html");
+
+  document.querySelectorAll<HTMLElement>(".nova-steps > ul, .nova-steps > ol").forEach((list) => {
+    let number = 0;
+    Array.from(list.children).forEach((item) => {
+      if (item instanceof HTMLElement && item.tagName === "LI") {
+        item.dataset.stepNumber = String(++number);
+      }
+    });
+  });
+
+  return document.body.innerHTML;
+}
+
 const SHAPES: Record<ShapeName, { className: string; content: string }> = {
   steps: { className: "nova-steps", content: "block+" },
   compare: { className: "nova-compare", content: "block+" },

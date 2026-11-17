@@ -76,6 +76,10 @@ import {
   upsertLecture,
   updateDoctorName,
 } from "@/features/shared/services/lecturesUpdates";
+import {
+  getSubjectInfo,
+  trasnlationMap,
+} from "@/features/shared/services/subjects";
 import { useUser } from "@/features/shared/context/user";
 import { useParams, useNavigate } from "@solidjs/router";
 
@@ -183,15 +187,29 @@ export default function TiptapReviewEditor(props: {
     pages.style.setProperty("zoom", String(Math.min(3, fit * a4Scale())));
   };
 
-  const runA4Preview = async () => {
+  const runA4Preview = async (first = false) => {
     if (!editor || !a4HostRef) return;
     const id = ++a4Run;
+    // Top-level block that holds the caret: the preview scrolls to its page.
+    const caretBlock = editor.state.selection.$from.index(0);
     setA4Busy(true);
     setA4Error(false);
     try {
       const res = await renderA4Pages(
         editor,
-        { headerTitle: seasonName(), footerTitle: seasonName() },
+        {
+          headerTitle: seasonName(),
+          footerTitle: seasonName(),
+          cover: {
+            subjectName: subjectInfo()?.name ?? "",
+            subjectId: props.subjectId,
+            lectureTitle: seasonName(),
+            doctorName: doctorName(),
+            year: trasnlationMap[subjectInfo()?.year_key ?? ""] ?? "",
+            semester: trasnlationMap[subjectInfo()?.semester ?? ""] ?? "",
+            lectureNumber: lectureNumber(),
+          },
+        },
         () => id !== a4Run || !a4Active(),
       );
       if (!res || id !== a4Run || !a4HostRef) {
@@ -204,6 +222,14 @@ export default function TiptapReviewEditor(props: {
       a4HostRef.replaceChildren(res.pages);
       applyA4Zoom();
       a4HostRef.scrollTop = scroll; // keep the reader where they were
+      if (first) {
+        // First render after opening A4 mode: jump to the caret's page.
+        // A block split over several pages appears once per page; the first
+        // match is where it starts.
+        a4HostRef
+          .querySelector<HTMLElement>(`[data-a4-i="${caretBlock}"]`)
+          ?.scrollIntoView({ block: "start" });
+      }
     } catch (err) {
       console.warn("A4 preview failed", err);
       if (id === a4Run) setA4Error(true);
@@ -215,7 +241,7 @@ export default function TiptapReviewEditor(props: {
   // Entering A4 mode renders; leaving it cleans up.
   createEffect(() => {
     if (a4Active()) {
-      untrack(runA4Preview); // only a4Active() should trigger this effect
+      untrack(() => runA4Preview(true)); // only a4Active() should trigger this effect
     } else {
       a4Run++; // cancel any run in flight
       a4Cleanup?.();
@@ -289,6 +315,14 @@ export default function TiptapReviewEditor(props: {
 
   const seasonName = () =>
     seasons()?.find((s) => String(s.id) === String(seasonId))?.name ?? `الفصل ${seasonId}`;
+
+  // Data for the A4 preview's cover page (same fields the print page uses).
+  const [subjectInfo] = createResource(() => props.subjectId, getSubjectInfo);
+  const [doctorName, setDoctorName] = createSignal("");
+  const lectureNumber = () => {
+    const i = seasons()?.findIndex((s) => String(s.id) === String(seasonId)) ?? -1;
+    return i >= 0 ? i + 1 : undefined;
+  };
 
   const { user, can } = useUser();
   const [raw, setRaw] = createSignal<JSONContent | null>(null);
@@ -445,6 +479,7 @@ export default function TiptapReviewEditor(props: {
       subjectId: subjectId,
       seasonId: seasonId,
     });
+    setDoctorName(content?.data?.[0]?.doctor_name ?? "");
     const remoteRaw: JSONContent | null = content?.data?.[0]?.content?.raw ?? null;
     const remote = remoteRaw
       ? migrateLegacyDiagramNodes(remoteRaw)
@@ -530,13 +565,15 @@ export default function TiptapReviewEditor(props: {
   const saveToSupabase = async () => {
     if (!editor) return;
 
-    // What I INTEND to do. Postgres re-checks it: if my permission is
-    // lower than the UI thinks, the save still can't go live.
+    // Saving never publishes. A publisher's save only stores the content
+    // (the lecture keeps whatever state it already has; a brand-new lecture
+    // starts as a hidden draft). Publishing happens from the dashboard.
+    // A contributor's save is still marked "pending" for review.
     const canPublish = can("lecture", props.subjectId, "publish");
 
     const res = await askInput("حفظ في قاعدة البيانات", [], {
       message: canPublish
-        ? "هل أنت متأكد أنك تريد حفظ التغييرات في قاعدة البيانات؟ سيتم استبدال النسخة الحالية للجميع."
+        ? "سيُحفظ المحتوى فقط ولن يتغيّر وضع النشر. لنشر المحاضرة أو إلغاء نشرها استخدم زر النشر في لوحة التحكم."
         : "سيُحفظ عملك كمسودة بانتظار مراجعة المشرف، ولن يظهر للطلاب قبل اعتماده.",
       submitLabel: "نعم، احفظ",
     });
@@ -550,7 +587,8 @@ export default function TiptapReviewEditor(props: {
       seasonId: props.seasonId,
       rawContent: content,
       userId: user()?.id,
-      status: canPublish ? "published" : "pending",
+      // undefined = leave the publish state alone (see comment above)
+      status: canPublish ? undefined : "pending",
     });
 
     if (error) {
@@ -559,8 +597,12 @@ export default function TiptapReviewEditor(props: {
       toast.error(error.message);
       return;
     }
-    if (data?.status && data.status !== "published") {
+    if (data?.status === "published") {
+      toast.success("حُفظت التعديلات ✅ (المحاضرة منشورة وتظهر للطلاب بالتعديل)");
+    } else if (data?.status === "pending") {
       toast.success("حُفظت المحاضرة وهي بانتظار مراجعة المشرف ✅");
+    } else {
+      toast.success("حُفظت كمسودة ✅ — انشرها من لوحة التحكم");
     }
     setDirty(false);
     baseline = JSON.stringify(content); // what is in the database now

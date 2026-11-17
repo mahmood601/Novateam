@@ -63,11 +63,12 @@ export async function jsonToLectureHtml(
     return "";
   }
 
-  const [{ Editor }, { extensionsArr }, { addNovaCardNumbers }] =
+  const [{ Editor }, { extensionsArr }, { addNovaCardNumbers }, { addNovaStepNumbers }] =
     await Promise.all([
       import("@tiptap/core"),
       import("@/features/editor/tiptap/extensions/extensionsArr"),
       import("@/features/editor/tiptap/extensions/NovaCards"),
+      import("@/features/editor/tiptap/extensions/NovaShapes"),
     ]);
 
   // Let the browser paint the "building" state before the heavy
@@ -87,7 +88,7 @@ export async function jsonToLectureHtml(
     editable: false,
   });
 
-  const html = addNovaCardNumbers(editor.getHTML());
+  const html = addNovaStepNumbers(addNovaCardNumbers(editor.getHTML()));
   editor.destroy();
 
   return html;

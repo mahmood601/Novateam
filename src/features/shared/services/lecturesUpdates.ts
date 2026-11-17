@@ -8,9 +8,19 @@ export async function upsertLecture({
   seasonId,
   rawContent,
   userId,
-  // The caller says what it INTENDS. Postgres has the last word: without
-  // "publish" permission a "published" request is saved as "pending".
-  status = "published",
+  // Saving content must NOT change the publish state. Publishing is a
+  // separate action (dashboard buttons / bulk bar).
+  //  - status omitted + lecture exists  -> content only, status untouched
+  //  - status omitted + new lecture     -> created as "draft" (hidden)
+  //  - status given ("pending")         -> used by contributors who cannot
+  //                                        publish; Postgres has the last word.
+  status,
+}: {
+  subjectId: string;
+  seasonId: number | string;
+  rawContent: unknown;
+  userId?: string;
+  status?: "draft" | "pending" | "published";
 }) {
   const { data: existing, error: lookupError } = await supabase
     .from("formatted_lectures")
@@ -26,7 +36,6 @@ export async function upsertLecture({
 
   const values = {
     content: { raw: rawContent },
-    status,
     updated_by: userId,
     updated_at: new Date().toISOString(),
   };
@@ -34,7 +43,9 @@ export async function upsertLecture({
   if (existing) {
     const { data, error } = await supabase
       .from("formatted_lectures")
-      .update(values)
+      // `status` is spread ONLY when the caller passed one, so a plain save
+      // leaves a published lecture published and a draft a draft.
+      .update(status ? { ...values, status } : values)
       .eq("id", existing.id)
       .select()
       .single();
@@ -53,6 +64,7 @@ export async function upsertLecture({
       subject_id: subjectId,
       season_id: seasonId,
       ...values,
+      status: status ?? "draft",
       created_by: userId,
     })
     .select()
@@ -220,6 +232,38 @@ export async function updateLectureStatus(subjectId, seasonId, status, userId) {
   }
 
   return { data, error: null };
+}
+
+// ============================================
+// تحديث (Update) — حالة النشر لعدة محاضرات دفعة واحدة
+// ============================================
+export async function updateLecturesStatus(
+  subjectId: string,
+  seasonIds: number[],
+  status: "draft" | "pending" | "published",
+  userId?: string,
+): Promise<{ count: number; error: { message: string; code?: string } | null }> {
+  if (seasonIds.length === 0) return { count: 0, error: null };
+
+  // .select("season_id") returns the rows that REALLY changed. RLS skips rows
+  // you may not touch WITHOUT an error, so the caller compares this count
+  // with what it asked for.
+  const { data, error } = await supabase
+    .from("formatted_lectures")
+    .update({
+      status,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("subject_id", subjectId)
+    .in("season_id", seasonIds)
+    .select("season_id");
+
+  if (error) {
+    console.error("[updateLecturesStatus]", error.message);
+    return { count: 0, error: mapError(error) };
+  }
+  return { count: data?.length ?? 0, error: null };
 }
 
 // ============================================

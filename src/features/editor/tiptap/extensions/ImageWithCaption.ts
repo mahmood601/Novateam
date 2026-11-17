@@ -12,6 +12,25 @@ export function clampImagePct(n: number) {
   return Math.min(IMAGE_MAX_PCT, Math.max(IMAGE_MIN_PCT, Math.round(n)));
 }
 
+/**
+ * Displayed width / height of the image. `null` = the picture's own ratio.
+ * Corner handles never change it (they scale both sides); side handles do:
+ * that is the "stretch" a Word user expects.
+ */
+export const IMAGE_MIN_ASPECT = 0.1;
+export const IMAGE_MAX_ASPECT = 10;
+
+export function clampImageAspect(n: number) {
+  const v = Math.min(IMAGE_MAX_ASPECT, Math.max(IMAGE_MIN_ASPECT, n));
+  return Math.round(v * 10000) / 10000;
+}
+
+/** CSS that makes an <img> with `width` set take exactly this ratio.
+ *  `object-fit: fill` stretches the picture to the box (that IS the stretch). */
+export function aspectCss(aspect: number | null | undefined) {
+  return aspect ? `aspect-ratio:${aspect};object-fit:fill` : "";
+}
+
 // Inline styles can't lose to stylesheet order/specificity (the old
 // `.pagedjs_pages .image-with-caption { display:inline-flex }` rule beat the
 // plain `.image-with-caption` rule, so captioned images never centred).
@@ -30,12 +49,20 @@ const MARGINS: Record<string, string> = {
  * editor's saved HTML, the reading view, the A4 preview and the print
  * page, the percentage means the same thing everywhere — including print.
  */
-function outerAttrs(align: ImageAlign, wrapper: boolean, pct: number | null) {
+function outerAttrs(
+  align: ImageAlign,
+  wrapper: boolean,
+  pct: number | null,
+  aspect: number | null = null,
+) {
   const style: string[] = [];
   if (align) style.push(`display:${wrapper ? "flex" : "block"}`);
   if (pct) {
     style.push(`width:${pct}%`, "max-width:100%");
-    if (!wrapper) style.push("height:auto");
+    if (!wrapper) {
+      style.push("height:auto");
+      if (aspect) style.push(aspectCss(aspect));
+    }
   } else if (align && wrapper) {
     style.push("width:fit-content");
   }
@@ -44,6 +71,7 @@ function outerAttrs(align: ImageAlign, wrapper: boolean, pct: number | null) {
   const attrs: Record<string, string> = {};
   if (align) attrs["data-align"] = align;
   if (pct) attrs["data-width-pct"] = String(pct);
+  if (pct && aspect && !wrapper) attrs["data-aspect"] = String(aspect);
   if (style.length) attrs.style = style.join(";");
   return attrs;
 }
@@ -72,6 +100,10 @@ declare module "@tiptap/core" {
     imageWidth: {
       /** Width as % of the container. `null` = back to the original size. */
       setImageWidthPct: (pct: number | null) => ReturnType;
+    };
+    imageSize: {
+      /** Width % AND stretch (`aspect`, null = natural ratio) in ONE undo step. */
+      setImageSize: (pct: number | null, aspect: number | null) => ReturnType;
     };
   }
 }
@@ -102,6 +134,16 @@ export const ImageWithCaption = Image.extend({
         },
         renderHTML: () => ({}), // rendered manually in renderHTML below
       },
+      // Stretch: displayed width / height. null = the picture's own ratio.
+      // Only meaningful together with `widthPct`.
+      aspect: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const n = parseFloat(el.getAttribute("data-aspect") ?? "");
+          return Number.isFinite(n) && n > 0 ? clampImageAspect(n) : null;
+        },
+        renderHTML: () => ({}), // rendered manually in renderHTML below
+      },
     };
   },
 
@@ -129,7 +171,28 @@ export const ImageWithCaption = Image.extend({
             tr.setNodeMarkup(found.pos, undefined, {
               ...found.node.attrs,
               widthPct: pct == null ? null : clampImagePct(pct),
+              // Changing only the width scales the image uniformly: a stretched
+              // image keeps its stretch. "Original size" (null) clears it.
+              aspect: pct == null ? null : (found.node.attrs.aspect ?? null),
               // The old pixel size would fight the percentage.
+              width: null,
+              height: null,
+            });
+            dispatch(tr);
+          }
+          return true;
+        },
+
+      setImageSize:
+        (pct: number | null, aspect: number | null) =>
+        ({ state, tr, dispatch }: any) => {
+          const found = findImage(state);
+          if (!found) return false;
+          if (dispatch) {
+            tr.setNodeMarkup(found.pos, undefined, {
+              ...found.node.attrs,
+              widthPct: pct == null ? null : clampImagePct(pct),
+              aspect: pct == null || aspect == null ? null : clampImageAspect(aspect),
               width: null,
               height: null,
             });
@@ -146,6 +209,7 @@ export const ImageWithCaption = Image.extend({
     const { caption, ...attrs } = HTMLAttributes;
     const align: ImageAlign = node.attrs.align;
     const pct: number | null = node.attrs.widthPct ?? null;
+    const aspect: number | null = pct ? (node.attrs.aspect ?? null) : null;
 
     if (pct) {
       delete attrs.width;
@@ -161,9 +225,12 @@ export const ImageWithCaption = Image.extend({
         attrs,
         caption
           ? pct
-            ? { style: "width:100%;height:auto;display:block" }
+            ? {
+                style: `width:100%;height:auto;display:block${aspect ? ";" + aspectCss(aspect) : ""}`,
+                ...(aspect ? { "data-aspect": String(aspect) } : {}),
+              }
             : {}
-          : outerAttrs(align, false, pct),
+          : outerAttrs(align, false, pct, aspect),
       ),
     ];
     if (!caption) return img;
@@ -206,6 +273,7 @@ export const ImageWithCaption = Image.extend({
         const a = node.attrs;
         const align: ImageAlign = a.align ?? null;
         const pct: number | null = a.widthPct ?? null;
+        const aspect: number | null = pct ? (a.aspect ?? null) : null;
 
         if (img.getAttribute("src") !== a.src) img.setAttribute("src", a.src ?? "");
         a.alt != null ? img.setAttribute("alt", a.alt) : img.removeAttribute("alt");
@@ -230,9 +298,13 @@ export const ImageWithCaption = Image.extend({
           img.removeAttribute("height");
           img.style.width = "100%";
           img.style.height = "auto";
+          img.style.aspectRatio = aspect ? String(aspect) : "";
+          img.style.objectFit = aspect ? "fill" : "";
         } else {
           img.style.width = "";
           img.style.height = "";
+          img.style.aspectRatio = "";
+          img.style.objectFit = "";
           a.width ? img.setAttribute("width", String(a.width)) : img.removeAttribute("width");
           a.height ? img.setAttribute("height", String(a.height)) : img.removeAttribute("height");
         }

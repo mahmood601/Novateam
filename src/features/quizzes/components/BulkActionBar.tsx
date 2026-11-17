@@ -2,6 +2,7 @@ import { createSignal, For, Show } from "solid-js";
 import toast from "solid-toast";
 import { supabase } from "../../shared/services/supabase";
 import type { Section } from "../services/types";
+import { setQuestionsStatus } from "../services/questions";
 import { useUser } from "../../shared/context/user";
 
 export function BulkActionBar(props: {
@@ -13,6 +14,8 @@ export function BulkActionBar(props: {
 }) {
   const { can } = useUser();
   const canMove = () => can("quiz", props.subjectId, "publish");
+  // Publishing needs the same level as moving; Postgres re-checks it anyway.
+  const canPublish = () => can("quiz", props.subjectId, "publish");
   const canDelete = () => can("quiz", props.subjectId, "manage");
 
   const [moving, setMoving] = createSignal(false);
@@ -65,6 +68,42 @@ export function BulkActionBar(props: {
     setShowPanel(false);
   };
 
+  // Bulk publish / unpublish for every selected question (any page, any filter).
+  const handleStatus = async (next: "published" | "pending") => {
+    const ids = [...props.selectedIds];
+    if (
+      next === "pending" &&
+      !confirm(`إلغاء نشر ${ids.length} سؤال؟ ستختفي عن الطلاب.`)
+    ) {
+      return;
+    }
+
+    setMoving(true);
+    const { count: done, error } = await setQuestionsStatus(
+      ids,
+      props.subjectId,
+      next,
+    );
+    setMoving(false);
+
+    if (error) {
+      toast.error("فشل التحديث: " + error);
+      return;
+    }
+    if (done === 0) {
+      toast.error("لا تملك صلاحية على هذه الأسئلة");
+      return;
+    }
+    const verb = next === "published" ? "نُشر" : "أُلغي نشر";
+    if (done < ids.length) {
+      toast.error(`${verb} ${done} من ${ids.length} فقط — لا تملك صلاحية الباقي`);
+    } else {
+      toast.success(`${verb} ${done} سؤال ✅`);
+    }
+    props.onClear();
+    props.onComplete();
+  };
+
   const handleDelete = async () => {
     if (!confirm(`هل تريد حذف ${count()} سؤال محدد؟ لا يمكن التراجع!`)) return;
 
@@ -100,12 +139,28 @@ export function BulkActionBar(props: {
 
   return (
     <div class="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2" dir="rtl">
-      <div class="flex items-center gap-3 rounded-[2rem] bg-slate-900 p-4 text-white shadow-2xl">
+      <div class="flex flex-wrap items-center gap-2 rounded-[2rem] bg-slate-900 p-4 text-white shadow-2xl">
         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-sm font-black">
           {count()}
         </span>
         <span class="flex-1 text-sm font-bold">سؤال محدد</span>
 
+        <Show when={canPublish()}>
+          <button
+            onClick={() => handleStatus("published")}
+            disabled={moving()}
+            class="rounded-xl bg-green-500 px-3 py-2 text-sm font-bold transition hover:bg-green-400 disabled:opacity-50"
+          >
+            نشر ✓
+          </button>
+          <button
+            onClick={() => handleStatus("pending")}
+            disabled={moving()}
+            class="rounded-xl bg-slate-600 px-3 py-2 text-sm font-bold transition hover:bg-slate-500 disabled:opacity-50"
+          >
+            إلغاء النشر
+          </button>
+        </Show>
         <Show when={canMove()}>
           <button
             onClick={() => setShowPanel(!showPanel())}

@@ -8,7 +8,10 @@
 import type { Editor } from "@tiptap/core";
 
 import { addNovaCardNumbers } from "../tiptap/extensions/NovaCards";
+import { addNovaStepNumbers } from "../tiptap/extensions/NovaShapes";
 import { renderDiagramToSvg, sectionColorOf } from "./diagram-renderer";
+import { buildFrontMatterHtml, buildTocFromContent } from "./printFrontMatter";
+import type { CoverData } from "./printFrontMatter";
 import {
   PAGE_BREAK_CSS,
   PAGED_PRINT_CSS_URL,
@@ -20,6 +23,9 @@ export type A4PreviewMeta = {
   headerTitle?: string;
   /** Text of the running footer bar. */
   footerTitle?: string;
+  /** When set, the preview starts with the same cover + table of contents
+   *  pages as the print. */
+  cover?: CoverData & { doctorName: string };
 };
 
 export type A4PreviewHandle = {
@@ -79,10 +85,13 @@ export async function renderA4Pages(
   meta: A4PreviewMeta,
   isStale: () => boolean,
 ): Promise<{ pages: HTMLElement; destroy: () => void } | null> {
-  const parsed = new DOMParser().parseFromString(
-    addNovaCardNumbers(editor.getHTML()),
-    "text/html",
-  );
+  let contentHtml = addNovaStepNumbers(addNovaCardNumbers(editor.getHTML()));
+  let tocRows = "";
+  if (meta.cover) {
+    // Gives every H1 an id and builds the TOC rows (same as the print page).
+    ({ html: contentHtml, tocRows } = buildTocFromContent(contentHtml));
+  }
+  const parsed = new DOMParser().parseFromString(contentHtml, "text/html");
   const blocks = Array.from(parsed.body.children);
   // data-a4-i = index of the top-level editor block (used for click-to-jump).
   blocks.forEach((el, i) => el.setAttribute("data-a4-i", String(i)));
@@ -92,8 +101,28 @@ export async function renderA4Pages(
   article.className = "lecture-body text-black";
   article.append(...blocks);
 
+  // Paged.js duplicates the first pages when the position:running elements
+  // are the very first nodes. A zero-height holder paragraph avoids it.
+  // (Added after the data-a4-i indexing, so the holder has no index.)
+  const holder = document.createElement("p");
+  holder.style.cssText =
+    "margin:0;padding:0;height:0;line-height:0;font-size:0;overflow:hidden";
+  holder.append(...buildRunning(meta));
+  article.prepend(holder);
+
   const fragment = document.createDocumentFragment();
-  fragment.append(...buildRunning(meta), article);
+  if (meta.cover) {
+    const front = new DOMParser().parseFromString(
+      buildFrontMatterHtml(meta.cover, tocRows, meta.cover.doctorName, ""),
+      "text/html",
+    );
+    // The preview is read-only: the cover's editable fields stay plain text.
+    front.body
+      .querySelectorAll("[contenteditable]")
+      .forEach((el) => el.removeAttribute("contenteditable"));
+    fragment.append(...Array.from(front.body.childNodes));
+  }
+  fragment.append(article);
 
   stampPageBreaks(fragment);
   await renderDiagrams(fragment);
@@ -117,11 +146,14 @@ export async function renderA4Pages(
   };
 
   try {
-    await paged.preview(
+    const flow = await paged.preview(
       fragment,
       [PAGED_PRINT_CSS_URL, { "nova-page-break.css": PAGE_BREAK_CSS } as any],
       host,
     );
+    host
+      .querySelectorAll(".footer-pages-count")
+      .forEach((el) => (el.textContent = String(flow.total)));
     const pages = host.querySelector<HTMLElement>(".pagedjs_pages");
     if (!pages || isStale()) {
       destroy();

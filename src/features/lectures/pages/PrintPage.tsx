@@ -12,18 +12,14 @@ export default function PrintPage() {
   const seasonValue = params.season as string;
 
   const [seasons] = createResource(() => getSeasonsFromRemote(subjectId));
-  const seasonIndex = () => {
+  const lectureNumber = () => {
     const list = seasons();
+    
     const targetSeasonId = Number.parseInt(seasonValue ?? "", 10);
 
     if (!list || list.length === 0 || Number.isNaN(targetSeasonId)) return -1;
 
-    return list.findIndex((season) => Number(season.id) === targetSeasonId);
-  };
-
-  const lectureNumber = () => {
-    const index = seasonIndex();
-    return index >= 0 ? index + 1 : undefined;
+    return list.find((season) => Number(season.id) === targetSeasonId)?.value ?? -1;
   };
 
   const [lecture] = createResource(() =>

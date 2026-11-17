@@ -91,6 +91,28 @@ export async function setQuestionStatus(
   return { error: null };
 }
 
+/**
+ * Bulk publish / unpublish. Returns how many rows REALLY changed: RLS skips
+ * rows the admin may not touch without raising an error, so compare the count
+ * with the number of ids you sent.
+ */
+export async function setQuestionsStatus(
+  questionIds: string[],
+  subjectId: string,
+  status: QuestionStatus,
+): Promise<{ count: number; error: string | null }> {
+  if (questionIds.length === 0) return { count: 0, error: null };
+  const { data, error } = await supabase
+    .from("questions")
+    .update({ status })
+    .in("id", questionIds)
+    .eq("subject_id", subjectId)
+    .select("id");
+
+  if (error) return { count: 0, error: error.message };
+  return { count: data?.length ?? 0, error: null };
+}
+
 export async function listQuestions(
   subjectId: string,
   _selectFields: string[],

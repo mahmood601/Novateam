@@ -4,9 +4,13 @@
 // finger and a mouse use ONE code path:
 //
 //  - Tap an image         -> it is selected: 6 handles + a width bar appear.
-//  - Drag any handle      -> resize live. The image keeps its proportions and
-//                            snaps to 25/50/75/100 %. Nothing is written to
-//                            the document until you let go (ONE undo step).
+//  - Drag a CORNER handle -> resize live, keeping the image's proportions
+//                            (the width snaps to 25/50/75/100 %).
+//  - Drag a SIDE handle   -> stretch like Word: left/right change only the
+//                            width, the bottom one only the height. The
+//                            proportions are NOT kept.
+//                            Nothing is written to the document until you let
+//                            go (ONE undo step).
 //  - Width bar            -> type an exact %, use -/+ (5 % steps) or a preset.
 //
 // The saved value is `widthPct`: the image's width as a percentage of its
@@ -23,7 +27,12 @@ import { createEffect, createSignal, For, onCleanup, onMount, Show } from "solid
 import type { Editor } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 
-import { IMAGE_MAX_PCT, IMAGE_MIN_PCT, clampImagePct } from "./ImageWithCaption";
+import {
+  IMAGE_MAX_PCT,
+  IMAGE_MIN_PCT,
+  clampImageAspect,
+  clampImagePct,
+} from "./ImageWithCaption";
 
 type Handle = {
   id: string;
@@ -41,6 +50,9 @@ const HANDLES: Handle[] = [
   { id: "br", x: 1, y: 1, cursor: "nwse-resize" },
   { id: "l", x: -1, y: 0, cursor: "ew-resize" },
   { id: "r", x: 1, y: 0, cursor: "ew-resize" },
+  // Bottom edge: changes the height only. (There is no top handle: an image
+  // sits in the text flow, so its top edge cannot move up.)
+  { id: "b", x: 0, y: 1, cursor: "ns-resize" },
 ];
 
 const PRESETS = [25, 50, 75, 100];
@@ -152,10 +164,17 @@ export default function ImageGripOverlay(props: {
   });
 
   // ── Commit ────────────────────────────────────────────────────────
+  // Width bar (-/+/%/presets) only changes the width: a stretched image keeps
+  // its stretch. A drag commits width AND stretch together.
   const commit = (value: number | null) => {
     const ed = props.editor();
     if (!ed) return;
     ed.commands.setImageWidthPct(value);
+  };
+  const commitSize = (pct: number, aspect: number | null) => {
+    const ed = props.editor();
+    if (!ed) return;
+    ed.commands.setImageSize(pct, aspect);
   };
 
   // ── Drag a handle ─────────────────────────────────────────────────
@@ -172,7 +191,14 @@ export default function ImageGripOverlay(props: {
 
     const startRect = s.img.getBoundingClientRect();
     const startW = startRect.width;
-    const aspect = startRect.height ? startRect.width / startRect.height : 1;
+    const startH = startRect.height;
+    const ratio = startH ? startW / startH : 1;
+    // corner = keep proportions · horizontal = stretch width · vertical = stretch height
+    const mode: "corner" | "horizontal" | "vertical" =
+      h.x !== 0 && h.y !== 0 ? "corner" : h.y === 0 ? "horizontal" : "vertical";
+    const startAspect: number | null = s.sel.node.attrs.aspect ?? null;
+    // width in % the image has right now (used when only the height changes)
+    const startPct = clampImagePct((startW / containerW) * 100);
     const align = (s.sel.node.attrs.align as string | null) ?? null;
     // A centred image grows on BOTH sides, so its edge moves half as fast as
     // the width changes. Doubling keeps the edge under the finger.
@@ -185,7 +211,10 @@ export default function ImageGripOverlay(props: {
     const originalWidthStyle = s.dom.style.width;
     const originalImgWidth = s.img.style.width;
     const originalImgHeight = s.img.style.height;
+    const originalAspectRatio = s.img.style.aspectRatio;
+    const originalObjectFit = s.img.style.objectFit;
     let last: number | null = null;
+    let lastAspect: number | null = startAspect;
     let moved = false;
 
     setDragging(true);
@@ -193,7 +222,7 @@ export default function ImageGripOverlay(props: {
     const widthAt = (ev: PointerEvent) => {
       const dx = (ev.clientX - startX) * h.x;
       // Corners can also be dragged vertically; use whichever way the finger moved most.
-      const dy = (ev.clientY - startY) * h.y * aspect;
+      const dy = (ev.clientY - startY) * h.y * ratio;
       const d = h.y === 0 ? dx : h.x === 0 ? dy : Math.abs(dx) >= Math.abs(dy) ? dx : dy;
       return startW + d * factor;
     };
@@ -203,16 +232,34 @@ export default function ImageGripOverlay(props: {
       moved = true;
       ev.preventDefault();
 
-      let p = clampImagePct((widthAt(ev) / containerW) * 100);
-      for (const preset of PRESETS) if (Math.abs(p - preset) <= SNAP) p = preset;
-      if (p === last) return;
+      let p: number;
+      let a: number | null = startAspect;
+
+      if (mode === "vertical") {
+        // Height only: the width stays, the stretch changes.
+        p = startPct;
+        const newH = Math.max(16, startH + (ev.clientY - startY) * h.y);
+        a = clampImageAspect(((p / 100) * containerW) / newH);
+      } else {
+        p = clampImagePct((widthAt(ev) / containerW) * 100);
+        for (const preset of PRESETS) if (Math.abs(p - preset) <= SNAP) p = preset;
+        // Side handle: the HEIGHT stays as it was, so the ratio changes.
+        // Corner handle: `a` is untouched, so the proportions are kept.
+        if (mode === "horizontal") {
+          a = clampImageAspect(((p / 100) * containerW) / startH);
+        }
+      }
+      if (p === last && a === lastAspect) return;
       last = p;
+      lastAspect = a;
 
       // Live preview straight on the DOM (the node view's own update()
       // restores the saved value when the transaction lands).
       s.dom.style.width = `${p}%`;
       s.img.style.width = "100%"; // an old pixel-sized image must follow too
       s.img.style.height = "auto";
+      s.img.style.aspectRatio = a ? String(a) : "";
+      s.img.style.objectFit = a ? "fill" : "";
       const fresh = selected();
       if (fresh) {
         setImgRect(fresh.img.getBoundingClientRect());
@@ -228,12 +275,14 @@ export default function ImageGripOverlay(props: {
       activeCleanup = null;
       setDragging(false);
 
-      if (apply && moved && last !== null) commit(last);
+      if (apply && moved && last !== null) commitSize(last, lastAspect);
       else {
         // cancelled / just a tap: put everything back
         s.dom.style.width = originalWidthStyle;
         s.img.style.width = originalImgWidth;
         s.img.style.height = originalImgHeight;
+        s.img.style.aspectRatio = originalAspectRatio;
+        s.img.style.objectFit = originalObjectFit;
       }
       recompute();
     };

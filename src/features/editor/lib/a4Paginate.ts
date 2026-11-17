@@ -20,6 +20,7 @@
 import type { Editor } from "@tiptap/core";
 
 import { addNovaCardNumbers } from "../tiptap/extensions/NovaCards";
+import { addNovaStepNumbers } from "../tiptap/extensions/NovaShapes";
 import { renderDiagramToSvg, sectionColorOf } from "./diagram-renderer";
 import {
   PAGE_BREAK_CSS,
@@ -66,7 +67,7 @@ export async function computeA4Breaks(editor: Editor): Promise<A4Break[] | null>
 
   // Same HTML the print page builds from the document.
   const parsed = new DOMParser().parseFromString(
-    addNovaCardNumbers(editor.getHTML()),
+    addNovaStepNumbers(addNovaCardNumbers(editor.getHTML())),
     "text/html",
   );
   const blocks = Array.from(parsed.body.children);
