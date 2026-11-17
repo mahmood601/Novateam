@@ -18,6 +18,7 @@ import {
   NovaSteps,
   NovaSummary,
 } from "./NovaShapes";
+import { NovaBlockStyle } from "./NovaBlockStyle";
 import { NovaHeading } from "./NovaHeadingExtension";
 import { NovaQuiz } from "./NovaQuiz";
 import { NovaPageBreak } from "./NovaPageBreak";
@@ -59,6 +60,7 @@ export const extensionsArr = [
   NovaCase,
   NovaSummary,
   NovaShapeTitleEditor,
+  NovaBlockStyle,
   NovaQuiz,
   NovaPageBreak,
   TextStyleKit.configure({ lineHeight: false }), // color, backgroundColor, fontFamily, fontSize

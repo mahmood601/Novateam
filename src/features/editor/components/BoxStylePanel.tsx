@@ -6,24 +6,54 @@
 // read/write the SAME underlying `style` string (see cssStyleString.ts)
 // — there's no separate state to keep in sync.
 
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, on, Show } from "solid-js";
 import type { Editor } from "@tiptap/core";
-import { parseStyleString, withStyleProp } from "../lib/cssStyleString";
+import {
+  normalizeLength,
+  parseStyleString,
+  withStyleProp,
+} from "../lib/cssStyleString";
+import {
+  setStyleAt,
+  styleTargets,
+} from "../tiptap/extensions/NovaBlockStyle";
 import WordColorPicker from "./WordColorPicker";
 import { previewColor, sectionHexesOf } from "../lib/sectionColors";
 
+// One panel for ANY element (paragraph, heading, list, quote, shape, box...).
+// Every one of them keeps its look in the same `style` string, so the panel
+// only needs to know WHICH element to read/write. The cursor is usually
+// inside several nested ones (paragraph → list item → list → shape), so the
+// chips at the top let the user pick the level to style; by default it is
+// the innermost one.
 export default function BoxStylePanel(props: {
   editor: Editor | null;
   onClose: () => void;
 }) {
+  const targets = () => (props.editor ? styleTargets(props.editor) : []);
+  const [chosenPos, setChosenPos] = createSignal<number | null>(null);
+  const current = () =>
+    targets().find((t) => t.pos === chosenPos()) ?? targets()[0];
+  // Only the free box gets the flex controls: a list or a shape lays out
+  // its own insides, and flex on them would break that.
+  const isBox = () => current()?.name === "novaBox";
+
+  // Moving the cursor into another element starts again from the innermost.
+  createEffect(
+    on(
+      () => targets()[0]?.pos,
+      () => setChosenPos(null),
+      { defer: true },
+    ),
+  );
+
   const [styleText, setStyleText] = createSignal("");
 
   // نحمّل ستايل الصندوق الحالي في كل مرة تنفتح فيها اللوحة (لو تغيّر
   // الصندوق المختار بين فتحة وأخرى)
   createEffect(() => {
     if ( !props.editor) return;
-    const attrs = props.editor.getAttributes("novaBox");
-    setStyleText((attrs.style as string) ?? "");
+    setStyleText(current()?.style ?? "");
   });
 
   const parsed = () => parseStyleString(styleText());
@@ -35,11 +65,38 @@ export default function BoxStylePanel(props: {
 
   const commit = (next: string) => {
     setStyleText(next);
-    props.editor?.chain().focus().updateBoxStyle(next).run();
+    const t = current();
+    if (props.editor && t) setStyleAt(props.editor, t.pos, next);
   };
 
   const setProp = (prop: string, value: string) =>
     commit(withStyleProp(styleText(), prop, value));
+
+  // Sizes: "300" means 300px; "50%", "12rem", "auto" are kept as typed.
+  const setLength = (prop: string, value: string) =>
+    setProp(prop, normalizeLength(value));
+
+  // Alignment of a box that is narrower than its parent. Written with
+  // logical margins (inline-start/end) so it follows the page direction:
+  // in this RTL document "start" is the right edge.
+  const alignValue = () => {
+    const p = parsed();
+    if (p["margin-inline-start"] === "auto" && p["margin-inline-end"] === "auto")
+      return "center";
+    if (p["margin-inline-start"] === "auto") return "end";
+    return "";
+  };
+  const setAlign = (v: string) => {
+    let next = withStyleProp(styleText(), "margin-inline-start", "");
+    next = withStyleProp(next, "margin-inline-end", "");
+    if (v === "center") {
+      next = withStyleProp(next, "margin-inline-start", "auto");
+      next = withStyleProp(next, "margin-inline-end", "auto");
+    } else if (v === "end") {
+      next = withStyleProp(next, "margin-inline-start", "auto");
+    }
+    commit(next);
+  };
 
   // Border color needs a visible border to mean anything: if the box has
   // no border yet, give it a thin solid one when a color is picked.
@@ -72,7 +129,94 @@ export default function BoxStylePanel(props: {
           class="dark:bg-lighter-dark-1 w-full max-w-md rounded-t-3xl bg-white p-4 pb-6 max-h-[80vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          <p class="mb-3 text-sm font-bold dark:text-white">تنسيق الصندوق</p>
+          <p class="mb-2 text-sm font-bold dark:text-white">تنسيق العنصر</p>
+
+          {/* أي مستوى تريد تنسيقه؟ (الأعلى ← الأعمق) */}
+          <Show when={targets().length > 1}>
+            <div class="mb-3 flex flex-wrap items-center gap-1.5">
+              <For each={[...targets()].reverse()}>
+                {(t, i) => (
+                  <>
+                    <Show when={i() > 0}>
+                      <span class="text-[11px] text-gray-400">›</span>
+                    </Show>
+                    <button
+                      type="button"
+                      class="min-h-8 touch-manipulation rounded-full border px-3 text-[11px] font-bold dark:border-gray-600 dark:text-gray-200"
+                      classList={{
+                        "bg-darker-light-1 dark:bg-lighter-dark-2":
+                          t.pos === current()?.pos,
+                      }}
+                      onClick={() => setChosenPos(t.pos)}
+                    >
+                      {t.label}
+                    </button>
+                  </>
+                )}
+              </For>
+            </div>
+          </Show>
+
+          {/* الحجم: العرض والارتفاع */}
+          <div class="mb-1 flex flex-wrap gap-1.5">
+            <For each={["25%", "50%", "75%", "100%"]}>
+              {(w) => (
+                <button
+                  type="button"
+                  class="min-h-8 touch-manipulation rounded-full border px-3 text-[11px] font-bold dark:border-gray-600 dark:text-gray-200"
+                  classList={{
+                    "bg-darker-light-1 dark:bg-lighter-dark-2":
+                      parsed()["width"] === w,
+                  }}
+                  onClick={() => setProp("width", w === "100%" ? "" : w)}
+                >
+                  عرض {w}
+                </button>
+              )}
+            </For>
+          </div>
+          <div class="mb-3 grid grid-cols-2 gap-3">
+            <Field label="العرض (Width)">
+              <input
+                type="text"
+                placeholder="auto"
+                value={parsed()["width"] ?? ""}
+                onChange={(e) => setLength("width", e.currentTarget.value)}
+                class="dark:bg-lighter-dark-2 w-full rounded-lg border px-2 py-1.5 text-xs dark:border-gray-600"
+                dir="ltr"
+              />
+            </Field>
+            <Field label="الارتفاع (Height)">
+              <input
+                type="text"
+                placeholder="auto"
+                value={parsed()["height"] ?? ""}
+                onChange={(e) => setLength("height", e.currentTarget.value)}
+                class="dark:bg-lighter-dark-2 w-full rounded-lg border px-2 py-1.5 text-xs dark:border-gray-600"
+                dir="ltr"
+              />
+            </Field>
+            <Field label="أقل ارتفاع (Min height)">
+              <input
+                type="text"
+                placeholder="0"
+                value={parsed()["min-height"] ?? ""}
+                onChange={(e) => setLength("min-height", e.currentTarget.value)}
+                class="dark:bg-lighter-dark-2 w-full rounded-lg border px-2 py-1.5 text-xs dark:border-gray-600"
+                dir="ltr"
+              />
+            </Field>
+            <SelectField
+              label="موضع الصندوق"
+              value={alignValue()}
+              options={[
+                ["", "افتراضي"],
+                ["center", "الوسط"],
+                ["end", "النهاية"],
+              ]}
+              onChange={setAlign}
+            />
+          </div>
 
           {/* ألوان — Word-style palette, one field open at a time */}
           <div class="mb-3 flex flex-col gap-1">
@@ -124,7 +268,7 @@ export default function BoxStylePanel(props: {
                 type="text"
                 placeholder="8px"
                 value={parsed()["padding"] ?? ""}
-                onChange={(e) => setProp("padding", e.currentTarget.value)}
+                onChange={(e) => setLength("padding", e.currentTarget.value)}
                 class="dark:bg-lighter-dark-2 w-full rounded-lg border px-2 py-1.5 text-xs dark:border-gray-600"
                 dir="ltr"
               />
@@ -139,9 +283,20 @@ export default function BoxStylePanel(props: {
                 dir="ltr"
               />
             </Field>
+            <Field label="استدارة الزوايا (Radius)">
+              <input
+                type="text"
+                placeholder="10px"
+                value={parsed()["border-radius"] ?? ""}
+                onChange={(e) => setLength("border-radius", e.currentTarget.value)}
+                class="dark:bg-lighter-dark-2 w-full rounded-lg border px-2 py-1.5 text-xs dark:border-gray-600"
+                dir="ltr"
+              />
+            </Field>
           </div>
 
-          {/* Flex */}
+          {/* Flex — only for the free box */}
+          <Show when={isBox()}>
           <label class="mb-2 flex items-center gap-2 text-xs font-bold dark:text-gray-200">
             <input
               type="checkbox"
@@ -152,8 +307,9 @@ export default function BoxStylePanel(props: {
             />
             عرض العناصر الداخلية بجانب بعض (flex)
           </label>
+          </Show>
 
-          <Show when={isFlex()}>
+          <Show when={isBox() && isFlex()}>
             <div class="mb-3 grid grid-cols-2 gap-3">
               <SelectField
                 label="الاتجاه"

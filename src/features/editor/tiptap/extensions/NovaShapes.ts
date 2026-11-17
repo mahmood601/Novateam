@@ -524,3 +524,9 @@ export const NovaShapeTitleEditor = Extension.create({
     ];
   },
 });
+
+/** Node names of every shape plus the note callout (used by NovaBlockStyle). */
+export const SHAPE_NODE_NAMES: string[] = Array.from(SHAPE_BY_NODE.keys());
+/** Arabic label of a shape/note node name, or undefined. */
+export const shapeLabelOf = (node: string): string | undefined =>
+  SHAPE_BY_NODE.get(node)?.label;

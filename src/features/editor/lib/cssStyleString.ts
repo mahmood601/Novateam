@@ -39,3 +39,11 @@ export function withStyleProp(
   else delete obj[prop];
   return stringifyStyle(obj);
 }
+
+// A bare number typed in a size field ("300") means pixels. Anything that
+// already has a unit or keyword ("50%", "12rem", "auto", "calc(...)") is
+// kept exactly as typed.
+export function normalizeLength(value: string): string {
+  const v = value.trim();
+  return /^-?\d+(\.\d+)?$/.test(v) && v !== "0" ? `${v}px` : v;
+}

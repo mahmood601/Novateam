@@ -55,6 +55,7 @@ import type {
   CellBorderWidth,
 } from "../tiptap/extensions/table/TableCellAttributes";
 import BoxStylePanel from "./BoxStylePanel";
+import { styleTargets } from "../tiptap/extensions/NovaBlockStyle";
 import WordColorPicker from "./WordColorPicker";
 import { previewColor, sectionHexesOf } from "../lib/sectionColors";
 
@@ -66,7 +67,7 @@ type PanelId =
   | "textBackground"
   | "highlight"
   | "tableFormat"
-  | "boxFormat";
+  | "elementFormat";
 
 type TableScope = "selected" | "table";
 
@@ -107,7 +108,7 @@ const LEAF_TITLES: Record<Exclude<PanelId, "root">, string> = {
   textBackground: "لون خلفية النص",
   highlight: "التظليل",
   tableFormat: "تنسيق الجدول",
-  boxFormat: "تنسيق الصندوق",
+  elementFormat: "تنسيق العنصر",
 };
 
 export default function FormatSheet(props: {
@@ -180,7 +181,12 @@ export default function FormatSheet(props: {
 
   const isInTable = () => ed()?.isActive("table") ?? false;
 
-  const isInBox = () => ed()?.isActive("novaBox") ?? false;
+  // Any element around the cursor (paragraph, list, shape, box...) can be
+  // formatted from the same panel.
+  const hasElement = () => {
+    const e = ed();
+    return e ? styleTargets(e).length > 0 : false;
+  };
 
   // Reads whichever cell type (data cell or header cell) the selection is
   // currently anchored in — same fallback getAttributes needs since the
@@ -355,13 +361,13 @@ export default function FormatSheet(props: {
                 onClick={() => setPanel("tableFormat")}
               />
             </Show>
-            <Show when={isInBox()}>
+            <Show when={hasElement()}>
               <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
               <FormatRow
                 icon={PaintBucket}
-                label="تنسيق الصندوق"
-                trailingLabel="الخلفية والحدود"
-                onClick={() => setPanel("boxFormat")}
+                label="تنسيق العنصر"
+                trailingLabel="العرض والارتفاع والألوان"
+                onClick={() => setPanel("elementFormat")}
               />
             </Show>
             <div class="border-darker-light-2 dark:border-lighter-dark-2 my-1 border-t" />
@@ -466,7 +472,7 @@ export default function FormatSheet(props: {
                   />
                 </Match>
 
-                <Match when={panel() === "boxFormat"}>
+                <Match when={panel() === "elementFormat"}>
                   <BoxStylePanel
                     editor={ed()!}
                     onClose={() => void setBoxPanelOpen(false)}
