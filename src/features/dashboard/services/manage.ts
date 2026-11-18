@@ -22,6 +22,8 @@ export type SectionRow = {
 export type Result = { ok: true } | { ok: false; error: string };
 
 const fail = (error: string): Result => ({ ok: false, error });
+const normalizeText = (value: unknown): string =>
+  value == null ? "" : String(value).trim();
 
 // Subject id is used as a URL slug and as a foreign key in 5 tables
 export const SUBJECT_ID_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -56,7 +58,10 @@ export async function listSections(subjectId: string): Promise<SectionRow[]> {
     .order("type")
     .order("value");
   if (error) throw new Error(error.message);
-  return (data ?? []) as SectionRow[];
+  return (data ?? []).map((row) => ({
+    ...row,
+    value: normalizeText(row.value),
+  })) as SectionRow[];
 }
 
 // ─── Usage counting (used to block deletes) ───────────────────────────────────
@@ -199,14 +204,16 @@ export async function deleteSubject(id: string): Promise<Result> {
 export async function createSection(
   s: Omit<SectionRow, "id">,
 ): Promise<Result> {
-  if (!s.name.trim() || !s.value.trim()) return fail("الاسم والقيمة مطلوبان");
-  if (!/^\d+$/.test(s.value.trim())) return fail("القيمة يجب أن تكون رقماً");
+  const name = normalizeText(s.name);
+  const value = normalizeText(s.value);
+  if (!name || !value) return fail("الاسم والقيمة مطلوبان");
+  if (!/^\d+$/.test(value)) return fail("القيمة يجب أن تكون رقماً");
 
   const { error } = await supabase.from("sections").insert({
     subject_id: s.subject_id,
     type: s.type,
-    value: s.value.trim(),
-    name: s.name.trim(),
+    value,
+    name,
   });
   if (error) return fail(error.message);
   await db.sections.where("subject_id").equals(s.subject_id).delete();
@@ -217,15 +224,17 @@ export async function updateSection(
   id: number,
   patch: Pick<SectionRow, "type" | "value" | "name">,
 ): Promise<Result> {
-  if (!patch.name.trim() || !patch.value.trim()) return fail("الاسم والقيمة مطلوبان");
-  if (!/^\d+$/.test(patch.value.trim())) return fail("القيمة يجب أن تكون رقماً");
+  const name = normalizeText(patch.name);
+  const value = normalizeText(patch.value);
+  if (!name || !value) return fail("الاسم والقيمة مطلوبان");
+  if (!/^\d+$/.test(value)) return fail("القيمة يجب أن تكون رقماً");
 
   const { data, error } = await supabase
     .from("sections")
     .update({
       type: patch.type,
-      value: patch.value.trim(),
-      name: patch.name.trim(),
+      value,
+      name,
     })
     .eq("id", id)
     .select("id");
