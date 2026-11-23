@@ -6,7 +6,7 @@
 // Colors: Pele paints charts with --pele-series-1..8. We feed those from
 // the Nova heading cycle (rose, orange, blue, green, yellow, purple, pink)
 // so diagrams use exactly the same colors as the section headings.
-import { render } from "pele";
+import { mount, render } from "pele";
 import { NOVA_COLOR_CYCLE, type NovaColor } from "../types/novaAst";
 import { NOVA_COLOR_HEX } from "./novaColors";
 
@@ -69,7 +69,10 @@ export async function renderDiagramToSvg(
 
   try {
     // Pele's render() returns an object ({ svg, ... }), not a string.
-    const result: unknown = render(src);
+    const result: unknown = render(src, {
+      maxWidth: window.innerWidth,
+      padding: 24,
+    });
     const svg =
       typeof result === "string" ? result : (result as { svg?: string })?.svg;
     if (!svg) throw new Error("empty diagram");
@@ -98,11 +101,19 @@ export async function renderAllDiagramsInContainer(
       element.getAttribute("data-content") || element.textContent || "";
     if (code.trim() === "") continue;
 
-    element.innerHTML = await renderDiagramToSvg(
-      code,
-      forPrint,
-      sectionColorOf(element),
-    );
+    if (forPrint) {
+      element.innerHTML = await renderDiagramToSvg(
+        code,
+        forPrint,
+        sectionColorOf(element),
+      );
+    } else {
+      element.innerHTML = `<div class="pele" dir="rtl" style="${peleTheme(sectionColorOf(element))}"></div>`;
+      const pele = element.querySelector<HTMLElement>(".pele");
+      if (pele) {
+        mount(pele, code, { zoom: false, padding: 24 });
+      }
+    }
     element.classList.add("diagram-rendered");
   }
 }

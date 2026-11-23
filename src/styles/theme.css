@@ -84,7 +84,6 @@
   display: block;
   max-width: 100%;
   margin-inline: auto;
-  direction: rtl;
   unicode-bidi: plaintext;
 }
 .pele svg {
@@ -99,15 +98,6 @@
   line-height: 1;
   direction: rtl;
   unicode-bidi: plaintext;
-  text-align: right;
+  text-align: center !important;
 }
-.pele-print svg { max-width: 100%; }
 
-
-.lecture-content {
-  .pele svg text,
-.pele svg tspan {
-  line-height: .8;
-  font-size: .75rem;
-}
-}
