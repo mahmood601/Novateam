@@ -11,24 +11,6 @@ import { useUser } from "../../shared/context/user";
 import toast from "solid-toast";
 import { ClipboardPen } from "lucide-solid";
 
-const TELEGRAM_TOKEN = import.meta.env.VITE_TELEGRAM_TOKEN ?? "";
-const TELEGRAM_CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID ?? "";
-
-async function sendTelegramNotification(text: string) {
-  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return;
-  try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-      }),
-    });
-  } catch {}
-}
-
 export default function SuggestSection(props: {
   questionId: string;
   subject: string;
@@ -74,14 +56,18 @@ export default function SuggestSection(props: {
       .eq("id", authUser.id)
       .single();
 
-    const { error } = await supabase.from("question_suggestions").insert({
-      question_id: props.questionId,
-      suggested_by: authUser.id,
-      current_season_id: props.currentSeasonId,
-      suggested_season_id: selected(),
-      subject_id: props.subject,
-      note: note() || null,
-    });
+const { data: inserted, error } = await supabase
+  .from("question_suggestions")
+  .insert({
+    question_id: props.questionId,
+    suggested_by: authUser.id,
+    current_season_id: props.currentSeasonId,
+    suggested_season_id: selected(),
+    subject_id: props.subject,
+    note: note() || null,
+  })
+  .select("id")
+  .single();
 
     setSubmitting(false);
 
@@ -91,25 +77,16 @@ export default function SuggestSection(props: {
       setDone(true);
       toast.success("تم إرسال اقتراحك ✓");
 
-      const msg = [
-        `💡 <b>اقتراح تصنيف جديد</b>`,
-        ``,
-        `📚 <b>المادة:</b> ${props.subject}`,
-        ``,
-        `❓ <b>السؤال:</b>`,
-        `${props.questionText ?? "—"}`,
-        ``,
-        `🔄 <b>من:</b> ${getSeasonName(props.currentSeasonId)}`,
-        `✅ <b>إلى:</b> ${getSeasonName(selected())}`,
-        ``,
-        note() ? `💬 <b>ملاحظة:</b> ${note()}` : null,
-        ``,
-        `👤 <b>بواسطة:</b> ${profile?.name ?? "مجهول"}`,
-      ]
-        .filter(Boolean)
-        .join("\n");
-
-      await sendTelegramNotification(msg);
+      supabase.functions
+        .invoke("notify-suggestion", {
+          body: {
+            suggestionId: inserted.id,
+            questionText: (props.questionText ?? "").slice(0, 600),
+            fromSeason: getSeasonName(props.currentSeasonId),
+            toSeason: getSeasonName(selected()),
+          },
+        })
+        .catch(() => {});
       setTimeout(() => setOpen(false), 1500);
     }
   };
@@ -133,7 +110,7 @@ export default function SuggestSection(props: {
         />
 
         <div
-          class="fixed right-0 bottom-0 left-0 z-[401] rounded-t-3xl bg-surface-light p-5 shadow-2xl dark:bg-base-dark"
+          class="bg-surface-light dark:bg-base-dark fixed right-0 bottom-0 left-0 z-[401] rounded-t-3xl p-5 shadow-2xl"
           dir="rtl"
         >
           <div class="mb-4 flex items-center justify-between">
@@ -149,28 +126,30 @@ export default function SuggestSection(props: {
             <div class="flex flex-col items-center gap-3 py-6">
               <span class="text-4xl">✅</span>
               <p class="font-bold">شكراً على مساهمتك!</p>
-              <p class="text-sm text-ink-muted-light">سيراجع الفريق اقتراحك قريباً</p>
+              <p class="text-ink-muted-light text-sm">
+                سيراجع الفريق اقتراحك قريباً
+              </p>
             </div>
           </Show>
 
           <Show when={!done()}>
             {/* الفصل الحالي */}
             <Show when={props.currentSeasonId}>
-              <p class="mb-2 text-xs text-ink-muted-light">
+              <p class="text-ink-muted-light mb-2 text-xs">
                 الفصل الحالي:{" "}
-                <span class="font-bold text-ink-soft-light dark:text-ink-soft-dark">
+                <span class="text-ink-soft-light dark:text-ink-soft-dark font-bold">
                   {getSeasonName(props.currentSeasonId)}
                 </span>
               </p>
             </Show>
 
-            <p class="mb-3 text-xs text-ink-muted-light">
+            <p class="text-ink-muted-light mb-3 text-xs">
               اختر الفصل/المحاضرة الصحيحة:
             </p>
 
             <div class="mb-4 max-h-52 space-y-2 overflow-y-auto">
               <Show when={seasons.loading}>
-                <p class="text-center text-sm text-ink-muted-light">
+                <p class="text-ink-muted-light text-center text-sm">
                   جاري التحميل...
                 </p>
               </Show>
@@ -194,7 +173,7 @@ export default function SuggestSection(props: {
               value={note()}
               onInput={(e) => setNote(e.currentTarget.value)}
               placeholder="ملاحظة إضافية (اختياري)..."
-              class="mb-4 w-full resize-none rounded-xl bg-base-light px-3 py-2 text-sm outline-none dark:bg-surface-dark"
+              class="bg-base-light dark:bg-surface-dark mb-4 w-full resize-none rounded-xl px-3 py-2 text-sm outline-none"
               rows="2"
               dir="rtl"
             />

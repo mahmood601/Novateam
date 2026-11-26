@@ -16,6 +16,8 @@ export type GeminiResult =
       userLimit?: boolean;
     };
 
+class NovaLimitError extends Error {}
+
 // ─── استدعاء الـ Supabase Edge Function (المفتاح مخفي في السيرفر) ───────────
 
 async function callGeminiViaEdge(
@@ -26,6 +28,13 @@ async function callGeminiViaEdge(
   const { data, error } = await supabase.functions.invoke("gemini-proxy", {
     body: { systemContext, history, userText },
   });
+
+  if (error) {
+    const res = (error as any).context as Response | undefined;
+    if (res?.status === 429) throw new NovaLimitError();
+    const body = await res?.json().catch(() => null);
+    throw new Error(body?.error ?? error.message ?? "حدث خطأ غير معروف");
+  }
 
   if (error) {
     console.error("❌ Gemini Edge Error:", error);
@@ -50,14 +59,17 @@ export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 export function getSelectedGeminiModel(): string {
   try {
-    return localStorage.getItem(GEMINI_MODEL_STORAGE_KEY) || DEFAULT_GEMINI_MODEL;
+    return (
+      localStorage.getItem(GEMINI_MODEL_STORAGE_KEY) || DEFAULT_GEMINI_MODEL
+    );
   } catch {
     return DEFAULT_GEMINI_MODEL;
   }
 }
 
 // نماذج لا تصلح للمحادثة النصية (صور/صوت/تضمين...) نخفيها من القائمة
-const NON_CHAT_MODEL = /tts|image|imagen|embedding|live|audio|robotics|computer-use|aqa|veo/i;
+const NON_CHAT_MODEL =
+  /tts|image|imagen|embedding|live|audio|robotics|computer-use|aqa|veo/i;
 
 /** يجلب النماذج المتاحة لمفتاح المستخدم (التي تدعم generateContent). */
 export async function listGeminiModels(apiKey: string): Promise<string[]> {
@@ -171,50 +183,6 @@ async function checkNovaUsage(): Promise<GeminiResult | null> {
   }
 }
 
-async function incrementNovaUsage(): Promise<GeminiResult | null> {
-  try {
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError) console.error("❌ Supabase Auth Error:", authError);
-
-    const { data, error } = await supabase.rpc("increment_ai_usage", {
-      p_user_id: user!.id,
-    });
-
-    if (error) {
-      console.error("❌ Supabase RPC Error:", error);
-      return {
-        ok: false,
-        reason: "error",
-        message: "خطأ في الاتصال بقاعدة البيانات",
-        userLimit: false,
-      };
-    }
-
-    if (!data.allowed) {
-      return {
-        ok: false,
-        reason: "nova_depleted",
-        message: data.reason,
-        userLimit: data.reason === "user_limit",
-      };
-    }
-
-    return null;
-  } catch (err) {
-    console.error("❌ Unknown Usage Check Error:", err);
-    return {
-      ok: false,
-      reason: "error",
-      message: "حدث خطأ أثناء التحقق من الرصيد",
-      userLimit: false,
-    };
-  }
-}
-
 // ─── الدالة الرئيسية ──────────────────────────────────────────────────────────
 
 export async function sendToGemini(
@@ -247,15 +215,21 @@ export async function sendToGemini(
   }
 
   // نوفا Key — عبر Edge Function آمنة
-const check= await checkNovaUsage();
+  const check = await checkNovaUsage();
   if (check !== null) return check;
 
   try {
     const text = await callGeminiViaEdge(systemContext, history, userText);
 
-    await incrementNovaUsage();
     return { ok: true, text };
   } catch (e: any) {
+    if (e instanceof NovaLimitError)
+      return {
+        ok: false,
+        reason: "nova_depleted",
+        message: "لقد استنفدت الحد اليومي من الاستخدام",
+        userLimit: true,
+      };
     return {
       ok: false,
       reason: "error",
