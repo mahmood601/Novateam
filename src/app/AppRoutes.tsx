@@ -108,7 +108,6 @@ export default function AppRoutes() {
     <>
       {/* ========== صفحات عامة (بدون تسجيل) ========== */}
       <Route path="/landing" component={LandingRoute} />
-      <Route path="/login" component={Login} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/privacy" component={Privacy} />
 

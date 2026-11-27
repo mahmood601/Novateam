@@ -157,7 +157,7 @@ export default function InstallPrompt() {
           </div>
         );
       },
-      { id: INSTALL_TOAST_ID, duration: Infinity, position: "bottom-center" },
+      { id: INSTALL_TOAST_ID, duration: 12_000, position: "bottom-center" },
     );
   };
 
