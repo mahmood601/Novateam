@@ -15,6 +15,7 @@ import { applyDarkColorsDom } from "@/features/editor/lib/darkColors";
 import { highlightInLecture } from "../lib/lectureHighlight";
 import LectureRender from "../../shared/components/LectureRender/LectureRender";
 import LectureNotes from "./LectureNotes";
+import { sanitizeHtml } from "@/features/shared/lib/sanitizeHtml";
 
 interface Props {
   subjectId: string;
@@ -120,7 +121,7 @@ export default function LectureContent(props: Props) {
     // no wiping of the TOC) until the HTML arrives.
     if (!rendered && (building() || buildError())) return;
 
-    el.innerHTML = rendered;
+    el.innerHTML = sanitizeHtml(rendered);
     // Fixed colors stored in the lecture get a dark-mode counterpart (dark only).
     applyDarkColorsDom(el);
 

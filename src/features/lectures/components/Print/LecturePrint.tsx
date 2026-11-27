@@ -16,6 +16,7 @@ import {
   buildFrontMatterHtml,
   buildTocFromContent,
 } from "@/features/editor/lib/printFrontMatter";
+import { escapeHtml, sanitizeHtml } from "@/features/shared/lib/sanitizeHtml";
 
 interface Props {
   subjectName: string;
@@ -213,7 +214,7 @@ export default function LecturePrint(props: Props) {
 
   onMount(async () => {
     // 1. تحويل Markdown عبر نفس محرك Tiptap يلي بمحرر المراجعة
-    const rawHtml = await jsonToPrintHtml(props.content);
+    const rawHtml = sanitizeHtml(await jsonToPrintHtml(props.content));
 
     // 2. توليد جدول المحتويات + id لكل h1 — مرة وحدة بس، محفوظة
     //    بمتغيّرات الclosure فوق، ومو معاد حسابها بكل renderDocument
@@ -272,7 +273,7 @@ function buildDocument(
     <div class="running-header">
     <div class="header-flex-content">
           <img src="/print/image1.png" alt="" />
-      <div class="title-bar" dir="rtl">${data.subjectName}</div>
+      <div class="title-bar" dir="rtl">${escapeHtml(data.subjectName)}</div>
     </div>
     </div>
 
@@ -280,7 +281,7 @@ function buildDocument(
         <div class="footer-flex-content">
       <div class="number"></div>
       <div class="info-bar" dir="rtl">
-        ${data.lectureNumber || ""}. ${data.lectureTitle} - د. ${doctorName} – السنة ${data.year}ة الفصل ${data.semester}
+        ${escapeHtml(data.lectureNumber || "")}. ${escapeHtml(data.lectureTitle)} - د. ${escapeHtml(doctorName)} – السنة ${escapeHtml(data.year)}ة الفصل ${escapeHtml(data.semester)}
       </div>
     </div>
 

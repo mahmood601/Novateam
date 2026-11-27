@@ -1,4 +1,5 @@
 import '@/features/shared/styles/designTokens.css';
+import { sanitizeHtml } from "@/features/shared/lib/sanitizeHtml";
 
 interface Props {
   html: string;
@@ -12,7 +13,7 @@ export default function LectureRender(props: Props) {
   return (
     <div
       dir='rtl'
-      innerHTML={props.html}
+      innerHTML={sanitizeHtml(props.html)}
       ref={props.ref}
     ></div>
   );

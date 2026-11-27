@@ -1,5 +1,6 @@
 // Cover page + table of contents, shared by the print page (LecturePrint.tsx)
 // and the editor's A4 preview (a4Preview.ts) so both look exactly the same.
+import { escapeHtml } from "@/features/shared/lib/sanitizeHtml";
 
 export interface CoverData {
   subjectName: string;
@@ -40,8 +41,8 @@ export function buildTocFromContent(html: string): { html: string; tocRows: stri
 
     rows.push(`
       <tr>
-        <td class="toc-page"><a class="toc-page-num" href="#${id}"></a></td>
-        <td dir="rtl" class="toc-title"><a href="#${id}">${text}</a></td>
+        <td class="toc-page"><a class="toc-page-num" href="#${escapeHtml(id)}"></a></td>
+        <td dir="rtl" class="toc-title"><a href="#${escapeHtml(id)}">${escapeHtml(text)}</a></td>
       </tr>
     `);
   });
@@ -70,8 +71,8 @@ export function buildFrontMatterHtml(
       </div>
 
       <div>
-        <img src="/subjectsIcons/${data.subjectId}.webp" class="cover-circle"/>
-        <div class="cover-lecture-title">${data.subjectName}</div>
+        <img src="/subjectsIcons/${escapeHtml(encodeURIComponent(data.subjectId))}.webp" class="cover-circle"/>
+        <div class="cover-lecture-title">${escapeHtml(data.subjectName)}</div>
       </div>
 
       <div class="cover-footer">
@@ -81,9 +82,9 @@ export function buildFrontMatterHtml(
             <span class="footer-pages-count"></span>
           </div>
           <ul class="footer-info" dir="rtl">
-            <li>${data.lectureNumber || ""}. ${data.lectureTitle}</li>
-            <li>د. <span contenteditable="true" data-field="doctorName">${doctorName}</span></li>
-            <li>السنة ${data.year}ة – الفصل ${data.semester}</li>
+            <li>${escapeHtml(data.lectureNumber || "")}. ${escapeHtml(data.lectureTitle)}</li>
+            <li>د. <span contenteditable="true" data-field="doctorName">${escapeHtml(doctorName)}</span></li>
+            <li>السنة ${escapeHtml(data.year)}ة – الفصل ${escapeHtml(data.semester)}</li>
           </ul>
         </div>
       </div>
@@ -92,7 +93,7 @@ export function buildFrontMatterHtml(
     <!-- جدول المحتويات -->
     <section class="toc">
       <div class="container">
-        <div class="table-header">${data.lectureTitle}</div>
+        <div class="table-header">${escapeHtml(data.lectureTitle)}</div>
         <div class="toc-box">
           <div
             class="description"
@@ -100,7 +101,7 @@ export function buildFrontMatterHtml(
             data-field="description"
             data-placeholder="اكتب وصفاً مختصراً للمحاضرة هنا..."
             dir="rtl"
-          >${description}</div>
+          >${escapeHtml(description)}</div>
           <table>
             <tr>
               <th>الصفحة</th>

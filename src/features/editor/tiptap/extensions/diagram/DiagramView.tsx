@@ -9,6 +9,7 @@ import {
 import { NodeViewWrapper } from "tiptap-solid";
 import type { DiagramNodeViewProps } from "./types";
 import { renderDiagramToSvg } from "@/features/editor/lib/diagram-renderer";
+import { escapeHtml } from "@/features/shared/lib/sanitizeHtml";
 
 const DiagramView: Component<DiagramNodeViewProps> = (props) => {
   const [isEditing, setIsEditing] = createSignal(false);
@@ -47,7 +48,7 @@ const DiagramView: Component<DiagramNodeViewProps> = (props) => {
             font-size: 13px;
             white-space: pre-wrap;
             overflow-x: auto;
-          ">${code}</pre>
+          ">${escapeHtml(code)}</pre>
         `;
       }
     } finally {

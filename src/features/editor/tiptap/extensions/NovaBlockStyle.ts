@@ -22,6 +22,7 @@
 import { Extension, type Editor } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { SHAPE_NODE_NAMES, shapeLabelOf } from "./NovaShapes";
+import { cleanStyleString } from "@/features/shared/lib/sanitizeHtml";
 
 const PLAIN_BLOCKS = [
   "paragraph",
@@ -118,12 +119,13 @@ export const NovaBlockStyle = Extension.create({
         attributes: {
           style: {
             default: "",
+            // نظّف عند القراءة (لصق/HTML مخزَّن) وعند الكتابة: لا url() ولا fixed ولا غيرها
             parseHTML: (element: HTMLElement) =>
-              element.getAttribute("data-nova-style") || "",
-            renderHTML: (attrs: { style?: string }) =>
-              attrs.style
-                ? { style: attrs.style, "data-nova-style": attrs.style }
-                : {},
+              cleanStyleString(element.getAttribute("data-nova-style") || ""),
+            renderHTML: (attrs: { style?: string }) => {
+              const style = cleanStyleString(attrs.style ?? "");
+              return style ? { style, "data-nova-style": style } : {};
+            },
           },
         },
       },
