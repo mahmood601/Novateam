@@ -171,12 +171,17 @@ export function UserProvider(props: any) {
       provider: provider as any,
       options: {
         redirectTo: `${location.origin}/`,
-        scopes: "email profile openid",
+        // جوجل يحتاج هذه النطاقات. مزوّد تلجرام يحدّد نطاقاته (openid profile) في لوحة Supabase،
+        // وطلب "email" منه يرفضه Telegram لأنه لا يملك هذا النطاق.
+        ...(provider === "google" ? { scopes: "email profile openid" } : {}),
         skipBrowserRedirect: true, // ← لا تحوّل الـ tab الحالي
       },
     });
 
-    if (error || !data.url) return;
+    if (error || !data.url) {
+      console.error("login failed:", provider, error); // كان الفشل صامتًا فيصعب تشخيص إعداد مزوّد جديد
+      return;
+    }
 
     // افتح Google في popup منفصل — لا يُلوّث الـ history
     const popup = window.open(

@@ -1,8 +1,12 @@
-import { createEffect, onCleanup, onMount } from "solid-js";
+import { createEffect, onCleanup, onMount, Show } from "solid-js";
 import { useUser } from "../context/user";
 import { useNavigate } from "@solidjs/router";
 
 export default function Login() {
+  // طرح تدريجي: زر تلجرام لا يظهر للطلاب حتى يكتمل اختباره. افتح /login?tg=1 لتراه.
+  // عند الجاهزية احذف هذا السطر واحذف <Show> حول الزر.
+  const showTelegram = new URLSearchParams(location.search).has("tg");
+
   onMount(() => {
     document.body.classList.add("bg-brown/80");
     onCleanup(() => {
@@ -23,6 +27,13 @@ export default function Login() {
             provider={"google"}
             imageSrc="/app/google.svg"
           />
+          <Show when={showTelegram}>
+            <Oauth
+              name="Telegram"
+              provider={"custom:telegram"}
+              imageSrc="/app/telegram.svg"
+            />
+          </Show>
         </div>
       </div>
     </div>
